@@ -5,8 +5,9 @@
 #include <mutex>
 #include <memory>
 #include <vector>
+#include <string.h>
 
-const unsigned int STACK_SIZE = 1024*50;
+const unsigned int STACK_SIZE = 1024*128;
 const int INVALID_ID = -1;
 const int MAX_RUN_MS_EACH = 10;
 
@@ -17,15 +18,33 @@ typedef enum {
     chroutine_state_ready = 0,
     chroutine_state_running,
     chroutine_state_suspend,
+    //chroutine_state_fin,
 
 } chroutine_state_t;
 
-typedef struct {
+typedef struct chroutine_t{
     ucontext_t          ctx;
     func_t              func;
     void *              arg;
     chroutine_state_t   state;
-    char                stack[STACK_SIZE];
+    char *              stack;
+    int                 yield_wait;
+
+    chroutine_t() {
+        stack = new char[STACK_SIZE];
+        memset(stack, 0, STACK_SIZE);
+        yield_wait = 0;
+    }
+    ~chroutine_t() {
+        if (stack)
+            delete [] stack;
+    }
+    int wait() {
+        if (yield_wait > 0)
+            return yield_wait--;
+        
+        return 0;
+    }
 } chroutine_t;
 
 typedef std::vector<std::shared_ptr<chroutine_t> > chroutine_list_t;
@@ -36,11 +55,10 @@ typedef struct schedule_t {
     ucontext_t          main;
     chroutine_id_t      running_id;
     chroutine_list_t    chroutines;
-    //std::time_t         run_start_time;
+    chroutine_list_t    chroutines_to_free;
 
     schedule_t() 
     : running_id(INVALID_ID)
-    // , run_start_time(0) 
     {}    
 }schedule_t;
 
@@ -48,7 +66,7 @@ class chroutine_manager_t
 {
 public:
     static chroutine_manager_t& instance();
-    static void yield();
+    static void yield(int wait = 1);
     ~chroutine_manager_t();
 
     chroutine_id_t create_chroutine(func_t func, void *arg);
@@ -58,7 +76,7 @@ public:
 private:
     chroutine_manager_t();
     int schedule();
-    void yield_current();
+    void yield_current(int wait);
     void start();
     
     static void entry(void *arg);
