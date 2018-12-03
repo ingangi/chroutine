@@ -12,7 +12,6 @@ chroutine_manager_t& chroutine_manager_t::instance()
 
 chroutine_manager_t::chroutine_manager_t()
 {
-    start();
 }
 
 chroutine_manager_t::~chroutine_manager_t()
@@ -132,16 +131,16 @@ chroutine_id_t chroutine_manager_t::pick_run_chroutine()
         return INVALID_ID;
 
     chroutine_id_t index = INVALID_ID;
+    chroutine_id_t i = INVALID_ID;
     chroutine_t *p_c = nullptr;
     for (auto &node : m_schedule.chroutines) {
-        index++;
-        // if (node.get()->state == chroutine_state_fin)
-        //     continue;
+        i++;
         if (node.get()->wait() > 0)
             continue;
-        p_c = node.get();
-        if (p_c != nullptr)
-            break;
+        if (p_c == nullptr) {
+            p_c = node.get();
+            index = i;
+        }
     }
 
     if (p_c) {
@@ -149,27 +148,37 @@ chroutine_id_t chroutine_manager_t::pick_run_chroutine()
         p_c->state = chroutine_state_running;
         m_schedule.running_id = index;
         swapcontext(&(m_schedule.main),&(p_c->ctx));
-
         std::cout << "pick_run_chroutine ..." << index << " over" << std::endl;
-
     }
     return index;
 }
 
 int chroutine_manager_t::schedule()
 {
-    while (1) {
+    m_is_running = true;
+    std::cout << "chroutine_manager_t::schedule is_running " << m_is_running << std::endl;
+    while (!m_need_stop) {
         pick_run_chroutine();
         if (done())
             usleep(10000);
     }
+    m_is_running = false;
+    std::cout << "chroutine_manager_t::schedule is_running " << m_is_running << std::endl;
     return 0;
 }
 
 void chroutine_manager_t::start()
 {
+    if (m_is_running)
+        return;
+
     std::thread thrd( [this] { this->schedule(); } );
     thrd.detach();
+}
+
+void chroutine_manager_t::stop()
+{
+    m_need_stop = true;
 }
 
 std::time_t chroutine_manager_t::get_time_stamp()

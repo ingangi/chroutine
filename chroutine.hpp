@@ -73,11 +73,16 @@ public:
 
     std::time_t get_time_stamp();
 
+    void start();
+    void stop();
+    bool is_running() {
+        return m_is_running;
+    }
+
 private:
     chroutine_manager_t();
     int schedule();
     void yield_current(int wait);
-    void start();
     
     static void entry(void *arg);
 
@@ -88,6 +93,8 @@ private:
 
 private:
     schedule_t m_schedule;
+    bool m_is_running = false;
+    bool m_need_stop = false;
 };
 
 
