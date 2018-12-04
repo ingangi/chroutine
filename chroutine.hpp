@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <string.h>
+#include <iostream>
 
 const unsigned int STACK_SIZE = 1024*128;
 const int INVALID_ID = -1;
@@ -22,33 +23,50 @@ typedef enum {
 
 } chroutine_state_t;
 
+typedef int chroutine_id_t;
 typedef struct chroutine_t{
     ucontext_t          ctx;
     func_t              func;
     void *              arg;
     chroutine_state_t   state;
     char *              stack;
-    int                 yield_wait;
+    int                 yield_wait; // yield by frame count
+    std::time_t         yield_to;   // yield until time
+    chroutine_id_t      father;
 
     chroutine_t() {
         stack = new char[STACK_SIZE];
-        memset(stack, 0, STACK_SIZE);
+        //memset(stack, 0, STACK_SIZE);
         yield_wait = 0;
+        yield_to = 0;
+        father = INVALID_ID;
     }
     ~chroutine_t() {
         if (stack)
             delete [] stack;
     }
-    int wait() {
+    int wait(time_t now) {
         if (yield_wait > 0)
             return yield_wait--;
         
+        if (yield_to > 0 && yield_to > now)
+            return 1;
+
         return 0;
+    }
+    void yield_over() {
+        if (yield_to > 0) {
+            std::cout << "wait time out!" << std::endl;
+            yield_to = 0;
+        }        
+    }
+    void son_finished() {
+        std::cout << "son_finished!" << std::endl;
+        yield_to = 0;
     }
 } chroutine_t;
 
 typedef std::vector<std::shared_ptr<chroutine_t> > chroutine_list_t;
-typedef int chroutine_id_t;
 
 typedef struct schedule_t {
     //std::mutex          mutex;
@@ -67,9 +85,11 @@ class chroutine_manager_t
 public:
     static chroutine_manager_t& instance();
     static void yield(int wait = 1);
+    static void wait(time_t wait_time_ms = 1000);
     ~chroutine_manager_t();
 
     chroutine_id_t create_chroutine(func_t func, void *arg);
+    chroutine_id_t create_son_chroutine(func_t func, void *arg); // father is running chroutine
 
     std::time_t get_time_stamp();
 
@@ -83,6 +103,7 @@ private:
     chroutine_manager_t();
     int schedule();
     void yield_current(int wait);
+    void wait_current(time_t wait_time_ms);
     
     static void entry(void *arg);
 

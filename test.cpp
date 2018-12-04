@@ -3,7 +3,17 @@
 #include <unistd.h>
 #include <thread>
 
+void fun_3()
+{
+    std::cout << "fun_3 (" << std::this_thread::get_id() << ")" << std::endl;
+    std::time_t now = chroutine_manager_t::instance().get_time_stamp();
+    while (chroutine_manager_t::instance().get_time_stamp() - now < 9000) {
+        usleep(10000);
+        chroutine_manager_t::yield();
+    }
 
+    std::cout << "fun_3 (" << std::this_thread::get_id() << ") OVER" << std::endl;
+}
 
 void fun_1()
 {
@@ -11,10 +21,14 @@ void fun_1()
     while (1) {
         tick++;
         std::cout << "fun_1 tick = " << tick << " (" << std::this_thread::get_id() << ")" << std::endl;
-        usleep(100000);
+        usleep(1000000);
 
-        if (tick % 3 == 0)
-            chroutine_manager_t::yield();
+        if (tick % 3 == 0) {
+            chroutine_manager_t::instance().create_son_chroutine(func_t(fun_3), nullptr);
+            std::cout << "fun_1 (" << std::this_thread::get_id() << ") start wait" << std::endl;
+            chroutine_manager_t::wait(10000);
+            std::cout << "fun_1 (" << std::this_thread::get_id() << ") finish wait" << std::endl;
+        }
     }
 }
 
@@ -24,12 +38,13 @@ void fun_2()
     while (1) {
         tick++;
         std::cout << "fun_2 tick = " << tick << " (" << std::this_thread::get_id() << ")" << std::endl;
-        usleep(100000);
+        usleep(10000);
 
         if (tick % 5 == 0)
             chroutine_manager_t::yield();
     }
 }
+
 
 int main(int argc, char **argv)
 {   

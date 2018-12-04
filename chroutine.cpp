@@ -22,6 +22,11 @@ void chroutine_manager_t::yield(int wait)
     chroutine_manager_t::instance().yield_current(wait);
 }
 
+void chroutine_manager_t::wait(time_t wait_time_ms)
+{
+    chroutine_manager_t::instance().wait_current(wait_time_ms);
+}
+
 chroutine_t * chroutine_manager_t::get_chroutine(chroutine_id_t id)
 {
     if (id < 0 || id > int(m_schedule.chroutines.size()) - 1)
@@ -40,25 +45,32 @@ void chroutine_manager_t::entry(void *arg)
     if (p_c == nullptr)
         return;
 
-    std::cout << "entry start, " << p_this->m_schedule.running_id << " left:" << p_this->m_schedule.chroutines.size()  << std::endl;
+    //std::cout << "entry start, " << p_this->m_schedule.running_id << " left:" << p_this->m_schedule.chroutines.size()  << std::endl;
     p_c->state = chroutine_state_running;
     p_c->func(p_c->arg);
     //p_c->state = chroutine_state_fin;
     p_this->m_schedule.chroutines_to_free.push_back(p_this->m_schedule.chroutines[p_this->m_schedule.running_id]);
     p_this->m_schedule.chroutines.erase(p_this->m_schedule.chroutines.begin() + p_this->m_schedule.running_id);
     p_this->m_schedule.running_id = INVALID_ID;
-    std::cout << "entry over, " << p_this->m_schedule.running_id << " left:" << p_this->m_schedule.chroutines.size() << std::endl;
+
+    if (p_c->father != INVALID_ID) {
+        chroutine_t * father = p_this->get_chroutine(p_c->father);
+        if (father != nullptr) {
+            father->son_finished();
+        }
+    }
+    //std::cout << "entry over, " << p_this->m_schedule.running_id << " left:" << p_this->m_schedule.chroutines.size() << std::endl;
 }
 
 chroutine_id_t chroutine_manager_t::create_chroutine(func_t func, void *arg)
 {
     if (func == nullptr) 
-        return -1;
+        return INVALID_ID;
 
     std::shared_ptr<chroutine_t> c(new chroutine_t);
     chroutine_t *p_c = c.get();
     if (p_c == nullptr)
-        return -1;
+        return INVALID_ID;
 
     getcontext(&(p_c->ctx));
     p_c->ctx.uc_stack.ss_sp = p_c->stack;
@@ -77,8 +89,28 @@ chroutine_id_t chroutine_manager_t::create_chroutine(func_t func, void *arg)
         id = m_schedule.chroutines.size() - 1;
     }
 
-    std::cout << "create_chroutine over, " << id << std::endl;
+    //std::cout << "create_chroutine over, " << id << std::endl;
     return id;
+}
+
+chroutine_id_t chroutine_manager_t::create_son_chroutine(func_t func, void *arg)
+{
+    //std::cout << "create_son_chroutine start, " << m_schedule.running_id << std::endl;
+
+    if (m_schedule.running_id == INVALID_ID)
+        return INVALID_ID;
+
+    chroutine_id_t son = create_chroutine(func, arg);
+    if (son == INVALID_ID)
+        return INVALID_ID;
+    
+    chroutine_t * pson = m_schedule.chroutines[son].get();
+    if (pson == nullptr)
+        return INVALID_ID;
+
+    pson->father = m_schedule.running_id;
+    //std::cout << "create_son_chroutine over, " << son << std::endl;
+    return son;
 }
 
 void chroutine_manager_t::yield_current(int wait)
@@ -93,9 +125,28 @@ void chroutine_manager_t::yield_current(int wait)
     if (co == nullptr || co->state != chroutine_state_running)
         return;
     
-    std::cout << "yield_current ..." << m_schedule.running_id << std::endl;
+    //std::cout << "yield_current ..." << m_schedule.running_id << std::endl;
     co->state = chroutine_state_suspend;
     co->yield_wait += wait;
+    m_schedule.running_id = INVALID_ID;
+    swapcontext(&(co->ctx), &(m_schedule.main));
+}
+
+void chroutine_manager_t::wait_current(time_t wait_time_ms)
+{
+    if (wait_time_ms <= 0)
+        return;
+
+    if (m_schedule.running_id < 0 || m_schedule.running_id > int(m_schedule.chroutines.size())-1)
+        return;
+    
+    chroutine_t * co = m_schedule.chroutines[m_schedule.running_id].get();
+    if (co == nullptr || co->state != chroutine_state_running)
+        return;
+    
+    //std::cout << "wait_current ..." << m_schedule.running_id << std::endl;
+    co->state = chroutine_state_suspend;
+    co->yield_to = get_time_stamp() + wait_time_ms;
     m_schedule.running_id = INVALID_ID;
     swapcontext(&(co->ctx), &(m_schedule.main));
 }
@@ -114,9 +165,9 @@ void chroutine_manager_t::resume_to(chroutine_id_t id)
     if (co == nullptr || co->state != chroutine_state_suspend)
         return;
     
-    std::cout << "resume_to ..." << id << std::endl;
+    //std::cout << "resume_to ..." << id << std::endl;
     swapcontext(&(m_schedule.main),&(co->ctx));
-    std::cout << "resume_to ..." << id << " over" << std::endl;
+    //std::cout << "resume_to ..." << id << " over" << std::endl;
 }
 
 chroutine_id_t chroutine_manager_t::pick_run_chroutine()
@@ -133,9 +184,10 @@ chroutine_id_t chroutine_manager_t::pick_run_chroutine()
     chroutine_id_t index = INVALID_ID;
     chroutine_id_t i = INVALID_ID;
     chroutine_t *p_c = nullptr;
+    time_t now = get_time_stamp();
     for (auto &node : m_schedule.chroutines) {
         i++;
-        if (node.get()->wait() > 0)
+        if (node.get()->wait(now) > 0)
             continue;
         if (p_c == nullptr) {
             p_c = node.get();
@@ -144,11 +196,12 @@ chroutine_id_t chroutine_manager_t::pick_run_chroutine()
     }
 
     if (p_c) {
-        std::cout << "pick_run_chroutine ..." << index << std::endl;
+        //std::cout << "pick_run_chroutine ..." << index << std::endl;
+        p_c->yield_over();
         p_c->state = chroutine_state_running;
         m_schedule.running_id = index;
         swapcontext(&(m_schedule.main),&(p_c->ctx));
-        std::cout << "pick_run_chroutine ..." << index << " over" << std::endl;
+        //std::cout << "pick_run_chroutine ..." << index << " over" << std::endl;
     }
     return index;
 }
