@@ -1,13 +1,13 @@
 #ifndef CHROUTINE_H
 #define CHROUTINE_H
 
-#include "reporter.hpp"
 #include <ucontext.h>
 #include <mutex>
 #include <memory>
 #include <vector>
 #include <string.h>
 #include <iostream>
+#include "reporter.hpp"
 
 const unsigned int STACK_SIZE = 1024*128;
 const int INVALID_ID = -1;
@@ -27,7 +27,7 @@ typedef enum {
 typedef int chroutine_id_t;
 class chroutine_t
 {
-    friend class chroutine_manager_t;
+    friend class chroutine_thread_t;
 
 public:
     chroutine_t();
@@ -72,20 +72,22 @@ typedef struct schedule_t {
     {}    
 }schedule_t;
 
-class chroutine_manager_t
+// chroutine_thread_t hold a os thread 
+// and a list of chroutines run in the thread.
+class chroutine_thread_t
 {
 public:
-    static chroutine_manager_t& instance();
-    static void yield(int wait = 1);
-    static void wait(time_t wait_time_ms = 1000);
-    ~chroutine_manager_t();
+    static std::shared_ptr<chroutine_thread_t> new_thread();
+    void yield(int wait = 1);
+    void wait(time_t wait_time_ms = 1000);
+    ~chroutine_thread_t();
 
     chroutine_id_t create_chroutine(func_t func, void *arg);
     chroutine_id_t create_son_chroutine(func_t func, reporter_sptr_t reporter); // son of the running chroutine
 
     std::time_t get_time_stamp();
 
-    void start();
+    void start(size_t creating_index);
     void stop();
     bool is_running() {
         return m_is_running;
@@ -94,7 +96,7 @@ public:
     reporter_base_t * get_current_reporter();
 
 private:
-    chroutine_manager_t();
+    chroutine_thread_t();
     int schedule();
     void yield_current(int wait);
     void wait_current(time_t wait_time_ms);
@@ -111,6 +113,7 @@ private:
     schedule_t m_schedule;
     bool m_is_running = false;
     bool m_need_stop = false;
+    size_t m_creating_index = 0;
 };
 
 

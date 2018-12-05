@@ -1,8 +1,7 @@
-
-#include "chroutine.hpp"
 #include <unistd.h>
 #include <thread>
 #include <iostream>
+#include "chroutine.hpp"
 
 
 chroutine_t::chroutine_t() 
@@ -60,30 +59,29 @@ reporter_base_t *chroutine_t::get_reporter()
     return reporter.get();
 }
 
-chroutine_manager_t& chroutine_manager_t::instance()
+std::shared_ptr<chroutine_thread_t> chroutine_thread_t::new_thread()
 {
-    static chroutine_manager_t instance;
-    return instance;
+    return std::shared_ptr<chroutine_thread_t>(new chroutine_thread_t());
 }
 
-chroutine_manager_t::chroutine_manager_t()
+chroutine_thread_t::chroutine_thread_t()
 {
 }
 
-chroutine_manager_t::~chroutine_manager_t()
+chroutine_thread_t::~chroutine_thread_t()
 {}
 
-void chroutine_manager_t::yield(int wait)
+void chroutine_thread_t::yield(int wait)
 {
-    chroutine_manager_t::instance().yield_current(wait);
+    yield_current(wait);
 }
 
-void chroutine_manager_t::wait(time_t wait_time_ms)
+void chroutine_thread_t::wait(time_t wait_time_ms)
 {
-    chroutine_manager_t::instance().wait_current(wait_time_ms);
+    wait_current(wait_time_ms);
 }
 
-chroutine_t * chroutine_manager_t::get_chroutine(chroutine_id_t id)
+chroutine_t * chroutine_thread_t::get_chroutine(chroutine_id_t id)
 {
     if (id < 0 || id > int(m_schedule.chroutines.size()) - 1)
         return nullptr;
@@ -91,7 +89,7 @@ chroutine_t * chroutine_manager_t::get_chroutine(chroutine_id_t id)
     return m_schedule.chroutines[id].get();
 }
 
-void chroutine_manager_t::remove_chroutine(chroutine_id_t id)
+void chroutine_thread_t::remove_chroutine(chroutine_id_t id)
 {
     if (id < 0 || id > int(m_schedule.chroutines.size()) - 1)
         return;
@@ -100,7 +98,7 @@ void chroutine_manager_t::remove_chroutine(chroutine_id_t id)
     m_schedule.chroutines.erase(m_schedule.chroutines.begin() + id);
 }
 
-reporter_base_t * chroutine_manager_t::get_current_reporter()
+reporter_base_t * chroutine_thread_t::get_current_reporter()
 {
     chroutine_t *p_c = get_chroutine(m_schedule.running_id);
     if (p_c == nullptr)
@@ -109,9 +107,9 @@ reporter_base_t * chroutine_manager_t::get_current_reporter()
     return p_c->get_reporter();
 }
 
-void chroutine_manager_t::entry(void *arg)
+void chroutine_thread_t::entry(void *arg)
 {
-    chroutine_manager_t *p_this = static_cast<chroutine_manager_t *>(arg);
+    chroutine_thread_t *p_this = static_cast<chroutine_thread_t *>(arg);
     if (p_this == nullptr)
         return;
 
@@ -136,7 +134,7 @@ void chroutine_manager_t::entry(void *arg)
     //std::cout << "entry over, " << p_this->m_schedule.running_id << " left:" << p_this->m_schedule.chroutines.size() << std::endl;
 }
 
-chroutine_id_t chroutine_manager_t::create_chroutine(func_t func, void *arg)
+chroutine_id_t chroutine_thread_t::create_chroutine(func_t func, void *arg)
 {
     if (func == nullptr) 
         return INVALID_ID;
@@ -167,7 +165,7 @@ chroutine_id_t chroutine_manager_t::create_chroutine(func_t func, void *arg)
     return id;
 }
 
-chroutine_id_t chroutine_manager_t::create_son_chroutine(func_t func, reporter_sptr_t reporter)
+chroutine_id_t chroutine_thread_t::create_son_chroutine(func_t func, reporter_sptr_t reporter)
 {
     //std::cout << "create_son_chroutine start, " << m_schedule.running_id << std::endl;
 
@@ -191,7 +189,7 @@ chroutine_id_t chroutine_manager_t::create_son_chroutine(func_t func, reporter_s
     return son;
 }
 
-void chroutine_manager_t::yield_current(int wait)
+void chroutine_thread_t::yield_current(int wait)
 {
     if (wait <= 0)
         return;
@@ -210,7 +208,7 @@ void chroutine_manager_t::yield_current(int wait)
     swapcontext(&(co->ctx), &(m_schedule.main));
 }
 
-void chroutine_manager_t::wait_current(time_t wait_time_ms)
+void chroutine_thread_t::wait_current(time_t wait_time_ms)
 {
     if (wait_time_ms <= 0)
         return;
@@ -229,12 +227,12 @@ void chroutine_manager_t::wait_current(time_t wait_time_ms)
     swapcontext(&(co->ctx), &(m_schedule.main));
 }
 
-bool chroutine_manager_t::done()
+bool chroutine_thread_t::done()
 {
     return m_schedule.chroutines.empty();
 }
 
-void chroutine_manager_t::resume_to(chroutine_id_t id)
+void chroutine_thread_t::resume_to(chroutine_id_t id)
 {
     if (id < 0 || id > int(m_schedule.chroutines.size())-1)
         return;
@@ -248,7 +246,7 @@ void chroutine_manager_t::resume_to(chroutine_id_t id)
     //std::cout << "resume_to ..." << id << " over" << std::endl;
 }
 
-chroutine_id_t chroutine_manager_t::pick_run_chroutine()
+chroutine_id_t chroutine_thread_t::pick_run_chroutine()
 {
     // clean finished nodes
     m_schedule.chroutines_to_free.clear();
@@ -284,35 +282,39 @@ chroutine_id_t chroutine_manager_t::pick_run_chroutine()
     return index;
 }
 
-int chroutine_manager_t::schedule()
+int chroutine_thread_t::schedule()
 {
+    std::cout << m_thread_id << std::endl;
     m_is_running = true;
-    std::cout << "chroutine_manager_t::schedule is_running " << m_is_running << std::endl;
+    m_thread_id = std::this_thread::get_id();
+    std::cout << "chroutine_thread_t::schedule is_running " << m_is_running << ", thread " << m_thread_id << std::endl;
     while (!m_need_stop) {
         pick_run_chroutine();
         if (done())
             usleep(10000);
     }
     m_is_running = false;
-    std::cout << "chroutine_manager_t::schedule is_running " << m_is_running << std::endl;
+    //m_thread_id = 0;
+    std::cout << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;
     return 0;
 }
 
-void chroutine_manager_t::start()
+void chroutine_thread_t::start(size_t creating_index)
 {
     if (m_is_running)
         return;
 
+    m_creating_index = creating_index;
     std::thread thrd( [this] { this->schedule(); } );
     thrd.detach();
 }
 
-void chroutine_manager_t::stop()
+void chroutine_thread_t::stop()
 {
     m_need_stop = true;
 }
 
-std::time_t chroutine_manager_t::get_time_stamp()
+std::time_t chroutine_thread_t::get_time_stamp()
 {
     std::chrono::time_point<std::chrono::system_clock,std::chrono::milliseconds> tp = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
     return std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()).count();
