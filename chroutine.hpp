@@ -1,6 +1,7 @@
 #ifndef CHROUTINE_H
 #define CHROUTINE_H
 
+#include "reporter.hpp"
 #include <ucontext.h>
 #include <mutex>
 #include <memory>
@@ -24,47 +25,38 @@ typedef enum {
 } chroutine_state_t;
 
 typedef int chroutine_id_t;
-typedef struct chroutine_t{
+class chroutine_t
+{
+    friend class chroutine_manager_t;
+
+public:
+    chroutine_t();
+    ~chroutine_t();
+
+    // if wait is over, return 0
+    int wait(time_t now);
+
+    // called when resume, return the timeout son id if exist
+    chroutine_id_t yield_over();
+
+    // called when son is done
+    void son_finished();
+
+    // get son's excute result and returned data
+    reporter_base_t *get_reporter();
+
+private:
     ucontext_t          ctx;
     func_t              func;
     void *              arg;
     chroutine_state_t   state;
     char *              stack;
     int                 yield_wait; // yield by frame count
-    std::time_t         yield_to;   // yield until time
+    std::time_t         yield_to;   // yield until some time
     chroutine_id_t      father;
-
-    chroutine_t() {
-        stack = new char[STACK_SIZE];
-        //memset(stack, 0, STACK_SIZE);
-        yield_wait = 0;
-        yield_to = 0;
-        father = INVALID_ID;
-    }
-    ~chroutine_t() {
-        if (stack)
-            delete [] stack;
-    }
-    int wait(time_t now) {
-        if (yield_wait > 0)
-            return yield_wait--;
-        
-        if (yield_to > 0 && yield_to > now)
-            return 1;
-
-        return 0;
-    }
-    void yield_over() {
-        if (yield_to > 0) {
-            std::cout << "wait time out!" << std::endl;
-            yield_to = 0;
-        }        
-    }
-    void son_finished() {
-        std::cout << "son_finished!" << std::endl;
-        yield_to = 0;
-    }
-} chroutine_t;
+    chroutine_id_t      son;
+    reporter_sptr_t     reporter;   // son chroutine excute result
+};
 
 typedef std::vector<std::shared_ptr<chroutine_t> > chroutine_list_t;
 
@@ -89,7 +81,7 @@ public:
     ~chroutine_manager_t();
 
     chroutine_id_t create_chroutine(func_t func, void *arg);
-    chroutine_id_t create_son_chroutine(func_t func, void *arg); // father is running chroutine
+    chroutine_id_t create_son_chroutine(func_t func, reporter_sptr_t reporter); // son of the running chroutine
 
     std::time_t get_time_stamp();
 
@@ -98,6 +90,8 @@ public:
     bool is_running() {
         return m_is_running;
     }
+    
+    reporter_base_t * get_current_reporter();
 
 private:
     chroutine_manager_t();
@@ -111,6 +105,7 @@ private:
     bool done();
     chroutine_id_t pick_run_chroutine();
     chroutine_t * get_chroutine(chroutine_id_t id);
+    void remove_chroutine(chroutine_id_t id);
 
 private:
     schedule_t m_schedule;

@@ -3,15 +3,25 @@
 #include <unistd.h>
 #include <thread>
 
-void fun_3()
-{
-    std::cout << "fun_3 (" << std::this_thread::get_id() << ")" << std::endl;
+void fake_io_work(int costtime = 10)
+{    
     std::time_t now = chroutine_manager_t::instance().get_time_stamp();
-    while (chroutine_manager_t::instance().get_time_stamp() - now < 9000) {
-        usleep(10000);
+    while (chroutine_manager_t::instance().get_time_stamp() - now < costtime) {
+        usleep(1000);
         chroutine_manager_t::yield();
     }
+}
 
+typedef struct {
+    int a;
+    std::string b;
+}return_data;
+void fun_3(return_data *data)
+{
+    std::cout << "fun_3 (" << std::this_thread::get_id() << ")" << std::endl;
+    fake_io_work(5000);
+    data->a = 888;
+    data->b = "hello father";
     std::cout << "fun_3 (" << std::this_thread::get_id() << ") OVER" << std::endl;
 }
 
@@ -21,13 +31,22 @@ void fun_1()
     while (1) {
         tick++;
         std::cout << "fun_1 tick = " << tick << " (" << std::this_thread::get_id() << ")" << std::endl;
-        usleep(1000000);
+        fake_io_work(1000);
 
         if (tick % 3 == 0) {
-            chroutine_manager_t::instance().create_son_chroutine(func_t(fun_3), nullptr);
+            // example of sync with son chroutine:
+            chroutine_manager_t::instance().create_son_chroutine(func_t(fun_3), reporter_t<return_data>::create());
+
             std::cout << "fun_1 (" << std::this_thread::get_id() << ") start wait" << std::endl;
-            chroutine_manager_t::wait(10000);
-            std::cout << "fun_1 (" << std::this_thread::get_id() << ") finish wait" << std::endl;
+            chroutine_manager_t::wait(5010);
+            reporter_base_t * rpt = chroutine_manager_t::instance().get_current_reporter();
+            std::cout << "fun_1 (" << std::this_thread::get_id() << ") finish wait, son result:" << rpt->get_result() << std::endl;
+
+            if (rpt->get_result() == result_done) {
+                return_data *p_data = static_cast<return_data*>(rpt->get_data());
+                std::cout << "son chroutine is done, return_data.a=" << p_data->a << ", b=" << p_data->b << std::endl;
+            }
+
         }
     }
 }
@@ -36,12 +55,8 @@ void fun_2()
 {
     int tick = 0;
     while (1) {
-        tick++;
-        std::cout << "fun_2 tick = " << tick << " (" << std::this_thread::get_id() << ")" << std::endl;
-        usleep(10000);
-
-        if (tick % 5 == 0)
-            chroutine_manager_t::yield();
+        std::cout << "fun_2 tick = " << ++tick << " (" << std::this_thread::get_id() << ")" << std::endl;
+        fake_io_work(2000);
     }
 }
 

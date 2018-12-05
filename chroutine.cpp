@@ -4,6 +4,62 @@
 #include <thread>
 #include <iostream>
 
+
+chroutine_t::chroutine_t() 
+{
+    stack = new char[STACK_SIZE];
+    //memset(stack, 0, STACK_SIZE);
+    yield_wait = 0;
+    yield_to = 0;
+    father = INVALID_ID;
+    son = INVALID_ID;
+}
+
+chroutine_t::~chroutine_t() 
+{
+    if (stack)
+        delete [] stack;
+}
+
+int chroutine_t::wait(time_t now) 
+{
+    if (yield_wait > 0)
+        return yield_wait--;
+    
+    if (yield_to > 0 && yield_to > now)
+        return 1;
+
+    return 0;
+}
+chroutine_id_t chroutine_t::yield_over() 
+{
+    chroutine_id_t timeout_chroutine = INVALID_ID;
+    if (yield_to > 0) {
+        std::cout << "wait time out!" << std::endl;
+        if (reporter.get()) {
+            reporter.get()->set_result(result_timeout);
+        }
+        yield_to = 0;
+        timeout_chroutine = son;
+        son = INVALID_ID;
+    }
+    return timeout_chroutine;
+}
+
+void chroutine_t::son_finished() 
+{
+    std::cout << "son_finished!" << std::endl;
+    if (reporter.get()) {
+        reporter.get()->set_result(result_done);
+    }
+    yield_to = 0;
+}
+
+reporter_base_t *chroutine_t::get_reporter() 
+{
+    return reporter.get();
+}
+
 chroutine_manager_t& chroutine_manager_t::instance()
 {
     static chroutine_manager_t instance;
@@ -33,6 +89,24 @@ chroutine_t * chroutine_manager_t::get_chroutine(chroutine_id_t id)
         return nullptr;
 
     return m_schedule.chroutines[id].get();
+}
+
+void chroutine_manager_t::remove_chroutine(chroutine_id_t id)
+{
+    if (id < 0 || id > int(m_schedule.chroutines.size()) - 1)
+        return;
+        
+    m_schedule.chroutines_to_free.push_back(m_schedule.chroutines[id]);
+    m_schedule.chroutines.erase(m_schedule.chroutines.begin() + id);
+}
+
+reporter_base_t * chroutine_manager_t::get_current_reporter()
+{
+    chroutine_t *p_c = get_chroutine(m_schedule.running_id);
+    if (p_c == nullptr)
+        return nullptr;
+
+    return p_c->get_reporter();
 }
 
 void chroutine_manager_t::entry(void *arg)
@@ -93,14 +167,17 @@ chroutine_id_t chroutine_manager_t::create_chroutine(func_t func, void *arg)
     return id;
 }
 
-chroutine_id_t chroutine_manager_t::create_son_chroutine(func_t func, void *arg)
+chroutine_id_t chroutine_manager_t::create_son_chroutine(func_t func, reporter_sptr_t reporter)
 {
     //std::cout << "create_son_chroutine start, " << m_schedule.running_id << std::endl;
 
-    if (m_schedule.running_id == INVALID_ID)
+    chroutine_t * pfather = get_chroutine(m_schedule.running_id);
+    if (pfather == nullptr)
         return INVALID_ID;
+    
+    pfather->reporter = reporter;
 
-    chroutine_id_t son = create_chroutine(func, arg);
+    chroutine_id_t son = create_chroutine(func, reporter.get()->get_data());
     if (son == INVALID_ID)
         return INVALID_ID;
     
@@ -109,6 +186,7 @@ chroutine_id_t chroutine_manager_t::create_son_chroutine(func_t func, void *arg)
         return INVALID_ID;
 
     pson->father = m_schedule.running_id;
+    pfather->son = son;
     //std::cout << "create_son_chroutine over, " << son << std::endl;
     return son;
 }
@@ -197,7 +275,7 @@ chroutine_id_t chroutine_manager_t::pick_run_chroutine()
 
     if (p_c) {
         //std::cout << "pick_run_chroutine ..." << index << std::endl;
-        p_c->yield_over();
+        remove_chroutine(p_c->yield_over());  // remove time out son chroutin
         p_c->state = chroutine_state_running;
         m_schedule.running_id = index;
         swapcontext(&(m_schedule.main),&(p_c->ctx));

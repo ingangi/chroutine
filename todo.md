@@ -9,3 +9,5 @@
 参考: https://www.cnblogs.com/unnamedfish/p/8460441.html
 
 ## 3. 增加线程池调度
+
+## 4. add channel between father and son chroutine
