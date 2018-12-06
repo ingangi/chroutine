@@ -1,22 +1,21 @@
 #include <iostream>
 #include <unistd.h>
 #include <thread>
-#include "chroutine.hpp"
+#include "engine.hpp"
 
-std::shared_ptr<chroutine_thread_t> g_test_thread = chroutine_thread_t::new_thread();
 
 void fake_io_work(int costtime = 10)
 {    
-    std::time_t now = g_test_thread.get()->get_time_stamp();
-    while (g_test_thread.get()->get_time_stamp() - now < costtime) {
+    std::time_t now = get_time_stamp();
+    while (get_time_stamp() - now < costtime) {
         usleep(1000);
-        g_test_thread.get()->yield();
+        YIELD();
     }
 }
 
-typedef struct {
-    int a;
+typedef struct return_data_t{
     std::string b;
+    int a;
 }return_data_t;
 
 void fun_3(return_data_t *data)
@@ -38,11 +37,10 @@ void fun_1()
 
         if (tick % 3 == 0) {
             // example of sync with son chroutine:
-            g_test_thread.get()->create_son_chroutine(func_t(fun_3), reporter_t<return_data_t>::create());
-
+            ENGIN.create_son_chroutine(func_t(fun_3), reporter_t<return_data_t>::create());
             std::cout << "fun_1 (" << std::this_thread::get_id() << ") start wait" << std::endl;
-            g_test_thread.get()->wait(5010);
-            reporter_base_t * rpt = g_test_thread.get()->get_current_reporter();
+            WAIT(5010);
+            reporter_base_t * rpt = ENGIN.get_my_reporter();
             std::cout << "fun_1 (" << std::this_thread::get_id() << ") finish wait, son result:" << rpt->get_result() << std::endl;
 
             if (rpt->get_result() == result_done) {
@@ -66,10 +64,10 @@ void fun_2()
 
 int main(int argc, char **argv)
 {   
-    g_test_thread.get()->create_chroutine(func_t(fun_1), nullptr);  
-    g_test_thread.get()->create_chroutine(func_t(fun_2), nullptr);
-            
-    g_test_thread.get()->start();
+    ENGINE_INIT(2);
+    
+    ENGIN.create_chroutine(func_t(fun_1), nullptr);  
+    ENGIN.create_chroutine(func_t(fun_2), nullptr);
 
     while(1) {
         usleep(500000);

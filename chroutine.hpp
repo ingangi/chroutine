@@ -34,7 +34,7 @@ public:
     ~chroutine_t();
 
     // if wait is over, return 0
-    int wait(time_t now);
+    int wait(std::time_t now);
 
     // called when resume, return the timeout son id if exist
     chroutine_id_t yield_over();
@@ -78,14 +78,12 @@ class chroutine_thread_t
 {
 public:
     static std::shared_ptr<chroutine_thread_t> new_thread();
-    void yield(int wait = 1);
-    void wait(time_t wait_time_ms = 1000);
+    void yield(int tick);
+    void wait(std::time_t wait_time_ms);
     ~chroutine_thread_t();
 
     chroutine_id_t create_chroutine(func_t func, void *arg);
     chroutine_id_t create_son_chroutine(func_t func, reporter_sptr_t reporter); // son of the running chroutine
-
-    std::time_t get_time_stamp();
 
     void start(size_t creating_index);
     void stop();
@@ -98,8 +96,8 @@ public:
 private:
     chroutine_thread_t();
     int schedule();
-    void yield_current(int wait);
-    void wait_current(time_t wait_time_ms);
+    void yield_current(int tick);
+    void wait_current(std::time_t wait_time_ms);
     
     static void entry(void *arg);
 

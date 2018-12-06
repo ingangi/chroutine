@@ -1,7 +1,7 @@
 #include <unistd.h>
-#include <thread>
 #include <iostream>
 #include "chroutine.hpp"
+#include "engine.hpp"
 
 
 chroutine_t::chroutine_t() 
@@ -20,12 +20,12 @@ chroutine_t::~chroutine_t()
         delete [] stack;
 }
 
-int chroutine_t::wait(time_t now) 
+int chroutine_t::wait(std::time_t now) 
 {
     if (yield_wait > 0)
         return yield_wait--;
     
-    if (yield_to > 0 && yield_to > now)
+    if (yield_to != 0 && yield_to > now)
         return 1;
 
     return 0;
@@ -33,7 +33,7 @@ int chroutine_t::wait(time_t now)
 chroutine_id_t chroutine_t::yield_over() 
 {
     chroutine_id_t timeout_chroutine = INVALID_ID;
-    if (yield_to > 0) {
+    if (yield_to != 0) {
         std::cout << "wait time out!" << std::endl;
         if (reporter.get()) {
             reporter.get()->set_result(result_timeout);
@@ -71,12 +71,12 @@ chroutine_thread_t::chroutine_thread_t()
 chroutine_thread_t::~chroutine_thread_t()
 {}
 
-void chroutine_thread_t::yield(int wait)
+void chroutine_thread_t::yield(int tick)
 {
-    yield_current(wait);
+    yield_current(tick);
 }
 
-void chroutine_thread_t::wait(time_t wait_time_ms)
+void chroutine_thread_t::wait(std::time_t wait_time_ms)
 {
     wait_current(wait_time_ms);
 }
@@ -189,9 +189,9 @@ chroutine_id_t chroutine_thread_t::create_son_chroutine(func_t func, reporter_sp
     return son;
 }
 
-void chroutine_thread_t::yield_current(int wait)
+void chroutine_thread_t::yield_current(int tick)
 {
-    if (wait <= 0)
+    if (tick <= 0)
         return;
 
     if (m_schedule.running_id < 0 || m_schedule.running_id > int(m_schedule.chroutines.size())-1)
@@ -203,12 +203,12 @@ void chroutine_thread_t::yield_current(int wait)
     
     //std::cout << "yield_current ..." << m_schedule.running_id << std::endl;
     co->state = chroutine_state_suspend;
-    co->yield_wait += wait;
+    co->yield_wait += tick;
     m_schedule.running_id = INVALID_ID;
     swapcontext(&(co->ctx), &(m_schedule.main));
 }
 
-void chroutine_thread_t::wait_current(time_t wait_time_ms)
+void chroutine_thread_t::wait_current(std::time_t wait_time_ms)
 {
     if (wait_time_ms <= 0)
         return;
@@ -260,7 +260,7 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
     chroutine_id_t index = INVALID_ID;
     chroutine_id_t i = INVALID_ID;
     chroutine_t *p_c = nullptr;
-    time_t now = get_time_stamp();
+    std::time_t now = get_time_stamp();
     for (auto &node : m_schedule.chroutines) {
         i++;
         if (node.get()->wait(now) > 0)
@@ -284,17 +284,15 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
 
 int chroutine_thread_t::schedule()
 {
-    std::cout << m_thread_id << std::endl;
     m_is_running = true;
-    m_thread_id = std::this_thread::get_id();
-    std::cout << "chroutine_thread_t::schedule is_running " << m_is_running << ", thread " << m_thread_id << std::endl;
+    engine_t::instance().on_thread_ready(m_creating_index, std::this_thread::get_id());
+    std::cout << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;
     while (!m_need_stop) {
         pick_run_chroutine();
         if (done())
             usleep(10000);
     }
     m_is_running = false;
-    //m_thread_id = 0;
     std::cout << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;
     return 0;
 }
@@ -312,10 +310,4 @@ void chroutine_thread_t::start(size_t creating_index)
 void chroutine_thread_t::stop()
 {
     m_need_stop = true;
-}
-
-std::time_t chroutine_thread_t::get_time_stamp()
-{
-    std::chrono::time_point<std::chrono::system_clock,std::chrono::milliseconds> tp = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-    return std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()).count();
 }
