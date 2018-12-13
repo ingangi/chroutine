@@ -8,6 +8,7 @@
 #include <string.h>
 #include <iostream>
 #include "reporter.hpp"
+#include "selectable_obj.hpp"
 
 const unsigned int STACK_SIZE = 1024*128;
 const int INVALID_ID = -1;
@@ -77,41 +78,81 @@ typedef struct schedule_t {
 class chroutine_thread_t
 {
 public:
-    static std::shared_ptr<chroutine_thread_t> new_thread();
-    void yield(int tick);
-    void wait(std::time_t wait_time_ms);
     ~chroutine_thread_t();
 
-    chroutine_id_t create_chroutine(func_t func, void *arg);
-    chroutine_id_t create_son_chroutine(func_t func, reporter_sptr_t reporter); // son of the running chroutine
+    // create self
+    static std::shared_ptr<chroutine_thread_t> new_thread();
 
+    // yield current chroutin for @tick frames
+    void yield(int tick);
+    
+    // yield current chroutin for at most @wait_time_ms time
+    void wait(std::time_t wait_time_ms);
+
+    // create a chroutine
+    chroutine_id_t create_chroutine(func_t func, void *arg);
+    
+    // create a son chroutine of current chroutine
+    chroutine_id_t create_son_chroutine(func_t func, reporter_sptr_t reporter);
+
+    // start the thread
     void start(size_t creating_index);
+    
+    // start the thread
     void stop();
+
     bool is_running() {
         return m_is_running;
     }
     
+    // get the excuse result of the son chroutine, usually call after wait.
     reporter_base_t * get_current_reporter();
+
+    // register/unregister selectable objects
+    void register_selecor(selectable_object_sptr_t select_obj);
+    void unregister_selecor(selectable_object_sptr_t select_obj);
+    void unregister_selecor(selectable_object_it *p_obj);
 
 private:
     chroutine_thread_t();
+
+    // the while loop of the thread
     int schedule();
+
+    // called by yield
     void yield_current(int tick);
+
+    // called by wait
     void wait_current(std::time_t wait_time_ms);
     
+    // where the funcs of chroutines were called
     static void entry(void *arg);
 
+    // swap chroutines, not used, see pick_run_chroutine
     void resume_to(chroutine_id_t id);
+
+    // whether all chroutines were finished (list empty)
     bool done();
+
+    // chroutine schdule, pick next chroutine to run (swap happens)
     chroutine_id_t pick_run_chroutine();
+
+    // get chroutine pointer by id
     chroutine_t * get_chroutine(chroutine_id_t id);
+    
+    // remove chroutine by id
     void remove_chroutine(chroutine_id_t id);
 
+    // select all selectable_object_it
+    // rpc/tcp/http/pipe for this thread
+    void select_all();
+
 private:
-    schedule_t m_schedule;
-    bool m_is_running = false;
-    bool m_need_stop = false;
-    size_t m_creating_index = 0;
+    schedule_t                  m_schedule;
+    bool                        m_is_running = false;
+    bool                        m_need_stop = false;
+    size_t                      m_creating_index = 0;
+    selectable_object_list_t    m_selector_list;
 };
 
 

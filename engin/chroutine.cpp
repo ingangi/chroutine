@@ -288,6 +288,7 @@ int chroutine_thread_t::schedule()
     engine_t::instance().on_thread_ready(m_creating_index, std::this_thread::get_id());
     std::cout << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;
     while (!m_need_stop) {
+        select_all();
         pick_run_chroutine();
         if (done())
             usleep(10000);
@@ -310,4 +311,44 @@ void chroutine_thread_t::start(size_t creating_index)
 void chroutine_thread_t::stop()
 {
     m_need_stop = true;
+}
+
+void chroutine_thread_t::select_all()
+{    
+    for (auto iter = m_selector_list.begin(); iter != m_selector_list.end(); iter++) {
+        selectable_object_it *p_obj = iter->second.get();
+        if (p_obj)
+            p_obj->select(0);
+    }
+}
+
+void chroutine_thread_t::register_selecor(selectable_object_sptr_t select_obj)
+{
+    void *key = select_obj.get();
+    if (key) {
+        auto iter = m_selector_list.find(key);
+        if (iter == m_selector_list.end()) {
+            m_selector_list[key] = select_obj;
+            std::cout << __FUNCTION__ << " OK: key = " << key << std::endl;
+        } else {
+            std::cout << __FUNCTION__ << " failed: key already exist: " << key << std::endl;
+        }
+    }
+}
+
+void chroutine_thread_t::unregister_selecor(selectable_object_sptr_t select_obj)
+{
+    unregister_selecor(select_obj.get());
+}
+
+void chroutine_thread_t::unregister_selecor(selectable_object_it *p_obj)
+{
+    void *key = p_obj;
+    auto iter = m_selector_list.find(key);
+    if (iter == m_selector_list.end()) {
+        std::cout << __FUNCTION__ << " failed: key not exist: " << key << std::endl;
+    } else {
+        m_selector_list.erase(iter);
+        std::cout << __FUNCTION__ << " OK: key = " << key << std::endl;
+    }
 }
