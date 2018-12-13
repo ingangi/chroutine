@@ -20,9 +20,23 @@ sudo yum install autoconf automake autogen libtool shtool build-essential pkg-co
  $ [sudo] make install
 ```
 
-`git submodule update --init` will download third party code, try to download yourself and put them in right place if failed in China:
+
+### error and solution
+
+if get configure error: 
+
+> configure in doc/example fails with "cannot find install-sh, install.sh, or shtool in "." "./.." "./../..""
+
+try:
+
+```
+cd third_party/protobuf; 
+autoreconf -i -v -f
 ```
 
+`git submodule update --init` will download third party code, try to download yourself and put them in right place if failed in China:
+
+```
 Submodule 'third_party/abseil-cpp' (https://github.com/abseil/abseil-cpp) registered for path 'third_party/abseil-cpp'
 Submodule 'third_party/benchmark' (https://github.com/google/benchmark) registered for path 'third_party/benchmark'
 Submodule 'third_party/bloaty' (https://github.com/google/bloaty.git) registered for path 'third_party/bloaty'
@@ -35,19 +49,6 @@ Submodule 'third_party/protobuf' (https://github.com/google/protobuf.git) regist
 Submodule 'third_party/zlib' (https://github.com/madler/zlib) registered for path 'third_party/zlib'
 ```
 
-### error and solution
-
-if get error: 
-
-> configure in doc/example fails with "cannot find install-sh, install.sh, or shtool in "." "./.." "./../..""
-
-try:
-
-```
-cd third_party/protobuf; 
-autoreconf -i -v -f
-```
-
 ## install protoc
 
 it was build but not installed:
@@ -58,3 +59,20 @@ sudo make install
 ```
 
 ### try to generate protobuf code
+
+```
+cd proto_def
+sh gen.sh test.proto
+```
+
+You should see four files:
+
+```
+proto_code/
+├── grpc_code
+│   ├── test.grpc.pb.cc
+│   └── test.grpc.pb.h
+└── msg_code
+    ├── test.pb.cc
+    └── test.pb.h
+```

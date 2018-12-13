@@ -11,11 +11,12 @@ CFLAGS += -g3
 LDFLAGS += -L. -lpthread  ##-lenc -lsyslink  -lbinder -llog    -losa -lpdi -lsdk  -lz -lrt -lsplice -lmem -ldec
 AFLAGS += -r
 
+INC = -I./engin
+
 BINDIR = .
-SRCDIR = .
 
 
-SRCS_PATH = $(SRCDIR) 
+SRCS_PATH = . ./engin ./rpc ./proto_code/grpc_code ./proto_code/msg_code
 
 LIB_SRCS += $(foreach dir,$(SRCS_PATH),$(wildcard $(dir)/*.cpp))
 
@@ -29,17 +30,17 @@ TARGET_DEMO = $(BINDIR)/$(DEMO_NAME)
 all: $(TARGET_DEMO)
 
 $(TARGET_DEMO) : $(LIB_APP)
-	$(CPP) -o $@ $(LDFLAGS) $^
+	$(CPP) -o $@ $(LDFLAGS) $(INC) $^
 
 $(LIB_APP): $(LIB_OBJS)
 	$(RM) $@;
 	$(AR) $(AFLAGS) $@ $^
 
 .c.o:
-	$(CC) -c $(CFLAGS) $^ -o $@
+	$(CC) -c $(CFLAGS) $(INC) $^ -o $@
 
 .cpp.o:
-	$(CPP) -c $(CFLAGS) $^ -o $@
+	$(CPP) -c $(CFLAGS) $(INC) $^ -o $@
 
 clean:
 	$(RM) $(LIB_OBJS) $(LIB_APP) $(TARGET_DEMO)

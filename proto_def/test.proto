@@ -2,7 +2,7 @@ syntax = "proto3";
 package rpcpb;
 
 service Base {
-    rpc Health(HealthReq) returns (HealthRsp) {}    //健康检测
+    rpc Health(HealthReq) returns (HealthRsp) {}
 }
 message HealthReq {
 }
