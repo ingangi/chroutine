@@ -109,9 +109,9 @@ public:
     reporter_base_t * get_current_reporter();
 
     // register/unregister selectable objects
-    void register_selecor(selectable_object_sptr_t select_obj);
-    void unregister_selecor(selectable_object_sptr_t select_obj);
-    void unregister_selecor(selectable_object_it *p_obj);
+    void register_selector(selectable_object_sptr_t select_obj);
+    void unregister_selector(selectable_object_sptr_t select_obj);
+    void unregister_selector(selectable_object_it *p_obj);
 
 private:
     chroutine_thread_t();

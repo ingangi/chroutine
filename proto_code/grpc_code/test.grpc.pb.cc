@@ -18,48 +18,48 @@
 #include <grpcpp/impl/codegen/sync_stream.h>
 namespace rpcpb {
 
-static const char* Base_method_names[] = {
-  "/rpcpb.Base/Health",
+static const char* Test_method_names[] = {
+  "/rpcpb.Test/HowAreYou",
 };
 
-std::unique_ptr< Base::Stub> Base::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
+std::unique_ptr< Test::Stub> Test::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
   (void)options;
-  std::unique_ptr< Base::Stub> stub(new Base::Stub(channel));
+  std::unique_ptr< Test::Stub> stub(new Test::Stub(channel));
   return stub;
 }
 
-Base::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
-  : channel_(channel), rpcmethod_Health_(Base_method_names[0], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+Test::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
+  : channel_(channel), rpcmethod_HowAreYou_(Test_method_names[0], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
-::grpc::Status Base::Stub::Health(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::rpcpb::HealthRsp* response) {
-  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_Health_, context, request, response);
+::grpc::Status Test::Stub::HowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::rpcpb::TestRsp* response) {
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_HowAreYou_, context, request, response);
 }
 
-void Base::Stub::experimental_async::Health(::grpc::ClientContext* context, const ::rpcpb::HealthReq* request, ::rpcpb::HealthRsp* response, std::function<void(::grpc::Status)> f) {
-  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_Health_, context, request, response, std::move(f));
+void Test::Stub::experimental_async::HowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response, std::function<void(::grpc::Status)> f) {
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_HowAreYou_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::rpcpb::HealthRsp>* Base::Stub::AsyncHealthRaw(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::rpcpb::HealthRsp>::Create(channel_.get(), cq, rpcmethod_Health_, context, request, true);
+::grpc::ClientAsyncResponseReader< ::rpcpb::TestRsp>* Test::Stub::AsyncHowAreYouRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::rpcpb::TestRsp>::Create(channel_.get(), cq, rpcmethod_HowAreYou_, context, request, true);
 }
 
-::grpc::ClientAsyncResponseReader< ::rpcpb::HealthRsp>* Base::Stub::PrepareAsyncHealthRaw(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::rpcpb::HealthRsp>::Create(channel_.get(), cq, rpcmethod_Health_, context, request, false);
+::grpc::ClientAsyncResponseReader< ::rpcpb::TestRsp>* Test::Stub::PrepareAsyncHowAreYouRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::rpcpb::TestRsp>::Create(channel_.get(), cq, rpcmethod_HowAreYou_, context, request, false);
 }
 
-Base::Service::Service() {
+Test::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Base_method_names[0],
+      Test_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< Base::Service, ::rpcpb::HealthReq, ::rpcpb::HealthRsp>(
-          std::mem_fn(&Base::Service::Health), this)));
+      new ::grpc::internal::RpcMethodHandler< Test::Service, ::rpcpb::TestReq, ::rpcpb::TestRsp>(
+          std::mem_fn(&Test::Service::HowAreYou), this)));
 }
 
-Base::Service::~Service() {
+Test::Service::~Service() {
 }
 
-::grpc::Status Base::Service::Health(::grpc::ServerContext* context, const ::rpcpb::HealthReq* request, ::rpcpb::HealthRsp* response) {
+::grpc::Status Test::Service::HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response) {
   (void) context;
   (void) request;
   (void) response;

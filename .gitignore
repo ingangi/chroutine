@@ -1,2 +1,6 @@
 
 *.json
+*.o
+*.a
+.vscode/settings.json
+test

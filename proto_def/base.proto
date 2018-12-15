@@ -1,0 +1,13 @@
+syntax = "proto3";
+package rpcpb;
+
+service Base {
+    rpc Health(HealthReq) returns (HealthRsp) {}
+}
+
+message HealthReq {
+}
+
+message HealthRsp {
+    string result = 1;
+}

@@ -1,11 +1,13 @@
 syntax = "proto3";
 package rpcpb;
 
-service Base {
-    rpc Health(HealthReq) returns (HealthRsp) {}
+service Test {
+    rpc HowAreYou(TestReq) returns (TestRsp) {}
 }
-message HealthReq {
+
+message TestReq {
 }
-message HealthRsp {
-    string result = 1;
+
+message TestRsp {
+    string rsp = 1;
 }

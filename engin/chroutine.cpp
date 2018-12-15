@@ -322,7 +322,7 @@ void chroutine_thread_t::select_all()
     }
 }
 
-void chroutine_thread_t::register_selecor(selectable_object_sptr_t select_obj)
+void chroutine_thread_t::register_selector(selectable_object_sptr_t select_obj)
 {
     void *key = select_obj.get();
     if (key) {
@@ -336,12 +336,12 @@ void chroutine_thread_t::register_selecor(selectable_object_sptr_t select_obj)
     }
 }
 
-void chroutine_thread_t::unregister_selecor(selectable_object_sptr_t select_obj)
+void chroutine_thread_t::unregister_selector(selectable_object_sptr_t select_obj)
 {
-    unregister_selecor(select_obj.get());
+    unregister_selector(select_obj.get());
 }
 
-void chroutine_thread_t::unregister_selecor(selectable_object_it *p_obj)
+void chroutine_thread_t::unregister_selector(selectable_object_it *p_obj)
 {
     void *key = p_obj;
     auto iter = m_selector_list.find(key);

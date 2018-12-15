@@ -22,7 +22,7 @@ public:
     static engine_t& instance();
     ~engine_t();
 
-    // start all thread, will block your thread until they ready !!!
+    // start all thread, will block your thread until they are ready !!!
     void init(size_t init_pool_size);
     
     // yield myself by thread loop tick count
@@ -35,7 +35,7 @@ public:
     // create a chroutine in the lightest thread
     chroutine_id_t create_chroutine(func_t func, void *arg);
 
-    // create a son chroutine for the current chroutin
+    // create a son chroutine for the current chroutine
     chroutine_id_t create_son_chroutine(func_t func, reporter_sptr_t reporter);
 
     // get current chroutine's reporter
@@ -51,7 +51,7 @@ private:
     std::mutex          m_pool_lock;            // only used during m_init_over is false
     thread_pool_t       m_pool;                 // is readonly after m_init_over become true
     creating_threads_t  m_creating;             // is readonly after m_init_over become true
-    bool                m_init_over = false;    // if all thread ready
+    bool                m_init_over = false;    // if all threads ready
 };
 
 #endif

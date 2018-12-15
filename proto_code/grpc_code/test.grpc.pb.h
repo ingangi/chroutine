@@ -29,45 +29,45 @@ class ServerContext;
 
 namespace rpcpb {
 
-class Base final {
+class Test final {
  public:
   static constexpr char const* service_full_name() {
-    return "rpcpb.Base";
+    return "rpcpb.Test";
   }
   class StubInterface {
    public:
     virtual ~StubInterface() {}
-    virtual ::grpc::Status Health(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::rpcpb::HealthRsp* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::HealthRsp>> AsyncHealth(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::HealthRsp>>(AsyncHealthRaw(context, request, cq));
+    virtual ::grpc::Status HowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::rpcpb::TestRsp* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::TestRsp>> AsyncHowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::TestRsp>>(AsyncHowAreYouRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::HealthRsp>> PrepareAsyncHealth(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::HealthRsp>>(PrepareAsyncHealthRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::TestRsp>> PrepareAsyncHowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::TestRsp>>(PrepareAsyncHowAreYouRaw(context, request, cq));
     }
     class experimental_async_interface {
      public:
       virtual ~experimental_async_interface() {}
-      virtual void Health(::grpc::ClientContext* context, const ::rpcpb::HealthReq* request, ::rpcpb::HealthRsp* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void HowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response, std::function<void(::grpc::Status)>) = 0;
     };
     virtual class experimental_async_interface* experimental_async() { return nullptr; }
   private:
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::HealthRsp>* AsyncHealthRaw(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::HealthRsp>* PrepareAsyncHealthRaw(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::TestRsp>* AsyncHowAreYouRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::TestRsp>* PrepareAsyncHowAreYouRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel);
-    ::grpc::Status Health(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::rpcpb::HealthRsp* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::HealthRsp>> AsyncHealth(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::HealthRsp>>(AsyncHealthRaw(context, request, cq));
+    ::grpc::Status HowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::rpcpb::TestRsp* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::TestRsp>> AsyncHowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::TestRsp>>(AsyncHowAreYouRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::HealthRsp>> PrepareAsyncHealth(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::HealthRsp>>(PrepareAsyncHealthRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::TestRsp>> PrepareAsyncHowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::TestRsp>>(PrepareAsyncHowAreYouRaw(context, request, cq));
     }
     class experimental_async final :
       public StubInterface::experimental_async_interface {
      public:
-      void Health(::grpc::ClientContext* context, const ::rpcpb::HealthReq* request, ::rpcpb::HealthRsp* response, std::function<void(::grpc::Status)>) override;
+      void HowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response, std::function<void(::grpc::Status)>) override;
      private:
       friend class Stub;
       explicit experimental_async(Stub* stub): stub_(stub) { }
@@ -79,9 +79,9 @@ class Base final {
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
     class experimental_async async_stub_{this};
-    ::grpc::ClientAsyncResponseReader< ::rpcpb::HealthRsp>* AsyncHealthRaw(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::rpcpb::HealthRsp>* PrepareAsyncHealthRaw(::grpc::ClientContext* context, const ::rpcpb::HealthReq& request, ::grpc::CompletionQueue* cq) override;
-    const ::grpc::internal::RpcMethod rpcmethod_Health_;
+    ::grpc::ClientAsyncResponseReader< ::rpcpb::TestRsp>* AsyncHowAreYouRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::rpcpb::TestRsp>* PrepareAsyncHowAreYouRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) override;
+    const ::grpc::internal::RpcMethod rpcmethod_HowAreYou_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -89,140 +89,140 @@ class Base final {
    public:
     Service();
     virtual ~Service();
-    virtual ::grpc::Status Health(::grpc::ServerContext* context, const ::rpcpb::HealthReq* request, ::rpcpb::HealthRsp* response);
+    virtual ::grpc::Status HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response);
   };
   template <class BaseClass>
-  class WithAsyncMethod_Health : public BaseClass {
+  class WithAsyncMethod_HowAreYou : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
-    WithAsyncMethod_Health() {
+    WithAsyncMethod_HowAreYou() {
       ::grpc::Service::MarkMethodAsync(0);
     }
-    ~WithAsyncMethod_Health() override {
+    ~WithAsyncMethod_HowAreYou() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Health(::grpc::ServerContext* context, const ::rpcpb::HealthReq* request, ::rpcpb::HealthRsp* response) override {
+    ::grpc::Status HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestHealth(::grpc::ServerContext* context, ::rpcpb::HealthReq* request, ::grpc::ServerAsyncResponseWriter< ::rpcpb::HealthRsp>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestHowAreYou(::grpc::ServerContext* context, ::rpcpb::TestReq* request, ::grpc::ServerAsyncResponseWriter< ::rpcpb::TestRsp>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_Health<Service > AsyncService;
+  typedef WithAsyncMethod_HowAreYou<Service > AsyncService;
   template <class BaseClass>
-  class ExperimentalWithCallbackMethod_Health : public BaseClass {
+  class ExperimentalWithCallbackMethod_HowAreYou : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
-    ExperimentalWithCallbackMethod_Health() {
+    ExperimentalWithCallbackMethod_HowAreYou() {
       ::grpc::Service::experimental().MarkMethodCallback(0,
-        new ::grpc::internal::CallbackUnaryHandler< ::rpcpb::HealthReq, ::rpcpb::HealthRsp>(
+        new ::grpc::internal::CallbackUnaryHandler< ::rpcpb::TestReq, ::rpcpb::TestRsp>(
           [this](::grpc::ServerContext* context,
-                 const ::rpcpb::HealthReq* request,
-                 ::rpcpb::HealthRsp* response,
+                 const ::rpcpb::TestReq* request,
+                 ::rpcpb::TestRsp* response,
                  ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   return this->Health(context, request, response, controller);
+                   return this->HowAreYou(context, request, response, controller);
                  }));
     }
-    ~ExperimentalWithCallbackMethod_Health() override {
+    ~ExperimentalWithCallbackMethod_HowAreYou() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Health(::grpc::ServerContext* context, const ::rpcpb::HealthReq* request, ::rpcpb::HealthRsp* response) override {
+    ::grpc::Status HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void Health(::grpc::ServerContext* context, const ::rpcpb::HealthReq* request, ::rpcpb::HealthRsp* response, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    virtual void HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
   };
-  typedef ExperimentalWithCallbackMethod_Health<Service > ExperimentalCallbackService;
+  typedef ExperimentalWithCallbackMethod_HowAreYou<Service > ExperimentalCallbackService;
   template <class BaseClass>
-  class WithGenericMethod_Health : public BaseClass {
+  class WithGenericMethod_HowAreYou : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
-    WithGenericMethod_Health() {
+    WithGenericMethod_HowAreYou() {
       ::grpc::Service::MarkMethodGeneric(0);
     }
-    ~WithGenericMethod_Health() override {
+    ~WithGenericMethod_HowAreYou() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Health(::grpc::ServerContext* context, const ::rpcpb::HealthReq* request, ::rpcpb::HealthRsp* response) override {
+    ::grpc::Status HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithRawMethod_Health : public BaseClass {
+  class WithRawMethod_HowAreYou : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
-    WithRawMethod_Health() {
+    WithRawMethod_HowAreYou() {
       ::grpc::Service::MarkMethodRaw(0);
     }
-    ~WithRawMethod_Health() override {
+    ~WithRawMethod_HowAreYou() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Health(::grpc::ServerContext* context, const ::rpcpb::HealthReq* request, ::rpcpb::HealthRsp* response) override {
+    ::grpc::Status HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestHealth(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestHowAreYou(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class ExperimentalWithRawCallbackMethod_Health : public BaseClass {
+  class ExperimentalWithRawCallbackMethod_HowAreYou : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
-    ExperimentalWithRawCallbackMethod_Health() {
+    ExperimentalWithRawCallbackMethod_HowAreYou() {
       ::grpc::Service::experimental().MarkMethodRawCallback(0,
         new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
           [this](::grpc::ServerContext* context,
                  const ::grpc::ByteBuffer* request,
                  ::grpc::ByteBuffer* response,
                  ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   this->Health(context, request, response, controller);
+                   this->HowAreYou(context, request, response, controller);
                  }));
     }
-    ~ExperimentalWithRawCallbackMethod_Health() override {
+    ~ExperimentalWithRawCallbackMethod_HowAreYou() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Health(::grpc::ServerContext* context, const ::rpcpb::HealthReq* request, ::rpcpb::HealthRsp* response) override {
+    ::grpc::Status HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void Health(::grpc::ServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    virtual void HowAreYou(::grpc::ServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_Health : public BaseClass {
+  class WithStreamedUnaryMethod_HowAreYou : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
-    WithStreamedUnaryMethod_Health() {
+    WithStreamedUnaryMethod_HowAreYou() {
       ::grpc::Service::MarkMethodStreamed(0,
-        new ::grpc::internal::StreamedUnaryHandler< ::rpcpb::HealthReq, ::rpcpb::HealthRsp>(std::bind(&WithStreamedUnaryMethod_Health<BaseClass>::StreamedHealth, this, std::placeholders::_1, std::placeholders::_2)));
+        new ::grpc::internal::StreamedUnaryHandler< ::rpcpb::TestReq, ::rpcpb::TestRsp>(std::bind(&WithStreamedUnaryMethod_HowAreYou<BaseClass>::StreamedHowAreYou, this, std::placeholders::_1, std::placeholders::_2)));
     }
-    ~WithStreamedUnaryMethod_Health() override {
+    ~WithStreamedUnaryMethod_HowAreYou() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status Health(::grpc::ServerContext* context, const ::rpcpb::HealthReq* request, ::rpcpb::HealthRsp* response) override {
+    ::grpc::Status HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedHealth(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::rpcpb::HealthReq,::rpcpb::HealthRsp>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedHowAreYou(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::rpcpb::TestReq,::rpcpb::TestRsp>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_Health<Service > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_HowAreYou<Service > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_Health<Service > StreamedService;
+  typedef WithStreamedUnaryMethod_HowAreYou<Service > StreamedService;
 };
 
 }  // namespace rpcpb
