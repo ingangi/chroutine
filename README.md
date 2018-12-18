@@ -6,18 +6,18 @@ my system: CentOS Linux release 7.4.1708
 
 ### get ready
 
-```
+```shell
 sudo yum install autoconf automake autogen libtool shtool build-essential pkg-config libgflags-dev libgtest-dev clang libc++-dev
 ```
 
 ### build and install
 
-```
- $ git clone https://github.com/grpc/grpc
- $ cd grpc
- $ git submodule update --init
- $ make
- $ [sudo] make install
+```shell
+git clone https://github.com/grpc/grpc
+cd grpc
+git submodule update --init
+make
+[sudo] make install
 ```
 
 
@@ -29,14 +29,14 @@ if get configure error:
 
 try:
 
-```
+```shell
 cd third_party/protobuf; 
 autoreconf -i -v -f
 ```
 
 `git submodule update --init` will download third party code, try to download yourself and put them in right place if failed in China:
 
-```
+```shell
 Submodule 'third_party/abseil-cpp' (https://github.com/abseil/abseil-cpp) registered for path 'third_party/abseil-cpp'
 Submodule 'third_party/benchmark' (https://github.com/google/benchmark) registered for path 'third_party/benchmark'
 Submodule 'third_party/bloaty' (https://github.com/google/bloaty.git) registered for path 'third_party/bloaty'
@@ -53,21 +53,21 @@ Submodule 'third_party/zlib' (https://github.com/madler/zlib) registered for pat
 
 it was build but not installed:
 
-```
+```shell
 cd third_party/protobuf
 sudo make install
 ```
 
 ### try to generate protobuf code
 
-```
+```shell
 cd proto_def
 sh gen.sh test.proto
 ```
 
 You should see four files:
 
-```
+```shell
 proto_code/
 ├── grpc_code
 │   ├── test.grpc.pb.cc
