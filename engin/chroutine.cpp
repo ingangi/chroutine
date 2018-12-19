@@ -290,7 +290,7 @@ int chroutine_thread_t::schedule()
     while (!m_need_stop) {
         select_all();
         pick_run_chroutine();
-        if (done())
+        if (done()) // todo: need a better way to determine if it's busy
             usleep(10000);
     }
     m_is_running = false;

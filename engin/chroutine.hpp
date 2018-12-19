@@ -155,6 +155,4 @@ private:
     selectable_object_list_t    m_selector_list;
 };
 
-
-
 #endif

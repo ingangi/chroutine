@@ -124,3 +124,13 @@ reporter_base_t *engine_t::get_my_reporter()
 
     return pthrd->get_current_reporter();
 }
+
+int engine_t::register_select_obj(selectable_object_sptr_t select_obj)
+{
+    chroutine_thread_t *pthrd = get_current_thread();
+    if (pthrd == nullptr)
+        return -1;
+
+    pthrd->register_selector(select_obj);
+    return 0;
+}

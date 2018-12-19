@@ -4,6 +4,7 @@
 #include <map>
 #include <thread>
 #include "chroutine.hpp"
+#include "selectable_obj.hpp"
 
 typedef std::map<std::thread::id, std::shared_ptr<chroutine_thread_t> > thread_pool_t;
 typedef std::vector<std::shared_ptr<chroutine_thread_t> > creating_threads_t;
@@ -40,6 +41,9 @@ public:
 
     // get current chroutine's reporter
     reporter_base_t *get_my_reporter();
+
+    // register a select object to current thread
+    int register_select_obj(selectable_object_sptr_t select_obj);
 
 private:    
     engine_t();
