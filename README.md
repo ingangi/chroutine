@@ -68,11 +68,9 @@ sh gen.sh test.proto
 You should see four files:
 
 ```shell
-proto_code/
-├── grpc_code
+├── proto_code
 │   ├── test.grpc.pb.cc
-│   └── test.grpc.pb.h
-└── msg_code
-    ├── test.pb.cc
-    └── test.pb.h
+│   ├── test.grpc.pb.h
+│   ├── test.pb.cc
+│   └── test.pb.h
 ```

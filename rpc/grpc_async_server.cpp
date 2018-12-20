@@ -73,6 +73,12 @@ int grpc_async_server_it::start(const std::string & addr)
 		return true;
 	}
 
+	// check if this thread can reigster to engin
+	if (register_to_engin() != 0) {
+		std::cout << __FUNCTION__ << " error: cant register to engin\n";
+		return false;
+	}
+
 	//SPDLOG(CRITICAL, "start grpc_async_server_it({}) thread!", addr);
 
 	if (0 != start_grpc_server(addr))

@@ -34,13 +34,14 @@ protected:
 	call_step_t m_step;
 };
 
+// One `server` corresponds to one ip&port, can carry multiple `services`
 class grpc_async_server_it : public selectable_object_it
 {
 public:
 	grpc_async_server_it();
 	virtual ~grpc_async_server_it();
 
-	// register my service
+	// register all services carried by this server
 	virtual int register_service(::grpc::ServerBuilder &builder) = 0;
 	// start listen call requests
 	virtual int listen_requests() = 0;
