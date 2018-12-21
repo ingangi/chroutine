@@ -37,9 +37,9 @@ int grpc_async_server_it::select(int wait_ms)
 	gpr_timespec time;
 	time.tv_sec = 0;
 	time.tv_nsec = wait_ms * 1000000;
-	if (wait_ms > 0) {
+	//if (wait_ms > 0) {
 		time.clock_type = GPR_TIMESPAN;
-	}
+	//}
 
 	void* tag;
 	bool ok;

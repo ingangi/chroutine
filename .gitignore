@@ -4,3 +4,4 @@
 *.a
 .vscode/settings.json
 test
+rpc_example/rpcsrv
