@@ -1,3 +1,12 @@
+/// \file selectable_obj.hpp
+/// 
+/// selectable_object_it is the base class for all IO objects.
+/// we should use selectable_object_it instead of system IO APIs !
+///
+/// \author ingangi
+/// \version 0.1.0
+/// \date 2018-12-24
+
 #ifndef SELECTALBLE_OBJ_H
 #define SELECTALBLE_OBJ_H
 

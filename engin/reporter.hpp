@@ -1,3 +1,11 @@
+/// \file reporter.hpp
+/// 
+/// reporter_t is for the communication between father and son croutines
+///
+/// \author ingangi
+/// \version 0.1.0
+/// \date 2018-12-24
+
 #ifndef REPORTER_H
 #define REPORTER_H
 

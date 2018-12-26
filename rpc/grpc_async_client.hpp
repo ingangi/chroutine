@@ -1,3 +1,12 @@
+/// \file grpc_async_client.hpp
+/// 
+/// inherited from selectable_object_it.
+/// implmented the async rpc client based on grpc.
+///
+/// \author ingangi
+/// \version 0.1.0
+/// \date 2018-12-24
+
 #ifndef __GRPC_ASYNC_CLIENT_H__
 #define __GRPC_ASYNC_CLIENT_H__
 

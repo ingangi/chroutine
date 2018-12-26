@@ -1,3 +1,11 @@
+/// \file engin.hpp
+/// 
+/// engin is the manager for all chroutine_thread_t
+///
+/// \author ingangi
+/// \version 0.1.0
+/// \date 2018-12-12
+
 #ifndef ENGINE_H
 #define ENGINE_H
 

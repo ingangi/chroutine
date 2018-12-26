@@ -1,3 +1,13 @@
+/// \file chroutine.hpp
+/// 
+/// defined core classes or structs of the `engin`
+/// `chroutine_t` indicades a croutine, 
+/// `chroutine_thread_t` holds a os thread which the croutines run on
+///
+/// \author ingangi
+/// \version 0.1.0
+/// \date 2018-12-12
+
 #ifndef CHROUTINE_H
 #define CHROUTINE_H
 
