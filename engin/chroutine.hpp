@@ -17,6 +17,7 @@
 #include <vector>
 #include <string.h>
 #include <iostream>
+#include <functional>
 #include "reporter.hpp"
 #include "selectable_obj.hpp"
 
@@ -24,7 +25,7 @@ const unsigned int STACK_SIZE = 1024*128;
 const int INVALID_ID = -1;
 const int MAX_RUN_MS_EACH = 10;
 
-typedef void (*func_t)(void *);
+typedef std::function<void(void *)> func_t;
 
 typedef enum {
     //chroutine_state_free = 0,
@@ -100,10 +101,10 @@ public:
     void wait(std::time_t wait_time_ms);
 
     // create a chroutine
-    chroutine_id_t create_chroutine(func_t func, void *arg);
+    chroutine_id_t create_chroutine(func_t & func, void *arg);
     
     // create a son chroutine of current chroutine
-    chroutine_id_t create_son_chroutine(func_t func, reporter_sptr_t reporter);
+    chroutine_id_t create_son_chroutine(func_t & func, reporter_sptr_t reporter);
 
     // start the thread
     void start(size_t creating_index);

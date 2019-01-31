@@ -18,8 +18,9 @@ typedef struct return_data_t{
     int a;
 }return_data_t;
 
-void fun_3(return_data_t *data)
+void fun_3(void *arg)
 {
+    return_data_t *data = (return_data_t *)arg;
     std::cout << "fun_3 (" << std::this_thread::get_id() << ")" << std::endl;
     fake_io_work(5000);
     data->a = 888;
@@ -27,7 +28,7 @@ void fun_3(return_data_t *data)
     std::cout << "fun_3 (" << std::this_thread::get_id() << ") OVER" << std::endl;
 }
 
-void fun_1()
+void fun_1(void *arg)
 {
     int tick = 0;
     while (1) {
@@ -37,7 +38,7 @@ void fun_1()
 
         if (tick % 3 == 0) {
             // example of sync with son chroutine:
-            ENGIN.create_son_chroutine(func_t(fun_3), reporter_t<return_data_t>::create());
+            ENGIN.create_son_chroutine(fun_3, reporter_t<return_data_t>::create());
             std::cout << "fun_1 (" << std::this_thread::get_id() << ") start wait" << std::endl;
             WAIT(5010);
             reporter_base_t * rpt = ENGIN.get_my_reporter();
@@ -52,22 +53,19 @@ void fun_1()
     }
 }
 
-void fun_2()
-{
-    int tick = 0;
-    while (1) {
-        std::cout << "fun_2 tick = " << ++tick << " (" << std::this_thread::get_id() << ")" << std::endl;
-        fake_io_work(2000);
-    }
-}
-
 
 int main(int argc, char **argv)
 {   
     ENGINE_INIT(2);
 
-    ENGIN.create_chroutine(func_t(fun_1), nullptr);  
-    ENGIN.create_chroutine(func_t(fun_2), nullptr);
+    ENGIN.create_chroutine(fun_1, nullptr);  
+    ENGIN.create_chroutine([](void *){
+    int tick = 0;
+        while (1) {
+            std::cout << "fun_2 tick = " << ++tick << " (" << std::this_thread::get_id() << ")" << std::endl;
+            fake_io_work(2000);
+        }
+    }, nullptr);
 
     while(1) {
         usleep(500000);

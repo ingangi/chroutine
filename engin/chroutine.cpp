@@ -134,7 +134,7 @@ void chroutine_thread_t::entry(void *arg)
     //std::cout << "entry over, " << p_this->m_schedule.running_id << " left:" << p_this->m_schedule.chroutines.size() << std::endl;
 }
 
-chroutine_id_t chroutine_thread_t::create_chroutine(func_t func, void *arg)
+chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
 {
     if (func == nullptr) 
         return INVALID_ID;
@@ -149,7 +149,7 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t func, void *arg)
     p_c->ctx.uc_stack.ss_size = STACK_SIZE;
     p_c->ctx.uc_stack.ss_flags = 0;
     p_c->ctx.uc_link = &(m_schedule.main);
-    p_c->func = func;
+    p_c->func = std::move(func);
     p_c->arg = arg;
     p_c->state = chroutine_state_ready;
     makecontext(&(p_c->ctx),(void (*)(void))(entry), 1, this);
@@ -165,7 +165,7 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t func, void *arg)
     return id;
 }
 
-chroutine_id_t chroutine_thread_t::create_son_chroutine(func_t func, reporter_sptr_t reporter)
+chroutine_id_t chroutine_thread_t::create_son_chroutine(func_t & func, reporter_sptr_t reporter)
 {
     //std::cout << "create_son_chroutine start, " << m_schedule.running_id << std::endl;
 
