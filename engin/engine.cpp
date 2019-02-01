@@ -78,13 +78,15 @@ chroutine_id_t engine_t::create_chroutine(func_t func, void *arg)
     return pthrd->create_chroutine(func, arg);
 }
 
-chroutine_id_t engine_t::create_son_chroutine(func_t func, reporter_sptr_t reporter)
+reporter_base_t * engine_t::create_son_chroutine(func_t func, reporter_sptr_t reporter, std::time_t timeout_ms)
 {
     chroutine_thread_t *pthrd = get_current_thread();
     if (pthrd == nullptr)
-        return INVALID_ID;
+        return nullptr;
 
-    return pthrd->create_son_chroutine(func, reporter);
+    pthrd->create_son_chroutine(func, reporter);
+    pthrd->wait(timeout_ms);
+    return pthrd->get_current_reporter();
 }
 
 chroutine_thread_t *engine_t::get_current_thread()
@@ -109,10 +111,10 @@ chroutine_thread_t *engine_t::get_lightest_thread()
         return nullptr;
     }
 
-    // let's return a random one for test
     if (m_creating.empty())
         return nullptr;
 
+    // let's return a random one for test
     return m_creating[time(NULL) % m_creating.size()].get();
 }
 

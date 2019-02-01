@@ -20,6 +20,10 @@ typedef std::vector<std::shared_ptr<chroutine_thread_t> > creating_threads_t;
 #define ENGIN engine_t::instance()
 #define ENGINE_INIT(thrds) {ENGIN.init(thrds);}
 #define YIELD() {ENGIN.yield();}
+
+// yeild current chroutine for @t ms, when timeout happens chroutine will continue 
+// and the son chroutine(if exist) would be killed and returned !!  todo: fixme
+// use this instead of system sleep in chroutine !!
 #define WAIT(t) {ENGIN.wait(t);}
 
 std::time_t get_time_stamp();
@@ -41,14 +45,13 @@ public:
     // will be awaken immediately when son is done, or time is out
     void wait(std::time_t wait_time_ms = 1000);
     
-    // create a chroutine in the lightest thread
+    // create and run a chroutine in the lightest thread
     chroutine_id_t create_chroutine(func_t func, void *arg);
 
-    // create a son chroutine for the current chroutine
-    chroutine_id_t create_son_chroutine(func_t func, reporter_sptr_t reporter);
-
-    // get current chroutine's reporter
-    reporter_base_t *get_my_reporter();
+    // create and run a son chroutine for the current chroutine.
+    // returns the son's result so the father can get what he want.
+    // @timeout_ms controls the max time for the son to run.
+    reporter_base_t * create_son_chroutine(func_t func, reporter_sptr_t reporter, std::time_t timeout_ms);
 
     // register a select object to current thread
     int register_select_obj(selectable_object_sptr_t select_obj);
@@ -58,6 +61,10 @@ private:
     void on_thread_ready(size_t creating_index, std::thread::id thread_id);
     chroutine_thread_t *get_current_thread();
     chroutine_thread_t *get_lightest_thread();
+    
+    // get current chroutine's reporter
+    // (maybe no longer needed)
+    reporter_base_t *get_my_reporter();
 
 private:
     std::mutex          m_pool_lock;            // only used during m_init_over is false

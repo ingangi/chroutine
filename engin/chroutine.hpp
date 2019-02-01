@@ -156,7 +156,7 @@ private:
 
     // select all selectable_object_it
     // rpc/tcp/http/pipe for this thread
-    void select_all();
+    int select_all();
 
 private:
     schedule_t                  m_schedule;

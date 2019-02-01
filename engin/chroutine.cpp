@@ -287,10 +287,11 @@ int chroutine_thread_t::schedule()
     m_is_running = true;
     engine_t::instance().on_thread_ready(m_creating_index, std::this_thread::get_id());
     std::cout << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;
-    while (!m_need_stop) {
-        select_all();
-        pick_run_chroutine();
-        if (done()) // todo: need a better way to determine if it's busy
+    while (!m_need_stop) {        
+        int processed = 0;
+        processed += select_all();
+        processed += pick_run_chroutine() == INVALID_ID ? 0 : 1;
+        if (processed == 0)
             usleep(10000);
     }
     m_is_running = false;
@@ -313,13 +314,15 @@ void chroutine_thread_t::stop()
     m_need_stop = true;
 }
 
-void chroutine_thread_t::select_all()
-{    
+int chroutine_thread_t::select_all()
+{
+    int processed = 0;
     for (auto iter = m_selector_list.begin(); iter != m_selector_list.end(); iter++) {
         selectable_object_it *p_obj = iter->second.get();
         if (p_obj)
-            p_obj->select(0);
+            processed += p_obj->select(0);
     }
+    return processed;
 }
 
 void chroutine_thread_t::register_selector(selectable_object_sptr_t select_obj)
