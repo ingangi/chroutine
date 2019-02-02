@@ -21,6 +21,14 @@ public:
 	{
 		set_timeout(3);
 	}
+
+
+	client_sync_call_t(client_sync_call_t &other) : client_call_it(other.m_client_ptr) {
+		m_my_chroutine = other.m_my_chroutine;
+		m_chroutine_timeout_ms = other.m_chroutine_timeout_ms;
+		m_result = other.m_result;
+	}
+
 	virtual ~client_sync_call_t()
 	{}
 
@@ -72,11 +80,11 @@ protected:
 		// 
 		return 0;
 	}
-
+public:
+	RESULT_T m_result;
 private:
 	chroutine_id_t m_my_chroutine = INVALID_ID;
 	int m_chroutine_timeout_ms = 0;
-	RESULT_T m_result;
 };
 
 #endif

@@ -5,7 +5,13 @@
 grpc_async_client_t::grpc_async_client_t(const std::string & addr)
 : m_channel(::grpc::CreateChannel(addr, ::grpc::InsecureChannelCredentials()))
 , m_addr(addr)
-{}
+{
+	std::cout << addr << "-> channel = " << m_channel.get() << std::endl;
+	if (register_to_engin() != 0) {
+		std::cout << __FUNCTION__ << " error: cant register to engin\n";
+		exit(-1);
+	}
+}
 
 int grpc_async_client_t::select(int wait_ms)
 {
@@ -17,9 +23,9 @@ int grpc_async_client_t::select(int wait_ms)
 	gpr_timespec time;
 	time.tv_sec = 0;
 	time.tv_nsec = wait_ms * 1000000;
-	if (wait_ms > 0)	{
+	//if (wait_ms > 0)	{
 		time.clock_type = GPR_TIMESPAN;
-	}
+	//}
 
 	while (::grpc::CompletionQueue::GOT_EVENT == m_completion_que.AsyncNext(&tag, &ok, time) && ok)
 	{

@@ -30,7 +30,7 @@ chroutine_id_t chroutine_t::yield_over(son_result_t result)
 {
     chroutine_id_t timeout_chroutine = INVALID_ID;
     if (yield_to != 0 && stop_son_when_yield_over) {
-        std::cout << "wait time out!" << std::endl;
+        //std::cout << "wait time out!" << std::endl;
         if (reporter.get()) {
             reporter.get()->set_result(result);
         }
