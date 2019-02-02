@@ -59,15 +59,16 @@ public:
 
 private:
     ucontext_t          ctx;
-    func_t              func;
-    void *              arg;
-    chroutine_state_t   state;
-    char *              stack;
-    int                 yield_wait; // yield by frame count
-    std::time_t         yield_to;   // yield until some time
-    chroutine_id_t      father;
-    chroutine_id_t      son;
+    func_t              func = nullptr;
+    void *              arg = nullptr;
+    chroutine_state_t   state = chroutine_state_suspend;
+    char *              stack = nullptr;
+    int                 yield_wait = 0; // yield by frame count
+    std::time_t         yield_to = 0;   // yield until some time
+    chroutine_id_t      father = INVALID_ID;
+    chroutine_id_t      son = INVALID_ID;
     reporter_sptr_t     reporter;   // son chroutine excute result
+    bool                stop_son_when_yield_over = false;
 };
 
 typedef std::vector<std::shared_ptr<chroutine_t> > chroutine_list_t;
@@ -98,7 +99,12 @@ public:
     void yield(int tick);
     
     // yield current chroutin for at most @wait_time_ms time
+    // when timeout happens, stop the son chroutine and continue running.
     void wait(std::time_t wait_time_ms);
+    
+    // yield current chroutin for at most @wait_time_ms time
+    // when timeout happens, continue running.
+    void sleep(std::time_t wait_time_ms);
 
     // create a chroutine
     chroutine_id_t create_chroutine(func_t & func, void *arg);
@@ -133,8 +139,8 @@ private:
     // called by yield
     void yield_current(int tick);
 
-    // called by wait
-    void wait_current(std::time_t wait_time_ms);
+    // called by wait/sleep
+    void wait_current(std::time_t wait_time_ms, bool stop_son_after_wait);
     
     // where the funcs of chroutines were called
     static void entry(void *arg);

@@ -20,11 +20,8 @@ typedef std::vector<std::shared_ptr<chroutine_thread_t> > creating_threads_t;
 #define ENGIN engine_t::instance()
 #define ENGINE_INIT(thrds) {ENGIN.init(thrds);}
 #define YIELD() {ENGIN.yield();}
-
-// yeild current chroutine for @t ms, when timeout happens chroutine will continue 
-// and the son chroutine(if exist) would be killed and returned !!  todo: fixme
-// use this instead of system sleep in chroutine !!
 #define WAIT(t) {ENGIN.wait(t);}
+#define SLEEP(t) {ENGIN.sleep(t);}
 
 std::time_t get_time_stamp();
 
@@ -44,6 +41,10 @@ public:
     // yield myself for some time, waiting for son chroutine to be done.
     // will be awaken immediately when son is done, or time is out
     void wait(std::time_t wait_time_ms = 1000);
+    
+    // yield myself for some time, 
+    // we should always use this instead of system sleep() !!!
+    void sleep(std::time_t wait_time_ms);
     
     // create and run a chroutine in the lightest thread
     chroutine_id_t create_chroutine(func_t func, void *arg);

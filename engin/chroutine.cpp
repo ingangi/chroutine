@@ -7,11 +7,6 @@
 chroutine_t::chroutine_t() 
 {
     stack = new char[STACK_SIZE];
-    //memset(stack, 0, STACK_SIZE);
-    yield_wait = 0;
-    yield_to = 0;
-    father = INVALID_ID;
-    son = INVALID_ID;
 }
 
 chroutine_t::~chroutine_t() 
@@ -30,18 +25,21 @@ int chroutine_t::wait(std::time_t now)
 
     return 0;
 }
+
 chroutine_id_t chroutine_t::yield_over() 
 {
     chroutine_id_t timeout_chroutine = INVALID_ID;
-    if (yield_to != 0) {
+    if (yield_to != 0 && stop_son_when_yield_over) {
         std::cout << "wait time out!" << std::endl;
         if (reporter.get()) {
             reporter.get()->set_result(result_timeout);
         }
-        yield_to = 0;
         timeout_chroutine = son;
         son = INVALID_ID;
+        stop_son_when_yield_over = false;
     }
+
+    yield_to = 0;
     return timeout_chroutine;
 }
 
@@ -78,7 +76,12 @@ void chroutine_thread_t::yield(int tick)
 
 void chroutine_thread_t::wait(std::time_t wait_time_ms)
 {
-    wait_current(wait_time_ms);
+    wait_current(wait_time_ms, true);
+}
+
+void chroutine_thread_t::sleep(std::time_t wait_time_ms)
+{
+    wait_current(wait_time_ms, false);
 }
 
 chroutine_t * chroutine_thread_t::get_chroutine(chroutine_id_t id)
@@ -208,7 +211,7 @@ void chroutine_thread_t::yield_current(int tick)
     swapcontext(&(co->ctx), &(m_schedule.main));
 }
 
-void chroutine_thread_t::wait_current(std::time_t wait_time_ms)
+void chroutine_thread_t::wait_current(std::time_t wait_time_ms, bool stop_son_after_wait)
 {
     if (wait_time_ms <= 0)
         return;
@@ -223,6 +226,7 @@ void chroutine_thread_t::wait_current(std::time_t wait_time_ms)
     //std::cout << "wait_current ..." << m_schedule.running_id << std::endl;
     co->state = chroutine_state_suspend;
     co->yield_to = get_time_stamp() + wait_time_ms;
+    co->stop_son_when_yield_over = stop_son_after_wait;
     m_schedule.running_id = INVALID_ID;
     swapcontext(&(co->ctx), &(m_schedule.main));
 }

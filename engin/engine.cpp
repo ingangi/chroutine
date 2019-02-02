@@ -69,6 +69,15 @@ void engine_t::wait(std::time_t wait_time_ms)
     pthrd->wait(wait_time_ms);
 }
 
+void engine_t::sleep(std::time_t wait_time_ms)
+{    
+    chroutine_thread_t *pthrd = get_current_thread();
+    if (pthrd == nullptr)
+        return;
+
+    pthrd->sleep(wait_time_ms);
+}
+
 chroutine_id_t engine_t::create_chroutine(func_t func, void *arg)
 {    
     chroutine_thread_t *pthrd = get_lightest_thread();

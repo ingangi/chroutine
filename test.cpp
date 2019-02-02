@@ -8,8 +8,7 @@ void fake_io_work(int costtime = 10)
 {    
     std::time_t now = get_time_stamp();
     while (get_time_stamp() - now < costtime) {
-        usleep(1000);
-        YIELD();
+        SLEEP(20);
     }
 }
 
@@ -33,12 +32,12 @@ void fun_1(void *arg)
             // if timeout happens during son's running, son will be stopped and removed immediately            
             reporter_base_t * rpt = ENGIN.create_son_chroutine([](void *d) {
                 test_return_data_t *data = (test_return_data_t *)d;
-                std::cout << "son-of-func_1 (" << std::this_thread::get_id() << ")" << std::endl;
+                std::cout << "son-of-func_1 (" << std::this_thread::get_id() << ") " << get_time_stamp() << std::endl;
                 fake_io_work(5000);
                 data->a = 888;
                 data->b = "hello father";
-                std::cout << "son-of-func_1 (" << std::this_thread::get_id() << ") OVER" << std::endl;
-            }, reporter_t<test_return_data_t>::create(), 5010);
+                std::cout << "son-of-func_1 (" << std::this_thread::get_id() << ") OVER " << get_time_stamp() << std::endl;
+            }, reporter_t<test_return_data_t>::create(), 5100);
 
             // son is over, check the result
             if (rpt) {
