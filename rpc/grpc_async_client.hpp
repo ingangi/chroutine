@@ -42,19 +42,24 @@ public:
 	virtual ~client_call_it()
 	{}
 
-	int call();
+	client_call_it * call();
 	virtual int on_rsp() = 0;
+
+	// should be called before `call()`
+	void set_timeout(int seconds) {
+		m_timeout_seconds = seconds;
+	}
 
 protected:
 	virtual client_call_it *clone_me() = 0;
 	virtual int call_impl() = 0;
-	virtual void set_timeout();
+	virtual void set_opt();
 
 protected:
 	::grpc::ClientContext m_context;
 	::grpc::Status m_status;
 	grpc_async_client_t *m_client_ptr = nullptr;
+	int		m_timeout_seconds = 0;	// 0 -> no time limite
 };
-
 
 #endif

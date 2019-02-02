@@ -26,13 +26,13 @@ int chroutine_t::wait(std::time_t now)
     return 0;
 }
 
-chroutine_id_t chroutine_t::yield_over() 
+chroutine_id_t chroutine_t::yield_over(son_result_t result) 
 {
     chroutine_id_t timeout_chroutine = INVALID_ID;
     if (yield_to != 0 && stop_son_when_yield_over) {
         std::cout << "wait time out!" << std::endl;
         if (reporter.get()) {
-            reporter.get()->set_result(result_timeout);
+            reporter.get()->set_result(result);
         }
         timeout_chroutine = son;
         son = INVALID_ID;
@@ -358,4 +358,17 @@ void chroutine_thread_t::unregister_selector(selectable_object_it *p_obj)
         m_selector_list.erase(iter);
         std::cout << __FUNCTION__ << " OK: key = " << key << std::endl;
     }
+}
+
+
+int chroutine_thread_t::awake_chroutine(chroutine_id_t id)
+{
+    chroutine_t * p_c = get_chroutine(id);
+    if (p_c == nullptr) {
+        std::cout << __FUNCTION__ << " p_c == nullptr ! id = " << id << std::endl;
+        return -1;
+    }
+
+    remove_chroutine(p_c->yield_over(result_done));
+    return 0;
 }

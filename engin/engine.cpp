@@ -145,3 +145,21 @@ int engine_t::register_select_obj(selectable_object_sptr_t select_obj)
     pthrd->register_selector(select_obj);
     return 0;
 }
+
+chroutine_id_t engine_t::get_current_chroutine_id()
+{
+    chroutine_thread_t *pthrd = get_current_thread();
+    if (pthrd == nullptr)
+        return INVALID_ID;
+
+    return pthrd->get_running_id();
+}
+
+int engine_t::awake_chroutine(chroutine_id_t id)
+{
+    chroutine_thread_t *pthrd = get_current_thread();
+    if (pthrd == nullptr)
+        return -1;
+
+    return pthrd->awake_chroutine(id);
+}

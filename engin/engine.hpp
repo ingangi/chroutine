@@ -57,6 +57,12 @@ public:
     // register a select object to current thread
     int register_select_obj(selectable_object_sptr_t select_obj);
 
+    // get my chroutine id
+    chroutine_id_t get_current_chroutine_id();
+
+    // awake waiting chroutine
+    int awake_chroutine(chroutine_id_t id);
+
 private:    
     engine_t();
     void on_thread_ready(size_t creating_index, std::thread::id thread_id);

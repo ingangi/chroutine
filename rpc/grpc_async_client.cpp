@@ -28,7 +28,8 @@ int grpc_async_client_t::select(int wait_ms)
 		if (call_ptr)
 		{
 			call_ptr->on_rsp();
-			delete call_ptr;
+			// FIXME
+			//delete call_ptr;	// todo: find a better way to manage call_ptr
 		}
 
 		if (proccessed > 10)
@@ -42,19 +43,21 @@ bool grpc_async_client_t::ready()
 	return m_channel.get()->GetState(true) == GRPC_CHANNEL_READY;
 }
 
-int client_call_it::call()
+client_call_it * client_call_it::call()
 {
 	client_call_it * call_ptr = clone_me();
 	if (call_ptr)
 	{
-		call_ptr->set_timeout();
+		call_ptr->set_opt();
 		call_ptr->call_impl();
 	}
-	return 0;
+	return call_ptr;
 }
 
-void client_call_it::set_timeout()
+void client_call_it::set_opt()
 {
-	m_context.set_deadline(std::chrono::system_clock::now() +
-		std::chrono::seconds(3));	// default 3 seconds 
+	if (m_timeout_seconds > 0) {
+		m_context.set_deadline(std::chrono::system_clock::now() +
+			std::chrono::seconds(m_timeout_seconds));
+	}
 }

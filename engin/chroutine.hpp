@@ -49,7 +49,7 @@ public:
     int wait(std::time_t now);
 
     // called when resume, return the timeout son id if exist
-    chroutine_id_t yield_over();
+    chroutine_id_t yield_over(son_result_t result = result_timeout);
 
     // called when son is done
     void son_finished();
@@ -129,6 +129,14 @@ public:
     void register_selector(selectable_object_sptr_t select_obj);
     void unregister_selector(selectable_object_sptr_t select_obj);
     void unregister_selector(selectable_object_it *p_obj);
+
+    
+    chroutine_id_t get_running_id() {
+        return m_schedule.running_id;
+    }
+    
+    // awake waiting chroutine
+    int awake_chroutine(chroutine_id_t id);
 
 private:
     chroutine_thread_t();

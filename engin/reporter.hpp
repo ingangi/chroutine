@@ -16,15 +16,15 @@ typedef enum {
     result_done,  // excuted
     result_error,
     result_timeout,
-} result_t;
+} son_result_t;
 
 class reporter_base_t
 {
 public:
-    virtual void set_result(result_t result) = 0;
+    virtual void set_result(son_result_t result) = 0;
     virtual void set_data(void * pdata) = 0;
     virtual void *get_data() = 0;
-    virtual result_t get_result() = 0;
+    virtual son_result_t get_result() = 0;
 };
 
 typedef std::shared_ptr<reporter_base_t> reporter_sptr_t;
@@ -40,7 +40,7 @@ public:
         return reporter_sptr_t(new reporter_t<T>);
     }
     
-    virtual void set_result(result_t result) {
+    virtual void set_result(son_result_t result) {
         errcode = result;
     }
     virtual void set_data(void * pdata) {
@@ -49,7 +49,7 @@ public:
     virtual void *get_data() {
         return &data;
     }
-    virtual result_t get_result() {
+    virtual son_result_t get_result() {
         return errcode;
     }
 
@@ -58,7 +58,7 @@ private:
 
 private:
     T           data;   // &data is the 'void *arg' for son's func
-    result_t    errcode;
+    son_result_t    errcode;
 
 };
 
