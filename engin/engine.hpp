@@ -24,6 +24,7 @@ typedef std::vector<std::shared_ptr<chroutine_thread_t> > creating_threads_t;
 #define SLEEP(t) {ENGIN.sleep(t);}
 
 std::time_t get_time_stamp();
+void ms_sleep(uint32_t ms);
 
 class engine_t 
 {
