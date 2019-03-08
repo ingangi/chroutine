@@ -1,4 +1,4 @@
-# env install
+# env install (Relies on gRPC and libcurl)
 
 ## install grpc
 
@@ -73,4 +73,12 @@ You should see four files:
 │   ├── test.grpc.pb.h
 │   ├── test.pb.cc
 │   └── test.pb.h
+```
+
+## install libcurl
+
+see:
+
+```
+https://github.com/curl/curl.git
 ```

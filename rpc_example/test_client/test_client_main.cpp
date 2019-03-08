@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     }, nullptr);
 
     while(1) {
-        ms_sleep(500);
+        thread_ms_sleep(500);
     }    
     std::cout << "over ..." << std::endl;
 }

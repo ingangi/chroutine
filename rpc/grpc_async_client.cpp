@@ -20,6 +20,10 @@ int grpc_async_client_t::select(int wait_ms)
 	void* tag;
 	bool ok;
 
+	// wait_ms should be 0 now, cause we have not hook the grpc APIs.
+	// if wait_ms > 0, the os thread would be blocked, that's not what we want
+	wait_ms = 0;	// FIXME
+
 	gpr_timespec time;
 	time.tv_sec = 0;
 	time.tv_nsec = wait_ms * 1000000;

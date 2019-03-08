@@ -296,7 +296,7 @@ int chroutine_thread_t::schedule()
         processed += select_all();
         processed += pick_run_chroutine() == INVALID_ID ? 0 : 1;
         if (processed == 0)
-            ms_sleep(10);
+            thread_ms_sleep(10);
     }
     m_is_running = false;
     std::cout << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;

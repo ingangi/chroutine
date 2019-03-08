@@ -8,7 +8,7 @@ std::time_t get_time_stamp()
     return std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()).count();
 }
 
-void ms_sleep(uint32_t ms)
+void thread_ms_sleep(uint32_t ms)
 {
     struct timespec ts;
     ts.tv_sec = ms / 1000;
@@ -41,7 +41,7 @@ void engine_t::init(size_t init_pool_size)
     }
 
     while (!m_init_over) {
-        ms_sleep(10);
+        thread_ms_sleep(10);
     }
     std::cout << __FUNCTION__ << " OVER" << std::endl;
 }
