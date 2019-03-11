@@ -16,6 +16,7 @@
 class selectable_object_it
 {
 public:
+    virtual ~selectable_object_it(){}
     virtual int select(int wait_ms) = 0;
 
     // after register to engin, select will be scheduled.    

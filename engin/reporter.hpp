@@ -21,6 +21,7 @@ typedef enum {
 class reporter_base_t
 {
 public:
+    virtual ~reporter_base_t(){}
     virtual void set_result(son_result_t result) = 0;
     virtual void set_data(void * pdata) = 0;
     virtual void *get_data() = 0;

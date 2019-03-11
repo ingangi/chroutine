@@ -29,6 +29,56 @@ curl_stub_t::~curl_stub_t()
     curl_global_cleanup();
 }
 
+
+std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
+    , int connect_timeout
+    , int timeout
+    , data_slot_func_t w_func
+    , void *w_func_handler)
+{
+    chroutine_id_t chroutine_id = ENGIN.get_current_chroutine_id();
+    if (chroutine_id == INVALID_ID) {
+        std::cout << "curl_stub_t::exec_curl error: can't get current_chroutine_id" << std::endl;
+        return std::shared_ptr<curl_rsp_t>(new curl_rsp_t());
+    }
+
+    auto req = curl_req_t::new_curl_req(0);
+    curl_req_t *p_req = req.get();
+    if (p_req == nullptr) {
+        return std::shared_ptr<curl_rsp_t>(new curl_rsp_t());
+    }
+
+    p_req->set_my_chroutine_id(chroutine_id);
+    p_req->make_default_opts();
+    p_req->set_url(url);
+    if (connect_timeout > 0 && connect_timeout != CURL_CON_TIME_OUT) {
+        p_req->set_connect_timeout(connect_timeout);
+    }
+    if (timeout > 0 && timeout != CURL_TIME_OUT) {
+        p_req->set_timeout(timeout);
+    }
+    if (w_func && w_func_handler) {
+        set_data_slot(w_func, w_func_handler);
+    }
+
+    push_curl_req(req);
+
+    // wait req to be done
+    if (timeout > 0) {
+        reporter_base_t * rpt = ENGIN.create_son_chroutine([](void *d) {
+            while (1) {SLEEP(10000);}
+        }, reporter_t<curl_call_wait_t>::create(), timeout);
+        
+        if (rpt) {
+            std::cout << "curl_call_wait_t, call result:" << rpt->get_result() 
+            << ", status.ok:" << m_status.ok() << std::endl;
+        }
+    }
+
+    // get rsp from req
+    return std::shared_ptr<curl_rsp_t>(new curl_rsp_t(std::move(p_req->rsp())));
+}
+
 int curl_stub_t::select(int wait_ms)
 {
     if (add_todo_to_doing()) {
@@ -41,7 +91,6 @@ int curl_stub_t::select(int wait_ms)
 size_t curl_stub_t::push_curl_req(std::shared_ptr<curl_req_t> req)
 {
     // do we need limit todo-list size ?
-    std::lock_guard<std::recursive_mutex> lock(m_todo_que_lock);
     m_curl_req_todo_que.push_back(req);
     return m_curl_req_todo_que.size();
 }
@@ -50,7 +99,6 @@ bool curl_stub_t::add_todo_to_doing()
 {
     //std::cout << "[trace] add_todo_to_doing" << std::endl;
     // add to multi handler
-    std::lock_guard<std::recursive_mutex> lock(m_todo_que_lock);
     
     while (m_curl_req_doing_map.size() < MAX_CONCURRENT_TRANS_IN_CURLMULTI  // m_curl_req_doing_map.size() is O(1)
             && !m_curl_req_todo_que.empty()) {
@@ -138,8 +186,7 @@ void curl_stub_t::read_and_clean()
                 curl_req_t *req_ptr = iter->second.get();
                 if (req_ptr) {
                     req_ptr->detach_multi_handler(m_multi_handle);
-                    req_ptr->rsp().set_rsp_code(rsp_code);
-                    req_ptr->rsp().set_curl_code(data_result);
+                    req_ptr->on_rsp(rsp_code, data_result);
                 }
                 m_curl_req_doing_map.erase(iter);
 

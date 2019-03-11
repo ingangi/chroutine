@@ -172,3 +172,21 @@ int engine_t::awake_chroutine(chroutine_id_t id)
 
     return pthrd->awake_chroutine(id);
 }
+
+
+std::shared_ptr<curl_rsp_t> engine_t::exec_curl(const std::string & url
+    , int connect_timeout
+    , int timeout
+    , data_slot_func_t w_func
+    , void *w_func_handler)
+{
+
+}
+
+void engine_t::run()
+{
+    while(1) {
+        // todo: preemption for chroutines that exceed 10ms
+        thread_ms_sleep(500);
+    }
+}

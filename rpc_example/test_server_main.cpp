@@ -13,9 +13,7 @@ int main(int argc, char **argv)
             delete server;
         }
     }, nullptr);
-
-    while(1) {
-        thread_ms_sleep(500);
-    }    
+    
+    ENGIN.run(); 
     std::cout << "over ..." << std::endl;
 }

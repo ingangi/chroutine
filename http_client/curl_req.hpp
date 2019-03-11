@@ -16,7 +16,10 @@
 #include <memory>
 #include <ctime>
 
+const int CURL_CON_TIME_OUT = 30000;    //1 minute
+const int CURL_TIME_OUT = 60000;    //1 minute
 typedef size_t(*data_slot_func_t)(void *, size_t, size_t, void *);
+//typedef std::function<size_t(void *, size_t, size_t, void *)> data_slot_func_t;
 
 /*
     curl_rsp_t contains the result and data of a curl_req_t,
@@ -27,7 +30,20 @@ class curl_rsp_t
 public:
 	static size_t write_rsp_data_func(void *buffer, size_t size, size_t nmemb, void *userp);
     curl_rsp_t(){}
-    ~curl_rsp_t(){}
+    ~curl_rsp_t() {
+        if (m_buf) {
+            delete [] m_buf;
+        }
+    }
+
+    curl_rsp_t(curl_rsp_t && other) {
+        char *tmp = m_buf;
+        m_buf = other.m_buf;
+        m_rsp_code = other.m_rsp_code;
+        m_data_result = other.m_data_result;
+        other.m_buf = tmp;
+        cout << "curl_rsp_t moved!!\n";
+    }
 
     void set_rsp_code(long code) {
         m_rsp_code = code;
@@ -42,8 +58,8 @@ public:
 
 private:
     char *          m_buf = nullptr;  //for test, we won't write data to buf, only print it
-    long            m_rsp_code;
-    long            m_data_result;
+    long            m_rsp_code = -1;
+    long            m_data_result = -1;
 };
 
 /*
@@ -79,6 +95,15 @@ public:
 
     curl_rsp_t &rsp() {return m_rsp;}
 
+    chroutine_id_t get_my_chroutine_id() {
+        return m_my_chroutine;
+    }
+    void set_my_chroutine_id(chroutine_id_t id) {
+        m_my_chroutine = id;
+    }
+
+    void on_rsp(long rsp_code, long data_result);
+
 private:
     curl_req_t(unsigned int req_id);
 
@@ -87,6 +112,7 @@ private:
     EN_CURL_TYPE    m_type = EN_CURL_TYPE_GET;
     unsigned int    m_req_id = 0;
     curl_rsp_t      m_rsp;
+	chroutine_id_t  m_my_chroutine = INVALID_ID;
 
 public:
     std::time_t          m_tm_start;

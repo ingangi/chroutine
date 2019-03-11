@@ -16,6 +16,7 @@
 
 typedef std::map<std::thread::id, std::shared_ptr<chroutine_thread_t> > thread_pool_t;
 typedef std::vector<std::shared_ptr<chroutine_thread_t> > creating_threads_t;
+typedef std::map<std::thread::id, std::shared_ptr<curl_stub_t> > http_stub_pool_t;
 
 #define ENGIN engine_t::instance()
 #define ENGINE_INIT(thrds) {ENGIN.init(thrds);}
@@ -26,7 +27,7 @@ typedef std::vector<std::shared_ptr<chroutine_thread_t> > creating_threads_t;
 std::time_t get_time_stamp();
 void thread_ms_sleep(uint32_t ms);
 
-class engine_t 
+class engine_t final
 {
     friend class chroutine_thread_t;
 public:
@@ -64,6 +65,16 @@ public:
     // awake waiting chroutine
     int awake_chroutine(chroutine_id_t id);
 
+    // the main thread
+    void run();
+
+    // excute http req
+    std::shared_ptr<curl_rsp_t> exec_curl(const std::string & url
+        , int connect_timeout = CURL_CON_TIME_OUT
+        , int timeout = CURL_TIME_OUT
+        , data_slot_func_t w_func = nullptr
+        , void *w_func_handler = nullptr);
+
 private:    
     engine_t();
     void on_thread_ready(size_t creating_index, std::thread::id thread_id);
@@ -79,6 +90,7 @@ private:
     thread_pool_t       m_pool;                 // is readonly after m_init_over become true
     creating_threads_t  m_creating;             // is readonly after m_init_over become true
     bool                m_init_over = false;    // if all threads ready
+    http_stub_pool_t    m_http_stubs;
 };
 
 #endif
