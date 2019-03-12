@@ -4,15 +4,15 @@
 #include <thread>
 #include <unistd.h>
 
-#include "curl_req.h"
-#include "curl_stub.h"
+#include "curl_req.hpp"
+#include "curl_stub.hpp"
+#include "engine.hpp"
 
 const long MAX_CONCURRENT_TRANS_IN_CURLMULTI = 1000;
 
 
 curl_stub_t::curl_stub_t()
 {
-    curl_global_init(CURL_GLOBAL_ALL);
     m_multi_handle = curl_multi_init();
     if (m_multi_handle == nullptr)  {
         std::cout << "curl_multi_init error!" << std::endl;
@@ -20,13 +20,14 @@ curl_stub_t::curl_stub_t()
         return;
     }
 
+    std::cout << "m_multi_handle created:" << m_multi_handle << std::endl;
 	curl_multi_setopt(m_multi_handle, CURLMOPT_MAXCONNECTS, MAX_CONCURRENT_TRANS_IN_CURLMULTI);
+    register_to_engin();
 }
 
 curl_stub_t::~curl_stub_t()
 {
     curl_multi_cleanup(m_multi_handle);
-    curl_global_cleanup();
 }
 
 
@@ -39,13 +40,13 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
     chroutine_id_t chroutine_id = ENGIN.get_current_chroutine_id();
     if (chroutine_id == INVALID_ID) {
         std::cout << "curl_stub_t::exec_curl error: can't get current_chroutine_id" << std::endl;
-        return std::shared_ptr<curl_rsp_t>(new curl_rsp_t());
+        return nullptr;
     }
 
     auto req = curl_req_t::new_curl_req(0);
     curl_req_t *p_req = req.get();
     if (p_req == nullptr) {
-        return std::shared_ptr<curl_rsp_t>(new curl_rsp_t());
+        return nullptr;
     }
 
     p_req->set_my_chroutine_id(chroutine_id);
@@ -58,7 +59,7 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
         p_req->set_timeout(timeout);
     }
     if (w_func && w_func_handler) {
-        set_data_slot(w_func, w_func_handler);
+        p_req->set_data_slot(w_func, w_func_handler);
     }
 
     push_curl_req(req);
@@ -70,8 +71,7 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
         }, reporter_t<curl_call_wait_t>::create(), timeout);
         
         if (rpt) {
-            std::cout << "curl_call_wait_t, call result:" << rpt->get_result() 
-            << ", status.ok:" << m_status.ok() << std::endl;
+            std::cout << "curl_call_wait_t, call result:" << rpt->get_result() << std::endl;
         }
     }
 
@@ -81,6 +81,7 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
 
 int curl_stub_t::select(int wait_ms)
 {
+    // std::cout << "curl_stub_t::select: " << this << std::endl;
     if (add_todo_to_doing()) {
         execute_all_async();
         read_and_clean();
@@ -120,14 +121,17 @@ const int SELECT_TIMES = 10;
 static const int SELECT_TIMEOUT = 10;
 void curl_stub_t::execute_all_async()
 {
-    std::cout << "[trace] execute_all_async" << std::endl;
+    // std::cout << "[trace] execute_all_async" << std::endl;
+
+    printf("execute_all_async: curl_stub_t(%p), m_multi_handle(%p), thread(%d)\n"
+    , this, m_multi_handle, std::this_thread::get_id());
 
 	int           nCountOfEasyHandlesRun = -1;
 	int           numfds = 0;
 	int           nSelectTimeoutTimes = 0;
 	int           nSelectTimes = 0;
 
-    std::cout << "[trace] curl_multi_perform while begin" << std::endl;
+    // std::cout << "[trace] curl_multi_perform while begin" << std::endl;
     
 	curl_multi_perform(m_multi_handle, &nCountOfEasyHandlesRun);   
 	while (nCountOfEasyHandlesRun > 0
@@ -149,12 +153,12 @@ void curl_stub_t::execute_all_async()
 		}
 	}
     
-    std::cout << "[trace] execute_all_async over" << std::endl;
+    // std::cout << "[trace] execute_all_async over" << std::endl;
 }
 
 void curl_stub_t::read_and_clean()
 {
-    std::cout << "[trace] read_and_clean" << std::endl;
+    // std::cout << "[trace] read_and_clean" << std::endl;
 
 	CURLMsg * msg = nullptr;
     //  CURLMsg define: https://curl.haxx.se/libcurl/c/curl_multi_info_read.html
@@ -207,16 +211,16 @@ void curl_stub_t::read_and_clean()
                 fin_count++;
                 if (m_curl_req_todo_que.empty() && m_curl_req_doing_map.empty()) {
                     m_time_over = get_time_stamp();
-                    std::cout << "[trace] finish: " << fin_count 
-                        << " cost time: " << m_time_over - m_time_start 
-                        << std::endl;
+                    // std::cout << "[trace] finish: " << fin_count 
+                    //     << " cost time: " << m_time_over - m_time_start 
+                    //     << std::endl;
                 }
             } else {
                 std::cout << "cant find curl_req_t in m_curl_req_doing_map\n";
             }
 		}
 	}
-    std::cout << "[trace] read_and_clean over" << std::endl;
+    // std::cout << "[trace] read_and_clean over" << std::endl;
 }
 
 std::time_t curl_stub_t::get_time_stamp()

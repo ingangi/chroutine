@@ -1,7 +1,8 @@
 
 #include <iostream>
-#include "curl_req.h"
-#include "curl_stub.h"
+#include "curl_req.hpp"
+#include "curl_stub.hpp"
+#include "engine.hpp"
 
 
 curl_req_t::curl_req_t(unsigned int req_id) : m_req_id(req_id)
@@ -88,15 +89,24 @@ void curl_req_t::make_default_opts()
 
 size_t curl_rsp_t::write_rsp_data_func(void *buffer, size_t size, size_t nmemb, void *userp)
 {
-    std::cout << size * nmemb << " bytes written " << userp << std::endl;
+    std::cout << size * nmemb << " bytes written " << userp << ", string: "<< (const char*)buffer << std::endl;
     return size * nmemb;
 }
 
-void curl_rsp_t::on_rsp(long rsp_code, long data_result)
+void curl_req_t::on_rsp(long rsp_code, long data_result)
 {
     rsp().set_rsp_code(rsp_code);
     rsp().set_curl_code(data_result);
     if (m_my_chroutine != INVALID_ID) {
         ENGIN.awake_chroutine(m_my_chroutine);
     }
+}
+
+curl_rsp_t::curl_rsp_t(curl_rsp_t && other) 
+{
+    char *tmp = m_buf;
+    m_buf = other.m_buf;
+    m_rsp_code = other.m_rsp_code;
+    m_data_result = other.m_data_result;
+    other.m_buf = tmp;
 }

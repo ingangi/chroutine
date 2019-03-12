@@ -3,21 +3,18 @@
 #include <unistd.h>
 #include <iostream>
 
-#include "engin.hpp"
-#include "curl_req.h"
-#include "curl_stub.h"
+#include "engine.hpp"
  
 int main(int argc, char *argv[])
 {
-    ENGINE_INIT(1);
+    ENGINE_INIT(3);
     ENGIN.create_chroutine([](void *){
-        curl_stub_t *client = new curl_stub_t;
         while (1) {
-            std::shared_ptr<curl_rsp_t> rsp = client->exec_curl("http://...");
-            std::cout << "rsp code:" << rsp.get()->get_rsp_code() << std::endl;
+            std::shared_ptr<curl_rsp_t> rsp = ENGIN.exec_curl("xxx");
+            if (rsp.get())
+                std::cout << "rsp code:" << rsp.get()->get_rsp_code() << std::endl;
             SLEEP(5000);
         }
-        delete client;
     }, nullptr);
 
     ENGIN.run();

@@ -21,7 +21,7 @@ class curl_stub_t : public selectable_object_it
 {
     friend class engine_t;
 public:    
-    ~curl_stub_t();    
+    virtual ~curl_stub_t();    
 	virtual int select(int wait_ms);
 
 private:
@@ -36,10 +36,10 @@ private:
     void read_and_clean();
     
     std::shared_ptr<curl_rsp_t> exec_curl(const std::string & url
-        , int connect_timeout = CURL_CON_TIME_OUT
-        , int timeout = CURL_TIME_OUT
-        , data_slot_func_t w_func = nullptr
-        , void *w_func_handler = nullptr);
+        , int connect_timeout
+        , int timeout
+        , data_slot_func_t w_func
+        , void *w_func_handler);
 
 private:
     curl_req_que_t  m_curl_req_todo_que;       // reqs waiting to be executed

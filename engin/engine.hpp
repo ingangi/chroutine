@@ -14,9 +14,15 @@
 #include "chroutine.hpp"
 #include "selectable_obj.hpp"
 
+#ifdef ENABLE_HTTP_PLUGIN
+#include "curl_stub.hpp"
+#endif
+
 typedef std::map<std::thread::id, std::shared_ptr<chroutine_thread_t> > thread_pool_t;
 typedef std::vector<std::shared_ptr<chroutine_thread_t> > creating_threads_t;
+#ifdef ENABLE_HTTP_PLUGIN
 typedef std::map<std::thread::id, std::shared_ptr<curl_stub_t> > http_stub_pool_t;
+#endif
 
 #define ENGIN engine_t::instance()
 #define ENGINE_INIT(thrds) {ENGIN.init(thrds);}
@@ -68,12 +74,14 @@ public:
     // the main thread
     void run();
 
-    // excute http req
+#ifdef ENABLE_HTTP_PLUGIN
+    // excute http req. thread safe after `m_init_over` become true
     std::shared_ptr<curl_rsp_t> exec_curl(const std::string & url
         , int connect_timeout = CURL_CON_TIME_OUT
         , int timeout = CURL_TIME_OUT
         , data_slot_func_t w_func = nullptr
         , void *w_func_handler = nullptr);
+#endif
 
 private:    
     engine_t();
@@ -89,8 +97,10 @@ private:
     std::mutex          m_pool_lock;            // only used during m_init_over is false
     thread_pool_t       m_pool;                 // is readonly after m_init_over become true
     creating_threads_t  m_creating;             // is readonly after m_init_over become true
-    bool                m_init_over = false;    // if all threads ready
+    bool                m_init_over = false;    // if all threads ready    
+#ifdef ENABLE_HTTP_PLUGIN
     http_stub_pool_t    m_http_stubs;
+#endif
 };
 
 #endif

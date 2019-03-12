@@ -323,8 +323,10 @@ int chroutine_thread_t::select_all()
     int processed = 0;
     for (auto iter = m_selector_list.begin(); iter != m_selector_list.end(); iter++) {
         selectable_object_it *p_obj = iter->second.get();
-        if (p_obj)
+        if (p_obj) {
+            // std::cout << "selecting.." << p_obj << ", thread:" << std::this_thread::get_id() << std::endl;
             processed += p_obj->select(0);
+        }
     }
     return processed;
 }
@@ -336,9 +338,9 @@ void chroutine_thread_t::register_selector(selectable_object_sptr_t select_obj)
         auto iter = m_selector_list.find(key);
         if (iter == m_selector_list.end()) {
             m_selector_list[key] = select_obj;
-            std::cout << __FUNCTION__ << " OK: key = " << key << std::endl;
+            std::cout << __FUNCTION__ << " thread:" << std::this_thread::get_id() << " OK: key = " << key << std::endl;
         } else {
-            std::cout << __FUNCTION__ << " failed: key already exist: " << key << std::endl;
+            std::cout << __FUNCTION__ << " thread:" << std::this_thread::get_id() << " failed: key already exist: " << key << std::endl;
         }
     }
 }

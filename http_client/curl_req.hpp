@@ -16,6 +16,8 @@
 #include <memory>
 #include <ctime>
 
+#include "chroutine.hpp"
+
 const int CURL_CON_TIME_OUT = 30000;    //1 minute
 const int CURL_TIME_OUT = 60000;    //1 minute
 typedef size_t(*data_slot_func_t)(void *, size_t, size_t, void *);
@@ -36,14 +38,7 @@ public:
         }
     }
 
-    curl_rsp_t(curl_rsp_t && other) {
-        char *tmp = m_buf;
-        m_buf = other.m_buf;
-        m_rsp_code = other.m_rsp_code;
-        m_data_result = other.m_data_result;
-        other.m_buf = tmp;
-        cout << "curl_rsp_t moved!!\n";
-    }
+    curl_rsp_t(curl_rsp_t && other);
 
     void set_rsp_code(long code) {
         m_rsp_code = code;

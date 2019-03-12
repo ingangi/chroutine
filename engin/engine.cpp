@@ -27,7 +27,11 @@ engine_t::engine_t()
 {}
 
 engine_t::~engine_t()
-{}
+{
+#ifdef ENABLE_HTTP_PLUGIN
+    curl_global_cleanup();
+#endif
+}
 
 void engine_t::init(size_t init_pool_size)
 {
@@ -54,9 +58,17 @@ void engine_t::on_thread_ready(size_t creating_index, std::thread::id thread_id)
     }
 
     m_pool[thread_id] = m_creating[creating_index];
+    std::cout << __FUNCTION__ << "run in thread:" << std::this_thread::get_id() << " thread ready:" << thread_id << std::endl;
     if (m_pool.size() == m_creating.size()) {
         m_init_over = true; 
         std::cout << __FUNCTION__ << " m_init_over now is TRUE" << std::endl;
+
+        #ifdef ENABLE_HTTP_PLUGIN
+        curl_global_init(CURL_GLOBAL_ALL);
+        for (auto it = m_pool.begin(); it != m_pool.end(); it++) {
+            m_http_stubs[it->first] = std::shared_ptr<curl_stub_t>(new curl_stub_t());
+        }
+        #endif
     }
 }
 
@@ -151,6 +163,7 @@ int engine_t::register_select_obj(selectable_object_sptr_t select_obj)
     if (pthrd == nullptr)
         return -1;
 
+    std::cout << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() << std::endl;
     pthrd->register_selector(select_obj);
     return 0;
 }
@@ -174,14 +187,34 @@ int engine_t::awake_chroutine(chroutine_id_t id)
 }
 
 
+#ifdef ENABLE_HTTP_PLUGIN
 std::shared_ptr<curl_rsp_t> engine_t::exec_curl(const std::string & url
     , int connect_timeout
     , int timeout
     , data_slot_func_t w_func
     , void *w_func_handler)
 {
+    if (!m_init_over) {
+        std::cout << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
+        return nullptr;
+    }
+    
+    const auto& iter = m_http_stubs.find(std::this_thread::get_id());
+    if (iter == m_http_stubs.end()){
+        std::cout << __FUNCTION__ << " failed: cant find http_stub" << std::endl;
+        return nullptr;
+    }
 
+    curl_stub_t *stub = iter->second.get();
+    if (stub == nullptr) {
+        std::cout << __FUNCTION__ << " failed: curl_stub_t * is nullptr" << std::endl;
+        return nullptr;
+    }
+
+    //std::cout << "thread:" << std::this_thread::get_id() << " exec_curl:" << url << std::endl;
+    return stub->exec_curl(url, connect_timeout, timeout, w_func, w_func_handler);
 }
+#endif
 
 void engine_t::run()
 {

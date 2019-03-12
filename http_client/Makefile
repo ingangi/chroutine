@@ -4,7 +4,7 @@ LD	= @echo " ld  $@"; ld
 AR	= @echo " ar  $@"; ar
 RM	= @echo " RM	$@"; rm -f
 
-CFLAGS += -Wall -std=c++11
+CFLAGS += -Wall -std=c++11 -DENABLE_HTTP_PLUGIN
 CFLAGS += -g
 
 #LDFLAGS += "-Wl" -lpthread -lc
@@ -12,7 +12,7 @@ LDFLAGS += -lcurl
 LDFLAGS += -L.  ##-lenc -lsyslink  -lbinder -llog    -losa -lpdi -lsdk  -lz -lrt -lsplice -lmem -ldec
 AFLAGS += -r
 
-INC = -I../engin
+INC = -I../engin -I.
 
 BINDIR = .
 SRCDIR = . ../engin

@@ -11,12 +11,12 @@ CFLAGS += -g3
 LDFLAGS += -L. -lpthread  ##-lenc -lsyslink  -lbinder -llog    -losa -lpdi -lsdk  -lz -lrt -lsplice -lmem -ldec
 AFLAGS += -r
 
-INC = -I./engin -I./rpc
+INC = -I./engin #-I./rpc
 
 BINDIR = .
 
 
-SRCS_PATH = . ./engin ./rpc ./proto_code/grpc_code ./proto_code/msg_code
+SRCS_PATH = . ./engin #./rpc ./proto_code/grpc_code ./proto_code/msg_code
 
 LIB_SRCS += $(foreach dir,$(SRCS_PATH),$(wildcard $(dir)/*.cpp))
 
