@@ -22,7 +22,7 @@ curl_stub_t::curl_stub_t()
 
     std::cout << "m_multi_handle created:" << m_multi_handle << std::endl;
 	curl_multi_setopt(m_multi_handle, CURLMOPT_MAXCONNECTS, MAX_CONCURRENT_TRANS_IN_CURLMULTI);
-    register_to_engin();
+    // register_to_engin();
 }
 
 curl_stub_t::~curl_stub_t()
@@ -62,6 +62,8 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
         p_req->set_data_slot(w_func, w_func_handler);
     }
 
+    // std::cout << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() 
+    //     << "-" << chroutine_id << std::endl;
     push_curl_req(req);
 
     // wait req to be done
@@ -121,17 +123,16 @@ const int SELECT_TIMES = 10;
 static const int SELECT_TIMEOUT = 10;
 void curl_stub_t::execute_all_async()
 {
-    // std::cout << "[trace] execute_all_async" << std::endl;
+    // printf("execute_all_async: curl_stub_t(%p), m_multi_handle(%p), thread(%d)\n"
+    // , this, m_multi_handle, std::this_thread::get_id());
 
-    printf("execute_all_async: curl_stub_t(%p), m_multi_handle(%p), thread(%d)\n"
-    , this, m_multi_handle, std::this_thread::get_id());
+    // std::cout << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() 
+    //     << "-" << ENGIN.get_current_chroutine_id() << std::endl;
 
 	int           nCountOfEasyHandlesRun = -1;
 	int           numfds = 0;
 	int           nSelectTimeoutTimes = 0;
 	int           nSelectTimes = 0;
-
-    // std::cout << "[trace] curl_multi_perform while begin" << std::endl;
     
 	curl_multi_perform(m_multi_handle, &nCountOfEasyHandlesRun);   
 	while (nCountOfEasyHandlesRun > 0
@@ -151,30 +152,12 @@ void curl_stub_t::execute_all_async()
 			if (nSelectTimes % 10 == 0) //reduce log;
 				std::cout << "HttpAgent::PerformTransfer after one while, nCountOfEasyHandlesRun=" << nCountOfEasyHandlesRun << ",nSelectTimes=" << nSelectTimes << ", nSelectTimeoutTimes=" << nSelectTimeoutTimes << std::endl;
 		}
-	}
-    
-    // std::cout << "[trace] execute_all_async over" << std::endl;
+	}    
 }
 
 void curl_stub_t::read_and_clean()
 {
-    // std::cout << "[trace] read_and_clean" << std::endl;
-
 	CURLMsg * msg = nullptr;
-    //  CURLMsg define: https://curl.haxx.se/libcurl/c/curl_multi_info_read.html
-    //  struct CURLMsg {
-    //    CURLMSG msg;       /* what this message means */
-    //    CURL *easy_handle; /* the handle it concerns */
-    //    union {
-    //      void *whatever;    /* message-specific data */
-    //      CURLcode result;   /* return code for transfer */
-    //    } data;
-    //  };
-    // When msg is CURLMSG_DONE, the message identifies a transfer that is done, 
-    // and then result contains the return code for the easy handle that just completed.
-
-    static int fin_count = 0; //for test
-
 	int msg_count = 0;
 	while (msg = curl_multi_info_read(m_multi_handle, &msg_count), msg)	{
 		if (msg->msg == CURLMSG_DONE) {
@@ -193,34 +176,19 @@ void curl_stub_t::read_and_clean()
                     req_ptr->on_rsp(rsp_code, data_result);
                 }
                 m_curl_req_doing_map.erase(iter);
-
-                // todo: post resut to business thread
-                // time_t now = time(NULL);
-			    // std::cout << "[" << now << "] req:" << req_ptr->req_id() 
-                //     << " rsp_code:" << rsp_code 
-                //     << ", data_result:" << data_result 
-                //     << " todo.size " << m_curl_req_todo_que.size() 
-                //     << ", doing.size " << m_curl_req_doing_map.size() 
-                //     << "|" << get_time_stamp() - req_ptr->m_tm_start
-                //     << std::endl;
                 
                 std::cout << "HTEST: id[" << req_ptr->req_id() << "], cost(" << get_time_stamp() - req_ptr->m_tm_start << "ms),"
                       << " rsp_code(" << rsp_code 
                     << "), data_result(" << data_result  << ")" << std::endl;
 
-                fin_count++;
                 if (m_curl_req_todo_que.empty() && m_curl_req_doing_map.empty()) {
                     m_time_over = get_time_stamp();
-                    // std::cout << "[trace] finish: " << fin_count 
-                    //     << " cost time: " << m_time_over - m_time_start 
-                    //     << std::endl;
                 }
             } else {
                 std::cout << "cant find curl_req_t in m_curl_req_doing_map\n";
             }
 		}
 	}
-    // std::cout << "[trace] read_and_clean over" << std::endl;
 }
 
 std::time_t curl_stub_t::get_time_stamp()

@@ -289,8 +289,8 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
 int chroutine_thread_t::schedule()
 {
     m_is_running = true;
-    engine_t::instance().on_thread_ready(m_creating_index, std::this_thread::get_id());
     std::cout << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;
+    engine_t::instance().on_thread_ready(m_creating_index, std::this_thread::get_id());
     while (!m_need_stop) {        
         int processed = 0;
         processed += select_all();
@@ -338,9 +338,9 @@ void chroutine_thread_t::register_selector(selectable_object_sptr_t select_obj)
         auto iter = m_selector_list.find(key);
         if (iter == m_selector_list.end()) {
             m_selector_list[key] = select_obj;
-            std::cout << __FUNCTION__ << " thread:" << std::this_thread::get_id() << " OK: key = " << key << std::endl;
+            // std::cout << __FUNCTION__ << " thread:" << std::this_thread::get_id() << " OK: key = " << key << std::endl;
         } else {
-            std::cout << __FUNCTION__ << " thread:" << std::this_thread::get_id() << " failed: key already exist: " << key << std::endl;
+            // std::cout << __FUNCTION__ << " thread:" << std::this_thread::get_id() << " failed: key already exist: " << key << std::endl;
         }
     }
 }

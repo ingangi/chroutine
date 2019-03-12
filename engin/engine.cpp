@@ -58,7 +58,7 @@ void engine_t::on_thread_ready(size_t creating_index, std::thread::id thread_id)
     }
 
     m_pool[thread_id] = m_creating[creating_index];
-    std::cout << __FUNCTION__ << "run in thread:" << std::this_thread::get_id() << " thread ready:" << thread_id << std::endl;
+    // std::cout << __FUNCTION__ << ". run in thread:" << std::this_thread::get_id() << " thread ready:" << thread_id << std::endl;
     if (m_pool.size() == m_creating.size()) {
         m_init_over = true; 
         std::cout << __FUNCTION__ << " m_init_over now is TRUE" << std::endl;
@@ -66,7 +66,11 @@ void engine_t::on_thread_ready(size_t creating_index, std::thread::id thread_id)
         #ifdef ENABLE_HTTP_PLUGIN
         curl_global_init(CURL_GLOBAL_ALL);
         for (auto it = m_pool.begin(); it != m_pool.end(); it++) {
-            m_http_stubs[it->first] = std::shared_ptr<curl_stub_t>(new curl_stub_t());
+            curl_stub_t *stub = new curl_stub_t();
+            if (stub) {
+                it->second.get()->register_selector(selectable_object_sptr_t(stub));
+                m_http_stubs[it->first] = std::shared_ptr<curl_stub_t>(stub);
+            }
         }
         #endif
     }
@@ -133,6 +137,20 @@ chroutine_thread_t *engine_t::get_current_thread()
     return iter->second.get();
 }
 
+chroutine_thread_t *engine_t::get_thread_by_id(std::thread::id thread_id)
+{
+    if (!m_init_over) {
+        std::cout << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
+        return nullptr;
+    }
+    
+    const auto& iter = m_pool.find(thread_id);
+    if (iter == m_pool.end())
+        return nullptr;
+
+    return iter->second.get();
+}
+
 chroutine_thread_t *engine_t::get_lightest_thread()
 {
     //std::lock_guard<std::mutex> lck (m_pool_lock);
@@ -157,13 +175,18 @@ reporter_base_t *engine_t::get_my_reporter()
     return pthrd->get_current_reporter();
 }
 
-int engine_t::register_select_obj(selectable_object_sptr_t select_obj)
+int engine_t::register_select_obj(selectable_object_sptr_t select_obj, std::thread::id thread_id)
 {
-    chroutine_thread_t *pthrd = get_current_thread();
+    chroutine_thread_t *pthrd = nullptr;
+    if (NULL_THREAD_ID == thread_id)
+        pthrd = get_current_thread();
+    else
+        pthrd = get_thread_by_id(thread_id);
+
     if (pthrd == nullptr)
         return -1;
 
-    std::cout << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() << std::endl;
+    // std::cout << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() << std::endl;
     pthrd->register_selector(select_obj);
     return 0;
 }

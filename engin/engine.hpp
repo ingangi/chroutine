@@ -18,6 +18,7 @@
 #include "curl_stub.hpp"
 #endif
 
+
 typedef std::map<std::thread::id, std::shared_ptr<chroutine_thread_t> > thread_pool_t;
 typedef std::vector<std::shared_ptr<chroutine_thread_t> > creating_threads_t;
 #ifdef ENABLE_HTTP_PLUGIN
@@ -63,7 +64,7 @@ public:
     reporter_base_t * create_son_chroutine(func_t func, reporter_sptr_t reporter, std::time_t timeout_ms);
 
     // register a select object to current thread
-    int register_select_obj(selectable_object_sptr_t select_obj);
+    int register_select_obj(selectable_object_sptr_t select_obj, std::thread::id thread_id);
 
     // get my chroutine id
     chroutine_id_t get_current_chroutine_id();
@@ -88,6 +89,7 @@ private:
     void on_thread_ready(size_t creating_index, std::thread::id thread_id);
     chroutine_thread_t *get_current_thread();
     chroutine_thread_t *get_lightest_thread();
+    chroutine_thread_t *get_thread_by_id(std::thread::id thread_id);    
     
     // get current chroutine's reporter
     // (maybe no longer needed)
