@@ -63,16 +63,15 @@ void engine_t::on_thread_ready(size_t creating_index, std::thread::id thread_id)
         m_init_over = true; 
         std::cout << __FUNCTION__ << " m_init_over now is TRUE" << std::endl;
 
-        #ifdef ENABLE_HTTP_PLUGIN
+#ifdef ENABLE_HTTP_PLUGIN
         curl_global_init(CURL_GLOBAL_ALL);
         for (auto it = m_pool.begin(); it != m_pool.end(); it++) {
-            curl_stub_t *stub = new curl_stub_t();
-            if (stub) {
-                it->second.get()->register_selector(selectable_object_sptr_t(stub));
-                m_http_stubs[it->first] = std::shared_ptr<curl_stub_t>(stub);
+            selectable_object_sptr_t s_this = curl_stub_t::create(it->first);
+            if (s_this.get()) {
+                m_http_stubs[it->first] = s_this;
             }
         }
-        #endif
+#endif
     }
 }
 
@@ -112,7 +111,7 @@ chroutine_id_t engine_t::create_chroutine(func_t func, void *arg)
     return pthrd->create_chroutine(func, arg);
 }
 
-reporter_base_t * engine_t::create_son_chroutine(func_t func, reporter_sptr_t reporter, std::time_t timeout_ms)
+reporter_base_t * engine_t::create_son_chroutine(func_t func, const reporter_sptr_t & reporter, std::time_t timeout_ms)
 {
     chroutine_thread_t *pthrd = get_current_thread();
     if (pthrd == nullptr)
@@ -175,7 +174,7 @@ reporter_base_t *engine_t::get_my_reporter()
     return pthrd->get_current_reporter();
 }
 
-int engine_t::register_select_obj(selectable_object_sptr_t select_obj, std::thread::id thread_id)
+int engine_t::register_select_obj(const selectable_object_sptr_t & select_obj, std::thread::id thread_id)
 {
     chroutine_thread_t *pthrd = nullptr;
     if (NULL_THREAD_ID == thread_id)
@@ -228,7 +227,7 @@ std::shared_ptr<curl_rsp_t> engine_t::exec_curl(const std::string & url
         return nullptr;
     }
 
-    curl_stub_t *stub = iter->second.get();
+    curl_stub_t *stub = dynamic_cast<curl_stub_t *>(iter->second.get());
     if (stub == nullptr) {
         std::cout << __FUNCTION__ << " failed: curl_stub_t * is nullptr" << std::endl;
         return nullptr;

@@ -22,7 +22,7 @@
 typedef std::map<std::thread::id, std::shared_ptr<chroutine_thread_t> > thread_pool_t;
 typedef std::vector<std::shared_ptr<chroutine_thread_t> > creating_threads_t;
 #ifdef ENABLE_HTTP_PLUGIN
-typedef std::map<std::thread::id, std::shared_ptr<curl_stub_t> > http_stub_pool_t;
+typedef std::map<std::thread::id, selectable_object_sptr_t > http_stub_pool_t;
 #endif
 
 #define ENGIN engine_t::instance()
@@ -61,10 +61,10 @@ public:
     // create and run a son chroutine for the current chroutine.
     // returns the son's result so the father can get what he want.
     // @timeout_ms controls the max time for the son to run.
-    reporter_base_t * create_son_chroutine(func_t func, reporter_sptr_t reporter, std::time_t timeout_ms);
+    reporter_base_t * create_son_chroutine(func_t func, const reporter_sptr_t & reporter, std::time_t timeout_ms);
 
     // register a select object to current thread
-    int register_select_obj(selectable_object_sptr_t select_obj, std::thread::id thread_id);
+    int register_select_obj(const selectable_object_sptr_t & select_obj, std::thread::id thread_id);
 
     // get my chroutine id
     chroutine_id_t get_current_chroutine_id();

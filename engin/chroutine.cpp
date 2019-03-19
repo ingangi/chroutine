@@ -168,7 +168,7 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
     return id;
 }
 
-chroutine_id_t chroutine_thread_t::create_son_chroutine(func_t & func, reporter_sptr_t reporter)
+chroutine_id_t chroutine_thread_t::create_son_chroutine(func_t & func, const reporter_sptr_t & reporter)
 {
     //std::cout << "create_son_chroutine start, " << m_schedule.running_id << std::endl;
 
@@ -331,7 +331,7 @@ int chroutine_thread_t::select_all()
     return processed;
 }
 
-void chroutine_thread_t::register_selector(selectable_object_sptr_t select_obj)
+void chroutine_thread_t::register_selector(const selectable_object_sptr_t & select_obj)
 {
     void *key = select_obj.get();
     if (key) {
@@ -345,7 +345,7 @@ void chroutine_thread_t::register_selector(selectable_object_sptr_t select_obj)
     }
 }
 
-void chroutine_thread_t::unregister_selector(selectable_object_sptr_t select_obj)
+void chroutine_thread_t::unregister_selector(const selectable_object_sptr_t & select_obj)
 {
     unregister_selector(select_obj.get());
 }

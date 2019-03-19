@@ -23,6 +23,16 @@ class curl_stub_t : public selectable_object_it
 public:    
     virtual ~curl_stub_t();    
 	virtual int select(int wait_ms);
+    
+    // create and bind to a thread
+	static selectable_object_sptr_t create(std::thread::id thread_id) {
+		curl_stub_t *p_this = new curl_stub_t();
+		selectable_object_sptr_t s_this = p_this->register_to_engin(thread_id);		
+		if (s_this.get() == nullptr) {
+			delete p_this;
+		} 
+		return s_this;
+	}
 
 private:
     curl_stub_t();

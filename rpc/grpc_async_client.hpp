@@ -16,10 +16,20 @@
 class grpc_async_client_t : public selectable_object_it
 {
 public:
-	grpc_async_client_t(const std::string & addr);
 	virtual ~grpc_async_client_t(){}
-
 	const std::string &addr(){ return m_addr; }
+	
+	static selectable_object_sptr_t create(const std::string & addr) {
+		grpc_async_client_t *p_this = new grpc_async_client_t(addr);
+		selectable_object_sptr_t s_this = p_this->register_to_engin();		
+		if (s_this.get() == nullptr) {
+			delete p_this;
+		} 
+		return s_this;
+	}
+	
+private:
+	grpc_async_client_t(const std::string & addr);
 
 public:
 	virtual int select(int wait_ms);

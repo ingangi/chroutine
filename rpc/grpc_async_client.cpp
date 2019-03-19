@@ -7,10 +7,6 @@ grpc_async_client_t::grpc_async_client_t(const std::string & addr)
 , m_addr(addr)
 {
 	std::cout << addr << "-> channel = " << m_channel.get() << std::endl;
-	if (register_to_engin() != 0) {
-		std::cout << __FUNCTION__ << " error: cant register to engin\n";
-		exit(-1);
-	}
 }
 
 int grpc_async_client_t::select(int wait_ms)

@@ -48,13 +48,24 @@ class Test_HowAreYou final : public call_round_it
 // you have to pick a ip&port for your server to run on by calling the `start` function.
 class test_rpc_server : public grpc_async_server_it
 {
-  public:
-	test_rpc_server(){}
+public:
+	static selectable_object_sptr_t create() {
+		test_rpc_server *p_this = new test_rpc_server();
+		selectable_object_sptr_t s_this = p_this->register_to_engin();		
+		if (s_this.get() == nullptr) {
+			delete p_this;
+		} 
+		return s_this;
+	}
 	~test_rpc_server(){}
+	
 	int register_service(::grpc::ServerBuilder &builder);
 	int listen_requests();
 
-  private:
+private:
+	test_rpc_server(){}
+	
+private:
 	::rpcpb::Test::AsyncService m_service_Test; // `Test` service
 };
 

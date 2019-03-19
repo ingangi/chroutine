@@ -110,7 +110,7 @@ public:
     chroutine_id_t create_chroutine(func_t & func, void *arg);
     
     // create a son chroutine of current chroutine
-    chroutine_id_t create_son_chroutine(func_t & func, reporter_sptr_t reporter);
+    chroutine_id_t create_son_chroutine(func_t & func, const reporter_sptr_t & reporter);
 
     // start the thread
     void start(size_t creating_index);
@@ -126,8 +126,8 @@ public:
     reporter_base_t * get_current_reporter();
 
     // register/unregister selectable objects
-    void register_selector(selectable_object_sptr_t select_obj);
-    void unregister_selector(selectable_object_sptr_t select_obj);
+    void register_selector(const selectable_object_sptr_t & select_obj);
+    void unregister_selector(const selectable_object_sptr_t & select_obj);
     void unregister_selector(selectable_object_it *p_obj);
 
     
