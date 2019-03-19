@@ -190,6 +190,21 @@ int engine_t::register_select_obj(const selectable_object_sptr_t & select_obj, s
     return 0;
 }
 
+int engine_t::unregister_select_obj(selectable_object_it *key, std::thread::id thread_id)
+{
+    chroutine_thread_t *pthrd = nullptr;
+    if (NULL_THREAD_ID == thread_id)
+        pthrd = get_current_thread();
+    else
+        pthrd = get_thread_by_id(thread_id);
+
+    if (pthrd == nullptr)
+        return -1;
+
+    pthrd->unregister_selector(key);
+    return 0;
+}
+
 chroutine_id_t engine_t::get_current_chroutine_id()
 {
     chroutine_thread_t *pthrd = get_current_thread();

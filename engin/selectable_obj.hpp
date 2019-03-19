@@ -27,7 +27,8 @@ public:
     virtual int select(int wait_ms) = 0;
 
     // after register to engin, select will be scheduled.    
-    selectable_object_sptr_t register_to_engin(std::thread::id thread_id = NULL_THREAD_ID); // Once called, the life cycle is left to engin !!!
+    selectable_object_sptr_t register_to_engin(std::thread::id thread_id = NULL_THREAD_ID); // Once called, the life cycle is left to engin !!!  
+    int unregister_from_engin(std::thread::id thread_id = NULL_THREAD_ID);
 };
 
 

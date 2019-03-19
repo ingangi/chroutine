@@ -9,3 +9,8 @@ selectable_object_sptr_t selectable_object_it::register_to_engin(std::thread::id
 
     return nullptr;
 }
+
+int selectable_object_it::unregister_from_engin(std::thread::id thread_id)
+{
+    return ENGIN.unregister_select_obj(this, thread_id);
+}

@@ -66,6 +66,9 @@ public:
     // register a select object to current thread
     int register_select_obj(const selectable_object_sptr_t & select_obj, std::thread::id thread_id);
 
+    // unregister a select object from a thread
+    int unregister_select_obj(selectable_object_it *key, std::thread::id thread_id);
+
     // get my chroutine id
     chroutine_id_t get_current_chroutine_id();
 
