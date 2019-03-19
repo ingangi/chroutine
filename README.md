@@ -1,3 +1,15 @@
+# usage
+With `chroutine`, we can easily develop highly concurrent programs in C++ and write code with synchronization semantics.
+
+You can run the examples and see the code how to use it:
+```
+├── test.cpp  (genaral use of chroutine)
+├── http_client_example  (http client)
+├── rpc_example  (rpc server and client)
+
+make ALLTEST
+```
+
 # env install (Relies on gRPC and libcurl)
 
 ## install grpc
