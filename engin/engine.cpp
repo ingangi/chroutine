@@ -37,7 +37,8 @@ void engine_t::init(size_t init_pool_size)
 {
     if (!m_creating.empty())
         return;
-        
+    
+    m_main_thread_id = std::this_thread::get_id();
     for (size_t i = 0; i < init_pool_size; i++) {
         std::shared_ptr<chroutine_thread_t> thrd = chroutine_thread_t::new_thread();
         m_creating.push_back(thrd);
@@ -104,6 +105,11 @@ void engine_t::sleep(std::time_t wait_time_ms)
 
 chroutine_id_t engine_t::create_chroutine(func_t func, void *arg)
 {    
+    // check called in main thread
+    if (m_main_thread_id != std::this_thread::get_id()) {
+        LOG << __FUNCTION__ << " error: not called in main thread!\n";
+        return INVALID_ID;
+    }
     chroutine_thread_t *pthrd = get_lightest_thread();
     if (pthrd == nullptr)
         return INVALID_ID;
@@ -113,6 +119,11 @@ chroutine_id_t engine_t::create_chroutine(func_t func, void *arg)
 
 reporter_base_t * engine_t::create_son_chroutine(func_t func, const reporter_sptr_t & reporter, std::time_t timeout_ms)
 {
+    if (timeout_ms == 0) {
+        create_son_chroutine(func, nullptr);
+        return nullptr;
+    }
+
     chroutine_thread_t *pthrd = get_current_thread();
     if (pthrd == nullptr)
         return nullptr;
@@ -120,6 +131,15 @@ reporter_base_t * engine_t::create_son_chroutine(func_t func, const reporter_spt
     pthrd->create_son_chroutine(func, reporter);
     pthrd->wait(timeout_ms);
     return pthrd->get_current_reporter();
+}
+
+chroutine_id_t engine_t::create_son_chroutine(func_t func, void *arg)
+{
+    chroutine_thread_t *pthrd = get_current_thread();
+    if (pthrd == nullptr)
+        return INVALID_ID;
+
+    return pthrd->create_chroutine(func, arg);
 }
 
 chroutine_thread_t *engine_t::get_current_thread()

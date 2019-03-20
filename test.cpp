@@ -51,17 +51,30 @@ void fun_1(void *arg)
     }
 }
 
+void fun_3(void *arg)
+{
+    while (1) {
+        LOG << __FUNCTION__ << " running ...\n";
+        SLEEP(2000);
+    }
+}
 
 int main(int argc, char **argv)
 {
-    ENGINE_INIT(2);
+    ENGINE_INIT(1);
 
     ENGIN.create_chroutine(fun_1, nullptr);  
     ENGIN.create_chroutine([](void *){
     int tick = 0;
         while (1) {
             LOG << "fun_2 tick = " << ++tick << " (" << std::this_thread::get_id() << ")" << std::endl;
-            fake_io_work(2000);
+            SLEEP(1000);
+
+            // create another chroutine in the same thread
+            if (tick % 2 == 0) {
+                LOG << "try to create another chroutin\n";
+                ENGIN.create_son_chroutine(fun_3, nullptr);
+            }
         }
     }, nullptr);
 

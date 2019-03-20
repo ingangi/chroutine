@@ -55,13 +55,20 @@ public:
     // we should always use this instead of system sleep() !!!
     void sleep(std::time_t wait_time_ms);
     
-    // create and run a chroutine in the lightest thread
+    // create and run a chroutine in the lightest thread.
+    // not thread safe, should be called only by main thread !!!
     chroutine_id_t create_chroutine(func_t func, void *arg);
 
     // create and run a son chroutine for the current chroutine.
     // returns the son's result so the father can get what he want.
-    // @timeout_ms controls the max time for the son to run.
+    // @timeout_ms controls the max time for the son to run, 
+    // if @timeout_ms is 0, that means father won't wait any time and doesn't care the result of son.
     reporter_base_t * create_son_chroutine(func_t func, const reporter_sptr_t & reporter, std::time_t timeout_ms);
+    
+    // called in a chroutine.
+    // just start another chroutin in the same thread, 
+    // father won't wait any time and doesn't care the result of son.
+    chroutine_id_t create_son_chroutine(func_t func, void *arg);
 
     // register a select object to current thread
     int register_select_obj(const selectable_object_sptr_t & select_obj, std::thread::id thread_id);
@@ -103,6 +110,7 @@ private:
     thread_pool_t       m_pool;                 // is readonly after m_init_over become true
     creating_threads_t  m_creating;             // is readonly after m_init_over become true
     bool                m_init_over = false;    // if all threads ready    
+    std::thread::id     m_main_thread_id = NULL_THREAD_ID;
 #ifdef ENABLE_HTTP_PLUGIN
     http_stub_pool_t    m_http_stubs;
 #endif

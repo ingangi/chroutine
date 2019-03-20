@@ -22,12 +22,10 @@ public:
 
     template <typename T> logger_t& operator<<(const T& value) {
         m_stream << value;
-        // LOG << value;
 		return (*this);
 	}
 
-    logger_t& operator << ( std::ostream& (*op) (std::ostream&))
-    {
+    logger_t& operator << ( std::ostream& (*op) (std::ostream&)) {
         (*op) (m_stream);
 		return (*this);
     }
