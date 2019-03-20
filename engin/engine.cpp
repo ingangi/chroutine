@@ -45,6 +45,9 @@ void engine_t::init(size_t init_pool_size)
         thrd.get()->start(i);
     }
 
+    LOG("%s: init_pool_size = %d, m_main_thread_id = ", __FUNCTION__, init_pool_size)
+        << m_main_thread_id << std::endl;
+
     while (!m_init_over) {
         thread_ms_sleep(10);
     }

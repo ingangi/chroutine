@@ -7,9 +7,11 @@
 /// \date 2019-03-20
 
 #include <iostream>
+#include <stdarg.h>
 
 class logger_t
 {
+    const int MAX_LOG_LEN = 512;
 private:
     logger_t(){}
 
@@ -25,9 +27,20 @@ public:
 		return (*this);
 	}
 
-    logger_t& operator << ( std::ostream& (*op) (std::ostream&)) {
+    logger_t& operator << (std::ostream& (*op) (std::ostream&)) {
         (*op) (m_stream);
 		return (*this);
+    }
+
+    logger_t& operator () (const char* format, ...) {
+        char tmp[MAX_LOG_LEN];
+        va_list args;
+        va_start(args, format);
+        vsnprintf(tmp, MAX_LOG_LEN, format, args);
+        va_end(args);
+        m_stream << tmp;
+        std::endl(m_stream);
+        return (*this);
     }
 
 private:
