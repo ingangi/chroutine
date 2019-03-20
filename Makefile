@@ -11,7 +11,7 @@ CFLAGS += -g3
 LDFLAGS += -L. -lpthread  ##-lenc -lsyslink  -lbinder -llog    -losa -lpdi -lsdk  -lz -lrt -lsplice -lmem -ldec
 AFLAGS += -r
 
-INC = -I./engin #-I./rpc
+INC = -I./engin -I./util #-I./rpc
 
 BINDIR = .
 

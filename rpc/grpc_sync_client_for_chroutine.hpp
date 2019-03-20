@@ -73,7 +73,7 @@ protected:
 			}, reporter_t<rpc_call_wait_t>::create(), m_chroutine_timeout_ms);
 			
 			if (rpt) {
-				std::cout << "wait_call, call result:" << rpt->get_result() 
+				LOG << "wait_call, call result:" << rpt->get_result() 
 				<< ", status.ok:" << m_status.ok() << std::endl;
 			}
 		}

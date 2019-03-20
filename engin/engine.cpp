@@ -47,7 +47,7 @@ void engine_t::init(size_t init_pool_size)
     while (!m_init_over) {
         thread_ms_sleep(10);
     }
-    std::cout << __FUNCTION__ << " OVER" << std::endl;
+    LOG << __FUNCTION__ << " OVER" << std::endl;
 }
 
 void engine_t::on_thread_ready(size_t creating_index, std::thread::id thread_id)
@@ -58,10 +58,10 @@ void engine_t::on_thread_ready(size_t creating_index, std::thread::id thread_id)
     }
 
     m_pool[thread_id] = m_creating[creating_index];
-    // std::cout << __FUNCTION__ << ". run in thread:" << std::this_thread::get_id() << " thread ready:" << thread_id << std::endl;
+    // LOG << __FUNCTION__ << ". run in thread:" << std::this_thread::get_id() << " thread ready:" << thread_id << std::endl;
     if (m_pool.size() == m_creating.size()) {
         m_init_over = true; 
-        std::cout << __FUNCTION__ << " m_init_over now is TRUE" << std::endl;
+        LOG << __FUNCTION__ << " m_init_over now is TRUE" << std::endl;
 
 #ifdef ENABLE_HTTP_PLUGIN
         curl_global_init(CURL_GLOBAL_ALL);
@@ -125,7 +125,7 @@ reporter_base_t * engine_t::create_son_chroutine(func_t func, const reporter_spt
 chroutine_thread_t *engine_t::get_current_thread()
 {
     if (!m_init_over) {
-        std::cout << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
+        LOG << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
         return nullptr;
     }
     //std::lock_guard<std::mutex> lck (m_pool_lock);
@@ -139,7 +139,7 @@ chroutine_thread_t *engine_t::get_current_thread()
 chroutine_thread_t *engine_t::get_thread_by_id(std::thread::id thread_id)
 {
     if (!m_init_over) {
-        std::cout << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
+        LOG << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
         return nullptr;
     }
     
@@ -154,7 +154,7 @@ chroutine_thread_t *engine_t::get_lightest_thread()
 {
     //std::lock_guard<std::mutex> lck (m_pool_lock);
     if (!m_init_over) {
-        std::cout << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
+        LOG << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
         return nullptr;
     }
 
@@ -185,7 +185,7 @@ int engine_t::register_select_obj(const selectable_object_sptr_t & select_obj, s
     if (pthrd == nullptr)
         return -1;
 
-    // std::cout << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() << std::endl;
+    // LOG << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() << std::endl;
     pthrd->register_selector(select_obj);
     return 0;
 }
@@ -232,23 +232,23 @@ std::shared_ptr<curl_rsp_t> engine_t::exec_curl(const std::string & url
     , void *w_func_handler)
 {
     if (!m_init_over) {
-        std::cout << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
+        LOG << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
         return nullptr;
     }
     
     const auto& iter = m_http_stubs.find(std::this_thread::get_id());
     if (iter == m_http_stubs.end()){
-        std::cout << __FUNCTION__ << " failed: cant find http_stub" << std::endl;
+        LOG << __FUNCTION__ << " failed: cant find http_stub" << std::endl;
         return nullptr;
     }
 
     curl_stub_t *stub = dynamic_cast<curl_stub_t *>(iter->second.get());
     if (stub == nullptr) {
-        std::cout << __FUNCTION__ << " failed: curl_stub_t * is nullptr" << std::endl;
+        LOG << __FUNCTION__ << " failed: curl_stub_t * is nullptr" << std::endl;
         return nullptr;
     }
 
-    //std::cout << "thread:" << std::this_thread::get_id() << " exec_curl:" << url << std::endl;
+    //LOG << "thread:" << std::this_thread::get_id() << " exec_curl:" << url << std::endl;
     return stub->exec_curl(url, connect_timeout, timeout, w_func, w_func_handler);
 }
 #endif

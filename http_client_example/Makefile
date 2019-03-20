@@ -12,7 +12,7 @@ LDFLAGS += -lcurl
 LDFLAGS += -L.  ##-lenc -lsyslink  -lbinder -llog    -losa -lpdi -lsdk  -lz -lrt -lsplice -lmem -ldec
 AFLAGS += -r
 
-INC = -I../engin -I../http_client
+INC = -I../engin -I../http_client -I../util
 
 BINDIR = .
 SRCDIR = . ../engin ../http_client

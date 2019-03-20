@@ -89,13 +89,13 @@ void curl_req_t::make_default_opts()
 
 size_t curl_rsp_t::write_rsp_data_func(void *buffer, size_t size, size_t nmemb, void *userp)
 {
-    std::cout << size * nmemb << " bytes written " << userp << ", string: "<< (const char*)buffer << std::endl;
+    LOG << size * nmemb << " bytes written " << userp << ", string: "<< (const char*)buffer << std::endl;
     return size * nmemb;
 }
 
 void curl_req_t::on_rsp(long rsp_code, long data_result)
 {
-    // std::cout << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() 
+    // LOG << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() 
     //     << "-" << ENGIN.get_current_chroutine_id() << std::endl;
     rsp().set_rsp_code(rsp_code);
     rsp().set_curl_code(data_result);

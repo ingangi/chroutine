@@ -1,8 +1,9 @@
 #include "test_server.hpp"
+#include "logger.hpp"
 
 int Test_HowAreYou::do_work() 
 {
-    std::cout << __FUNCTION__ << " HowAreYou get req\n";    
+    LOG << __FUNCTION__ << " HowAreYou get req\n";    
 	m_rsp_msg.set_rsp("Fine thank you, and you?!");
 	::grpc::Status status;
 	m_responser.Finish(m_rsp_msg, status, this);

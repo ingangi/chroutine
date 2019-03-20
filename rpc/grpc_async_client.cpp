@@ -1,12 +1,13 @@
 #include <grpc/impl/codegen/gpr_types.h>
 #include <grpc/support/time.h>
 #include "grpc_async_client.hpp"
+#include "logger.hpp"
 
 grpc_async_client_t::grpc_async_client_t(const std::string & addr)
 : m_channel(::grpc::CreateChannel(addr, ::grpc::InsecureChannelCredentials()))
 , m_addr(addr)
 {
-	std::cout << addr << "-> channel = " << m_channel.get() << std::endl;
+	LOG << addr << "-> channel = " << m_channel.get() << std::endl;
 }
 
 int grpc_async_client_t::select(int wait_ms)

@@ -22,7 +22,7 @@ void fun_1(void *arg)
     int tick = 0;
     while (1) {
         tick++;
-        std::cout << "fun_1 tick = " << tick << " (" << std::this_thread::get_id() << ")" << std::endl;
+        LOG << "fun_1 tick = " << tick << " (" << std::this_thread::get_id() << ")" << std::endl;
         fake_io_work(1000);
 
         if (tick % 3 == 0) {
@@ -32,19 +32,19 @@ void fun_1(void *arg)
             // if timeout happens during son's running, son will be stopped and removed immediately            
             reporter_base_t * rpt = ENGIN.create_son_chroutine([](void *d) {
                 test_return_data_t *data = (test_return_data_t *)d;
-                std::cout << "son-of-func_1 (" << std::this_thread::get_id() << ") " << get_time_stamp() << std::endl;
+                LOG << "son-of-func_1 (" << std::this_thread::get_id() << ") " << get_time_stamp() << std::endl;
                 fake_io_work(5000);
                 data->a = 888;
                 data->b = "hello father";
-                std::cout << "son-of-func_1 (" << std::this_thread::get_id() << ") OVER " << get_time_stamp() << std::endl;
+                LOG << "son-of-func_1 (" << std::this_thread::get_id() << ") OVER " << get_time_stamp() << std::endl;
             }, reporter_t<test_return_data_t>::create(), 5100);
 
             // son is over, check the result
             if (rpt) {
-                std::cout << "fun_1 (" << std::this_thread::get_id() << ") finish wait, son result:" << rpt->get_result() << std::endl;
+                LOG << "fun_1 (" << std::this_thread::get_id() << ") finish wait, son result:" << rpt->get_result() << std::endl;
                 if (rpt->get_result() == result_done) {
                     test_return_data_t *p_data = static_cast<test_return_data_t*>(rpt->get_data());
-                    std::cout << "son chroutine is done, test_return_data_t.a=" << p_data->a << ", b=" << p_data->b << std::endl;
+                    LOG << "son chroutine is done, test_return_data_t.a=" << p_data->a << ", b=" << p_data->b << std::endl;
                 }
             }
         }
@@ -53,18 +53,18 @@ void fun_1(void *arg)
 
 
 int main(int argc, char **argv)
-{   
+{
     ENGINE_INIT(2);
 
     ENGIN.create_chroutine(fun_1, nullptr);  
     ENGIN.create_chroutine([](void *){
     int tick = 0;
         while (1) {
-            std::cout << "fun_2 tick = " << ++tick << " (" << std::this_thread::get_id() << ")" << std::endl;
+            LOG << "fun_2 tick = " << ++tick << " (" << std::this_thread::get_id() << ")" << std::endl;
             fake_io_work(2000);
         }
     }, nullptr);
 
     ENGIN.run();    
-    std::cout << "over ..." << std::endl;
+    LOG << "over ..." << std::endl;
 }

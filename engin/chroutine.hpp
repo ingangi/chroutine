@@ -20,6 +20,7 @@
 #include <functional>
 #include "reporter.hpp"
 #include "selectable_obj.hpp"
+#include "logger.hpp"
 
 const unsigned int STACK_SIZE = 1024*128;
 const int INVALID_ID = -1;

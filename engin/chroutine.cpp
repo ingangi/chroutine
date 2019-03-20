@@ -30,7 +30,7 @@ chroutine_id_t chroutine_t::yield_over(son_result_t result)
 {
     chroutine_id_t timeout_chroutine = INVALID_ID;
     if (yield_to != 0 && stop_son_when_yield_over) {
-        //std::cout << "wait time out!" << std::endl;
+        //LOG << "wait time out!" << std::endl;
         if (reporter.get()) {
             reporter.get()->set_result(result);
         }
@@ -45,7 +45,7 @@ chroutine_id_t chroutine_t::yield_over(son_result_t result)
 
 void chroutine_t::son_finished() 
 {
-    std::cout << "son_finished!" << std::endl;
+    LOG << "son_finished!" << std::endl;
     if (reporter.get()) {
         reporter.get()->set_result(result_done);
     }
@@ -120,7 +120,7 @@ void chroutine_thread_t::entry(void *arg)
     if (p_c == nullptr)
         return;
 
-    //std::cout << "entry start, " << p_this->m_schedule.running_id << " left:" << p_this->m_schedule.chroutines.size()  << std::endl;
+    //LOG << "entry start, " << p_this->m_schedule.running_id << " left:" << p_this->m_schedule.chroutines.size()  << std::endl;
     p_c->state = chroutine_state_running;
     p_c->func(p_c->arg);
     //p_c->state = chroutine_state_fin;
@@ -134,7 +134,7 @@ void chroutine_thread_t::entry(void *arg)
             father->son_finished();
         }
     }
-    //std::cout << "entry over, " << p_this->m_schedule.running_id << " left:" << p_this->m_schedule.chroutines.size() << std::endl;
+    //LOG << "entry over, " << p_this->m_schedule.running_id << " left:" << p_this->m_schedule.chroutines.size() << std::endl;
 }
 
 chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
@@ -164,13 +164,13 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
         id = m_schedule.chroutines.size() - 1;
     }
 
-    //std::cout << "create_chroutine over, " << id << std::endl;
+    //LOG << "create_chroutine over, " << id << std::endl;
     return id;
 }
 
 chroutine_id_t chroutine_thread_t::create_son_chroutine(func_t & func, const reporter_sptr_t & reporter)
 {
-    //std::cout << "create_son_chroutine start, " << m_schedule.running_id << std::endl;
+    //LOG << "create_son_chroutine start, " << m_schedule.running_id << std::endl;
 
     chroutine_t * pfather = get_chroutine(m_schedule.running_id);
     if (pfather == nullptr)
@@ -188,7 +188,7 @@ chroutine_id_t chroutine_thread_t::create_son_chroutine(func_t & func, const rep
 
     pson->father = m_schedule.running_id;
     pfather->son = son;
-    //std::cout << "create_son_chroutine over, " << son << std::endl;
+    //LOG << "create_son_chroutine over, " << son << std::endl;
     return son;
 }
 
@@ -204,7 +204,7 @@ void chroutine_thread_t::yield_current(int tick)
     if (co == nullptr || co->state != chroutine_state_running)
         return;
     
-    //std::cout << "yield_current ..." << m_schedule.running_id << std::endl;
+    //LOG << "yield_current ..." << m_schedule.running_id << std::endl;
     co->state = chroutine_state_suspend;
     co->yield_wait += tick;
     m_schedule.running_id = INVALID_ID;
@@ -223,7 +223,7 @@ void chroutine_thread_t::wait_current(std::time_t wait_time_ms, bool stop_son_af
     if (co == nullptr || co->state != chroutine_state_running)
         return;
     
-    //std::cout << "wait_current ..." << m_schedule.running_id << std::endl;
+    //LOG << "wait_current ..." << m_schedule.running_id << std::endl;
     co->state = chroutine_state_suspend;
     co->yield_to = get_time_stamp() + wait_time_ms;
     co->stop_son_when_yield_over = stop_son_after_wait;
@@ -245,9 +245,9 @@ void chroutine_thread_t::resume_to(chroutine_id_t id)
     if (co == nullptr || co->state != chroutine_state_suspend)
         return;
     
-    //std::cout << "resume_to ..." << id << std::endl;
+    //LOG << "resume_to ..." << id << std::endl;
     swapcontext(&(m_schedule.main),&(co->ctx));
-    //std::cout << "resume_to ..." << id << " over" << std::endl;
+    //LOG << "resume_to ..." << id << " over" << std::endl;
 }
 
 chroutine_id_t chroutine_thread_t::pick_run_chroutine()
@@ -276,12 +276,12 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
     }
 
     if (p_c) {
-        //std::cout << "pick_run_chroutine ..." << index << std::endl;
+        //LOG << "pick_run_chroutine ..." << index << std::endl;
         remove_chroutine(p_c->yield_over());  // remove time out son chroutin
         p_c->state = chroutine_state_running;
         m_schedule.running_id = index;
         swapcontext(&(m_schedule.main),&(p_c->ctx));
-        //std::cout << "pick_run_chroutine ..." << index << " over" << std::endl;
+        //LOG << "pick_run_chroutine ..." << index << " over" << std::endl;
     }
     return index;
 }
@@ -289,7 +289,7 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
 int chroutine_thread_t::schedule()
 {
     m_is_running = true;
-    std::cout << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;
+    LOG << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;
     engine_t::instance().on_thread_ready(m_creating_index, std::this_thread::get_id());
     while (!m_need_stop) {        
         int processed = 0;
@@ -299,7 +299,7 @@ int chroutine_thread_t::schedule()
             thread_ms_sleep(10);
     }
     m_is_running = false;
-    std::cout << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;
+    LOG << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;
     return 0;
 }
 
@@ -324,7 +324,7 @@ int chroutine_thread_t::select_all()
     for (auto iter = m_selector_list.begin(); iter != m_selector_list.end(); iter++) {
         selectable_object_it *p_obj = iter->second.get();
         if (p_obj) {
-            // std::cout << "selecting.." << p_obj << ", thread:" << std::this_thread::get_id() << std::endl;
+            // LOG << "selecting.." << p_obj << ", thread:" << std::this_thread::get_id() << std::endl;
             processed += p_obj->select(0);
         }
     }
@@ -338,9 +338,9 @@ void chroutine_thread_t::register_selector(const selectable_object_sptr_t & sele
         auto iter = m_selector_list.find(key);
         if (iter == m_selector_list.end()) {
             m_selector_list[key] = select_obj;
-            // std::cout << __FUNCTION__ << " thread:" << std::this_thread::get_id() << " OK: key = " << key << std::endl;
+            // LOG << __FUNCTION__ << " thread:" << std::this_thread::get_id() << " OK: key = " << key << std::endl;
         } else {
-            // std::cout << __FUNCTION__ << " thread:" << std::this_thread::get_id() << " failed: key already exist: " << key << std::endl;
+            // LOG << __FUNCTION__ << " thread:" << std::this_thread::get_id() << " failed: key already exist: " << key << std::endl;
         }
     }
 }
@@ -355,10 +355,10 @@ void chroutine_thread_t::unregister_selector(selectable_object_it *p_obj)
     void *key = p_obj;
     auto iter = m_selector_list.find(key);
     if (iter == m_selector_list.end()) {
-        std::cout << __FUNCTION__ << " failed: key not exist: " << key << std::endl;
+        LOG << __FUNCTION__ << " failed: key not exist: " << key << std::endl;
     } else {
         m_selector_list.erase(iter);
-        std::cout << __FUNCTION__ << " OK: key = " << key << std::endl;
+        LOG << __FUNCTION__ << " OK: key = " << key << std::endl;
     }
 }
 
@@ -367,7 +367,7 @@ int chroutine_thread_t::awake_chroutine(chroutine_id_t id)
 {
     chroutine_t * p_c = get_chroutine(id);
     if (p_c == nullptr) {
-        std::cout << __FUNCTION__ << " p_c == nullptr ! id = " << id << std::endl;
+        LOG << __FUNCTION__ << " p_c == nullptr ! id = " << id << std::endl;
         return -1;
     }
 

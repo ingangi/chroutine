@@ -15,12 +15,12 @@ curl_stub_t::curl_stub_t()
 {
     m_multi_handle = curl_multi_init();
     if (m_multi_handle == nullptr)  {
-        std::cout << "curl_multi_init error!" << std::endl;
+        LOG << "curl_multi_init error!" << std::endl;
         exit(1);
         return;
     }
 
-    std::cout << "m_multi_handle created:" << m_multi_handle << std::endl;
+    LOG << "m_multi_handle created:" << m_multi_handle << std::endl;
 	curl_multi_setopt(m_multi_handle, CURLMOPT_MAXCONNECTS, MAX_CONCURRENT_TRANS_IN_CURLMULTI);
     // register_to_engin();
 }
@@ -39,7 +39,7 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
 {
     chroutine_id_t chroutine_id = ENGIN.get_current_chroutine_id();
     if (chroutine_id == INVALID_ID) {
-        std::cout << "curl_stub_t::exec_curl error: can't get current_chroutine_id" << std::endl;
+        LOG << "curl_stub_t::exec_curl error: can't get current_chroutine_id" << std::endl;
         return nullptr;
     }
 
@@ -62,7 +62,7 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
         p_req->set_data_slot(w_func, w_func_handler);
     }
 
-    // std::cout << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() 
+    // LOG << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() 
     //     << "-" << chroutine_id << std::endl;
     push_curl_req(req);
 
@@ -73,7 +73,7 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
         }, reporter_t<curl_call_wait_t>::create(), timeout);
         
         if (rpt) {
-            std::cout << "curl_call_wait_t, call result:" << rpt->get_result() << std::endl;
+            LOG << "curl_call_wait_t, call result:" << rpt->get_result() << std::endl;
         }
     }
 
@@ -83,7 +83,7 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
 
 int curl_stub_t::select(int wait_ms)
 {
-    // std::cout << "curl_stub_t::select: " << this << std::endl;
+    // LOG << "curl_stub_t::select: " << this << std::endl;
     if (add_todo_to_doing()) {
         execute_all_async();
         read_and_clean();
@@ -100,7 +100,7 @@ size_t curl_stub_t::push_curl_req(std::shared_ptr<curl_req_t> req)
 
 bool curl_stub_t::add_todo_to_doing()
 {
-    //std::cout << "[trace] add_todo_to_doing" << std::endl;
+    //LOG << "[trace] add_todo_to_doing" << std::endl;
     // add to multi handler
     
     while (m_curl_req_doing_map.size() < MAX_CONCURRENT_TRANS_IN_CURLMULTI  // m_curl_req_doing_map.size() is O(1)
@@ -114,7 +114,7 @@ bool curl_stub_t::add_todo_to_doing()
             m_curl_req_doing_map[req->get_curl_handler()] = ptr_of_req;
         }
     }
-    //std::cout << "[trace] add_todo_to_doing over" << std::endl;
+    //LOG << "[trace] add_todo_to_doing over" << std::endl;
     return !m_curl_req_doing_map.empty();
 }
 
@@ -126,7 +126,7 @@ void curl_stub_t::execute_all_async()
     // printf("execute_all_async: curl_stub_t(%p), m_multi_handle(%p), thread(%d)\n"
     // , this, m_multi_handle, std::this_thread::get_id());
 
-    // std::cout << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() 
+    // LOG << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() 
     //     << "-" << ENGIN.get_current_chroutine_id() << std::endl;
 
 	int           nCountOfEasyHandlesRun = -1;
@@ -140,7 +140,7 @@ void curl_stub_t::execute_all_async()
 		&& nSelectTimeoutTimes < SELECT_TIMEOUT_TIMES) {
 
 		if (curl_multi_wait(m_multi_handle, NULL, 0, SELECT_TIMEOUT, &numfds) != CURLM_OK) {
-			std::cout << ("HttpAgent::PerformTransfer, curl_multi_wait fail\n");
+			LOG << ("HttpAgent::PerformTransfer, curl_multi_wait fail\n");
 			return;
 		}
 		nSelectTimes++;
@@ -150,7 +150,7 @@ void curl_stub_t::execute_all_async()
 			nSelectTimeoutTimes = 0;
 			curl_multi_perform(m_multi_handle, &nCountOfEasyHandlesRun);
 			if (nSelectTimes % 10 == 0) //reduce log;
-				std::cout << "HttpAgent::PerformTransfer after one while, nCountOfEasyHandlesRun=" << nCountOfEasyHandlesRun << ",nSelectTimes=" << nSelectTimes << ", nSelectTimeoutTimes=" << nSelectTimeoutTimes << std::endl;
+				LOG << "HttpAgent::PerformTransfer after one while, nCountOfEasyHandlesRun=" << nCountOfEasyHandlesRun << ",nSelectTimes=" << nSelectTimes << ", nSelectTimeoutTimes=" << nSelectTimeoutTimes << std::endl;
 		}
 	}    
 }
@@ -177,7 +177,7 @@ void curl_stub_t::read_and_clean()
                 }
                 m_curl_req_doing_map.erase(iter);
                 
-                std::cout << "HTEST: id[" << req_ptr->req_id() << "], cost(" << get_time_stamp() - req_ptr->m_tm_start << "ms),"
+                LOG << "HTEST: id[" << req_ptr->req_id() << "], cost(" << get_time_stamp() - req_ptr->m_tm_start << "ms),"
                       << " rsp_code(" << rsp_code 
                     << "), data_result(" << data_result  << ")" << std::endl;
 
@@ -185,7 +185,7 @@ void curl_stub_t::read_and_clean()
                     m_time_over = get_time_stamp();
                 }
             } else {
-                std::cout << "cant find curl_req_t in m_curl_req_doing_map\n";
+                LOG << "cant find curl_req_t in m_curl_req_doing_map\n";
             }
 		}
 	}

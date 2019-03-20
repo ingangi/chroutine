@@ -11,7 +11,7 @@ CFLAGS += -g3
 LDFLAGS += -L. -lpthread -lprotobuf -lgrpc++ -lgrpc
 AFLAGS += -r
 
-INC = -I../engin -I../rpc -I../proto_code
+INC = -I../engin -I../rpc -I../proto_code -I../util
 
 BINDIR = .
 
