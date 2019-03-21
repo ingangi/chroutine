@@ -6,7 +6,7 @@
 #include "test.grpc.pb.h"
 #include "grpc_sync_client_for_chroutine.hpp"
 
-// can not reuse!  FIXME
+
 class call_Test_HowAreYou final : public client_sync_call_t<rpcpb::TestRsp>
 {
 public:

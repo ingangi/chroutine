@@ -14,9 +14,10 @@ int main(int argc, char **argv)
         }
 
         int i = 0;
+        call_Test_HowAreYou caller(client);
+        rpcpb::TestRsp rsp;
+
         while (client) {
-            call_Test_HowAreYou caller(client);
-            rpcpb::TestRsp rsp;
             ::grpc::StatusCode code = caller.call_sync(rsp);
             LOG << "call_Test_HowAreYou code=" << code << ", rsp:" << rsp.rsp() << std::endl;
 
