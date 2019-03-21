@@ -6,3 +6,5 @@
 test
 rpc_example/rpcsrv
 http_client/curltest
+http_client_example/curltest
+rpc_example/test_client/rpcclient

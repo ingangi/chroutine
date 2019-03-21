@@ -6,6 +6,9 @@
 /// \version 0.1.0
 /// \date 2019-03-20
 
+#ifndef LOGGER_HPP
+#define LOGGER_HPP
+
 #include <iostream>
 #include <stdarg.h>
 
@@ -48,3 +51,5 @@ private:
 };
 
 #define LOG logger_t::instance()
+
+#endif

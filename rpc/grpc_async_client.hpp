@@ -53,7 +53,10 @@ public:
 	{}
 
 	client_call_it * call();
-	virtual int on_rsp() = 0;
+	virtual int on_rsp() {
+		delete this;
+		return 0;
+	}
 
 	// should be called before `call()`
 	void set_timeout(int seconds) {
@@ -61,7 +64,7 @@ public:
 	}
 
 protected:
-	virtual client_call_it *clone_me() = 0;
+	virtual client_call_it * clone_me() = 0;
 	virtual int call_impl() = 0;
 	virtual void set_opt();
 

@@ -18,7 +18,7 @@ int call_Test_HowAreYou::call_impl()
 	return 0;
 }
 
-client_call_it *call_Test_HowAreYou::clone_me()
+client_call_it * call_Test_HowAreYou::clone_me()
 {
 	return new call_Test_HowAreYou(*this);
 }

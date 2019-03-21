@@ -37,7 +37,9 @@ public:
 		if (call_ptr) {
 			call_ptr->wait_call();
 			result = call_ptr->m_result;
-			return call_ptr->m_status.error_code();
+			::grpc::StatusCode code = call_ptr->m_status.error_code();
+			delete call_ptr;
+			return code;
 		}
 		return ::grpc::StatusCode::UNKNOWN;
 	}

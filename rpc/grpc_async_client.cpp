@@ -33,11 +33,7 @@ int grpc_async_client_t::select(int wait_ms)
 		proccessed++;
 		client_call_it* call_ptr = static_cast<client_call_it*>(tag);
 		if (call_ptr)
-		{
 			call_ptr->on_rsp();
-			// FIXME
-			//delete call_ptr;	// todo: find a better way to manage call_ptr
-		}
 
 		if (proccessed > 10)
 			break;
@@ -53,8 +49,7 @@ bool grpc_async_client_t::ready()
 client_call_it * client_call_it::call()
 {
 	client_call_it * call_ptr = clone_me();
-	if (call_ptr)
-	{
+	if (call_ptr) {
 		call_ptr->set_opt();
 		call_ptr->call_impl();
 	}

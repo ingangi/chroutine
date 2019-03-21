@@ -14,7 +14,7 @@ public:
 	call_Test_HowAreYou(call_Test_HowAreYou &other);
 
 private:
-	client_call_it *clone_me();
+	client_call_it * clone_me();
 	int call_impl();
 
 public:

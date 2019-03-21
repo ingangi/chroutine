@@ -1,6 +1,7 @@
 #include <grpc/impl/codegen/gpr_types.h>
 #include <grpc/support/time.h>
 #include "grpc_async_server.hpp"
+#include "logger.hpp"
 
 
 void call_round_it::re_serve()
@@ -22,7 +23,7 @@ void call_round_it::process()
 		do_work();
 	} else {
 		if (m_step != FINISH) {
-			//mylog(ERR, "wrong state {}, delete it anyway", m_step);
+			LOG("ERROR: wrong state %d, delete it anyway", m_step);
 		}
 		delete this;
 	}
@@ -74,11 +75,11 @@ grpc_async_server_it::~grpc_async_server_it()
 int grpc_async_server_it::start(const std::string & addr)
 {
 	if (m_running) {
-		//mylog(CRITICAL, "start grpc_async_server_it({}) failed, already running!", addr);
+		LOG("start grpc_async_server_it(%s) failed, already running!", addr.c_str());
 		return 0;
 	}
 
-	//mylog(CRITICAL, "start grpc_async_server_it({}) thread!", addr);
+	LOG("start grpc_async_server_it(%s)!", addr.c_str());
 
 	if (0 != start_grpc_server(addr))
 		return -1;
