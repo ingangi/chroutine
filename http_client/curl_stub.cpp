@@ -22,7 +22,6 @@ curl_stub_t::curl_stub_t()
 
     LOG << "m_multi_handle created:" << m_multi_handle << std::endl;
 	curl_multi_setopt(m_multi_handle, CURLMOPT_MAXCONNECTS, MAX_CONCURRENT_TRANS_IN_CURLMULTI);
-    // register_to_engin();
 }
 
 curl_stub_t::~curl_stub_t()
@@ -62,8 +61,6 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
         p_req->set_data_slot(w_func, w_func_handler);
     }
 
-    // LOG << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() 
-    //     << "-" << chroutine_id << std::endl;
     push_curl_req(req);
 
     // wait req to be done
@@ -83,7 +80,6 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
 
 int curl_stub_t::select(int wait_ms)
 {
-    // LOG << "curl_stub_t::select: " << this << std::endl;
     if (add_todo_to_doing()) {
         execute_all_async();
         read_and_clean();
@@ -93,17 +89,13 @@ int curl_stub_t::select(int wait_ms)
 
 size_t curl_stub_t::push_curl_req(std::shared_ptr<curl_req_t> req)
 {
-    // do we need limit todo-list size ?
     m_curl_req_todo_que.push_back(req);
     return m_curl_req_todo_que.size();
 }
 
 bool curl_stub_t::add_todo_to_doing()
-{
-    //LOG << "[trace] add_todo_to_doing" << std::endl;
-    // add to multi handler
-    
-    while (m_curl_req_doing_map.size() < MAX_CONCURRENT_TRANS_IN_CURLMULTI  // m_curl_req_doing_map.size() is O(1)
+{    
+    while (m_curl_req_doing_map.size() < MAX_CONCURRENT_TRANS_IN_CURLMULTI 
             && !m_curl_req_todo_que.empty()) {
 
         auto ptr_of_req = m_curl_req_todo_que.front();
@@ -114,7 +106,6 @@ bool curl_stub_t::add_todo_to_doing()
             m_curl_req_doing_map[req->get_curl_handler()] = ptr_of_req;
         }
     }
-    //LOG << "[trace] add_todo_to_doing over" << std::endl;
     return !m_curl_req_doing_map.empty();
 }
 
@@ -123,12 +114,6 @@ const int SELECT_TIMES = 10;
 static const int SELECT_TIMEOUT = 10;
 void curl_stub_t::execute_all_async()
 {
-    // printf("execute_all_async: curl_stub_t(%p), m_multi_handle(%p), thread(%d)\n"
-    // , this, m_multi_handle, std::this_thread::get_id());
-
-    // LOG << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() 
-    //     << "-" << ENGIN.get_current_chroutine_id() << std::endl;
-
 	int           nCountOfEasyHandlesRun = -1;
 	int           numfds = 0;
 	int           nSelectTimeoutTimes = 0;
@@ -176,23 +161,9 @@ void curl_stub_t::read_and_clean()
                     req_ptr->on_rsp(rsp_code, data_result);
                 }
                 m_curl_req_doing_map.erase(iter);
-                
-                LOG << "HTEST: id[" << req_ptr->req_id() << "], cost(" << get_time_stamp() - req_ptr->m_tm_start << "ms),"
-                      << " rsp_code(" << rsp_code 
-                    << "), data_result(" << data_result  << ")" << std::endl;
-
-                if (m_curl_req_todo_que.empty() && m_curl_req_doing_map.empty()) {
-                    m_time_over = get_time_stamp();
-                }
             } else {
                 LOG << "cant find curl_req_t in m_curl_req_doing_map\n";
             }
 		}
 	}
-}
-
-std::time_t curl_stub_t::get_time_stamp()
-{
-    std::chrono::time_point<std::chrono::system_clock,std::chrono::milliseconds> tp = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-    return std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()).count();
 }

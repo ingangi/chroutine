@@ -8,7 +8,6 @@
 curl_req_t::curl_req_t(unsigned int req_id) : m_req_id(req_id)
 {
     m_curl_ptr = curl_easy_init();
-    m_tm_start = curl_stub_t::get_time_stamp();
 }
 
 std::shared_ptr<curl_req_t> curl_req_t::new_curl_req(unsigned int req_id)
@@ -95,8 +94,6 @@ size_t curl_rsp_t::write_rsp_data_func(void *buffer, size_t size, size_t nmemb, 
 
 void curl_req_t::on_rsp(long rsp_code, long data_result)
 {
-    // LOG << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() 
-    //     << "-" << ENGIN.get_current_chroutine_id() << std::endl;
     rsp().set_rsp_code(rsp_code);
     rsp().set_curl_code(data_result);
     if (m_my_chroutine != INVALID_ID) {

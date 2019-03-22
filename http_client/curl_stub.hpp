@@ -58,12 +58,6 @@ private:
 
     bool                    m_running = false;
     bool                    m_need_exit = false;
-
-    // for time test
-public:
-    static std::time_t get_time_stamp();
-    std::time_t     m_time_start;
-    std::time_t     m_time_over;
 };
 
 #endif

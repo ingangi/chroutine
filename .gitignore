@@ -2,7 +2,7 @@
 *.json
 *.o
 *.a
-.vscode/settings.json
+.vscode/
 test
 rpc_example/rpcsrv
 http_client/curltest
