@@ -2,6 +2,7 @@
 #include <grpc/support/time.h>
 #include "grpc_async_server.hpp"
 #include "logger.hpp"
+#include "engine.hpp"
 
 
 void call_round_it::re_serve()
@@ -13,6 +14,8 @@ void call_round_it::re_serve()
 
 void call_round_it::process()
 {
+	// LOG << __FUNCTION__ << ":" << this << ", step:" <<  m_step << std::endl;
+
 	if (m_step == CREATE) {
 		m_step = PROCESS;
 		request_service();
@@ -20,7 +23,10 @@ void call_round_it::process()
 		m_step = FINISH;
 		// in case of new request come during process, we make a new me to serve
 		re_serve();
-		do_work();
+		// new chroutine for handler running 
+		ENGIN.create_son_chroutine([&](void *){
+			do_work();
+		}, nullptr);
 	} else {
 		if (m_step != FINISH) {
 			LOG("ERROR: wrong state %d, delete it anyway", m_step);

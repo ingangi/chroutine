@@ -26,7 +26,7 @@ int main(int argc, char **argv)
                 client->unregister_from_engin();
                 client = nullptr;
             }
-            SLEEP(3000);
+            SLEEP(1000);
         }
         
     }, nullptr);
