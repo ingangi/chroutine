@@ -4,18 +4,21 @@ LD	= @echo " ld  $@"; ld
 AR	= @echo " ar  $@"; ar
 RM	= @echo " RM	$@"; rm -f
 
-CFLAGS += -Wall -std=c++11
-CFLAGS += -g3
+CFLAGS += -Wall -std=c++11 -DENABLE_HTTP_PLUGIN
+CFLAGS += -g
 
 #LDFLAGS += "-Wl" -lpthread -lc
-LDFLAGS += -L. -lpthread -lprotobuf -lgrpc++ -lgrpc
+LDFLAGS += -lcurl
+LDFLAGS += -L.  ##-lenc -lsyslink  -lbinder -llog    -losa -lpdi -lsdk  -lz -lrt -lsplice -lmem -ldec
 AFLAGS += -r
 
-INC = -I../engin -I../rpc -I../proto_code -I../util
+INC = -I../../engin -I../../net/http_client -I../../util
 
 BINDIR = .
+SRCDIR = . ../../engin ../../net/http_client
 
-SRCS_PATH = . ../engin ../rpc ../proto_code
+
+SRCS_PATH = $(SRCDIR) 
 
 LIB_SRCS += $(foreach dir,$(SRCS_PATH),$(wildcard $(dir)/*.cpp))
 LIB_CC_SRCS += $(foreach dir,$(SRCS_PATH),$(wildcard $(dir)/*.cc))
@@ -23,9 +26,9 @@ LIB_CC_SRCS += $(foreach dir,$(SRCS_PATH),$(wildcard $(dir)/*.cc))
 LIB_OBJS += $(patsubst %.cpp,%.o,$(LIB_SRCS))
 LIB_OBJS += $(patsubst %.cc,%.o,$(LIB_CC_SRCS))
 
-LIB_APP = rpcsrv.a
+LIB_APP = curltest.a
 
-DEMO_NAME	= rpcsrv
+DEMO_NAME	= curltest
 TARGET_DEMO = $(BINDIR)/$(DEMO_NAME)
 
 all: $(TARGET_DEMO)
@@ -41,9 +44,6 @@ $(LIB_APP): $(LIB_OBJS)
 	$(CC) -c $(CFLAGS) $(INC) $^ -o $@
 
 .cpp.o:
-	$(CPP) -c $(CFLAGS) $(INC) $^ -o $@
-	
-.cc.o:
 	$(CPP) -c $(CFLAGS) $(INC) $^ -o $@
 
 clean:
