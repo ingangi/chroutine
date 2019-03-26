@@ -12,3 +12,7 @@
 ## 5. rewrite the tcp APIs with epoll and offer sync-look APIs for net programing
 
 ## 6. share chroutine stack
+
+## 7. mysql
+
+## 8. redis
