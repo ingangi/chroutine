@@ -185,7 +185,7 @@ chroutine_thread_t *engine_t::get_lightest_thread()
         return nullptr;
 
     // let's return a random one for test
-    return m_creating[time(NULL) % m_creating.size()].get();
+    return m_creating[m_dispatch_seed++ % m_creating.size()].get();
 }
 
 reporter_base_t *engine_t::get_my_reporter()
@@ -243,6 +243,18 @@ int engine_t::awake_chroutine(chroutine_id_t id)
     if (pthrd == nullptr)
         return -1;
 
+    return pthrd->awake_chroutine(id);
+}
+
+
+// awake waiting chroutine
+int engine_t::awake_chroutine(std::thread::id thread_id, chroutine_id_t id)
+{
+    chroutine_thread_t *pthrd = get_thread_by_id(thread_id);
+    if (pthrd == nullptr)
+        return -1;
+
+    // FIXME.  not thread safe !!
     return pthrd->awake_chroutine(id);
 }
 

@@ -72,11 +72,6 @@ private:
     bool                stop_son_when_yield_over = false;
 };
 
-typedef struct
-{
-    std::thread::id thread_id;
-    chroutine_id_t chrotine_id = INVALID_ID;
-}chroutine_pos_t;
 
 typedef std::vector<std::shared_ptr<chroutine_t> > chroutine_list_t;
 

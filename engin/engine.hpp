@@ -81,6 +81,9 @@ public:
 
     // awake waiting chroutine
     int awake_chroutine(chroutine_id_t id);
+    
+    // awake waiting chroutine
+    int awake_chroutine(std::thread::id thread_id, chroutine_id_t id);
 
     // the main thread
     void run();
@@ -111,6 +114,7 @@ private:
     creating_threads_t  m_creating;             // is readonly after m_init_over become true
     bool                m_init_over = false;    // if all threads ready    
     std::thread::id     m_main_thread_id = NULL_THREAD_ID;
+    int                 m_dispatch_seed = 0;
 #ifdef ENABLE_HTTP_PLUGIN
     http_stub_pool_t    m_http_stubs;
 #endif
