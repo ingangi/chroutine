@@ -262,11 +262,14 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
         return INVALID_ID;
 
     chroutine_id_t index = INVALID_ID;
-    chroutine_id_t i = INVALID_ID;
     chroutine_t *p_c = nullptr;
     std::time_t now = get_time_stamp();
-    for (auto &node : m_schedule.chroutines) {
-        i++;
+    size_t size = m_schedule.chroutines.size();
+    chroutine_id_t i = m_schedule.last_run_id + 1;
+    if (i < 0) i = 0;
+
+    for (; (size_t)i < size; i++) {
+        auto &node = m_schedule.chroutines[i];
         if (node.get()->wait(now) > 0)
             continue;
         if (p_c == nullptr) {
@@ -283,6 +286,7 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
         swapcontext(&(m_schedule.main),&(p_c->ctx));
         //LOG << "pick_run_chroutine ..." << index << " over" << std::endl;
     }
+    m_schedule.last_run_id = index;
     return index;
 }
 

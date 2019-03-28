@@ -23,7 +23,7 @@ public:
         bool expected = false;
         while(!m_flag.compare_exchange_weak(expected, true, std::memory_order_acquire)) {
             expected = false;
-            ENGIN.yield(2);
+            YIELD();
         }
     }
 

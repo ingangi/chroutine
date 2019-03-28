@@ -79,11 +79,13 @@ typedef struct schedule_t {
     //std::mutex          mutex;
     ucontext_t          main;
     chroutine_id_t      running_id;
+    chroutine_id_t      last_run_id;
     chroutine_list_t    chroutines;
     chroutine_list_t    chroutines_to_free;
 
     schedule_t() 
     : running_id(INVALID_ID)
+    , last_run_id(INVALID_ID)
     {}    
 }schedule_t;
 
