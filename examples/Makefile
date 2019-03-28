@@ -54,6 +54,9 @@ RPCS:
 CHAN:
 	(cd ./channel_example; make clean; make;)
 	
+LOCK:
+	(cd ./chutex_example; make clean; make;)
+	
 RPCC:
 	(cd ./rpc_example/test_client; make clean; make;)
 	
@@ -61,7 +64,7 @@ HTTPC:
 	(cd ./http_client_example; make clean; make;)
 
 CLEAN:
-	(make clean;cd ./rpc_example; make clean; cd ../rpc_example/test_client; make clean; cd ../../http_client_example; make clean;cd ../channel_example; make clean;)
+	(make clean;cd ./rpc_example; make clean; cd ../rpc_example/test_client; make clean; cd ../../http_client_example; make clean;cd ../channel_example; make clean;cd ../chutex_example; make clean;)
 
 ALLTEST:
-	(make clean;make;make RPCS;make RPCC;make HTTPC;make CHAN;)
+	(make clean;make;make RPCS;make RPCC;make HTTPC;make CHAN;make LOCK;)
