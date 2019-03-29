@@ -12,11 +12,15 @@ int main(int argc, char **argv)
     // 2 read chroutines
     ENGIN.create_chroutine([&](void *){
         LOG << "reader 1 in thread:" << std::this_thread::get_id() << std::endl;
-        SLEEP(3009);
+        SLEEP(3010);
+#if 0
         if (!chutex.try_lock()) {
             LOG << "reader 1 trylock failed, exit\n";
             return;
         }
+#else        
+        chutex.lock();
+#endif
         LOG << "reader 1 get lock\n";
         for (auto iter = m.begin(); iter != m.end(); iter++) {
             LOG("reader 1; m[%d]:%d", iter->first, iter->second);
@@ -29,17 +33,13 @@ int main(int argc, char **argv)
     ENGIN.create_chroutine([&](void *){
         LOG << "reader 2 in thread:" << std::this_thread::get_id() << std::endl;
         SLEEP(3000);
-        if (!chutex.try_lock()) {
-            LOG << "reader 2 trylock failed, exit\n";
-            return;
-        }
+        chutex_guard guard(chutex);
         LOG << "reader 2 get lock\n";
         for (auto iter = m.begin(); iter != m.end(); iter++) {
             LOG("reader 2; m[%d]:%d", iter->first, iter->second);
             SLEEP(1000);
         }
         m.clear();
-        chutex.unlock();
         LOG << "reader 2 unlock\n";
     }, nullptr);
     

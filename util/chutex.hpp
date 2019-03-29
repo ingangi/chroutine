@@ -27,7 +27,7 @@ public:
         }
     }
 
-    // FIXME: can unlock by others
+    // can unlock by others
     void unlock() {
         m_flag.store(false, std::memory_order_release);
     }
@@ -46,6 +46,19 @@ private:
 
 private:
     std::atomic<bool> m_flag = ATOMIC_VAR_INIT(false);    //true:locked
+};
+
+class chutex_guard final
+{
+public:
+    chutex_guard(chutex_t &chtex) : m_chtex(chtex){
+        m_chtex.lock();
+    }
+    ~chutex_guard(){
+        m_chtex.unlock();
+    }
+private:
+    chutex_t &m_chtex;
 };
 
 
