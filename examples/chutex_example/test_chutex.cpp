@@ -1,5 +1,6 @@
 #include <map>
 #include "chutex.hpp"
+#include "engine.hpp"
 
 
 int main(int argc, char **argv)
@@ -33,7 +34,7 @@ int main(int argc, char **argv)
     ENGIN.create_chroutine([&](void *){
         LOG << "reader 2 in thread:" << std::this_thread::get_id() << std::endl;
         SLEEP(3000);
-        chutex_guard guard(chutex);
+        chutex_guard_t guard(chutex);
         LOG << "reader 2 get lock\n";
         for (auto iter = m.begin(); iter != m.end(); iter++) {
             LOG("reader 2; m[%d]:%d", iter->first, iter->second);

@@ -254,7 +254,6 @@ int engine_t::awake_chroutine(std::thread::id thread_id, chroutine_id_t id)
     if (pthrd == nullptr)
         return -1;
 
-    // FIXME.  not thread safe !!
     return pthrd->awake_chroutine(id);
 }
 

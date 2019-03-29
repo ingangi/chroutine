@@ -16,7 +16,7 @@ INC = -I../engin -I../util #-I./rpc
 BINDIR = .
 
 
-SRCS_PATH = . ../engin #./rpc ./proto_code/grpc_code ./proto_code/msg_code
+SRCS_PATH = . ../engin  ../util #./rpc ./proto_code/grpc_code ./proto_code/msg_code
 
 LIB_SRCS += $(foreach dir,$(SRCS_PATH),$(wildcard $(dir)/*.cpp))
 

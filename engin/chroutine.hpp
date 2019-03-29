@@ -21,6 +21,7 @@
 #include "reporter.hpp"
 #include "selectable_obj.hpp"
 #include "logger.hpp"
+#include "chutex.hpp"
 
 const unsigned int STACK_SIZE = 1024*128;
 const int INVALID_ID = -1;
@@ -182,6 +183,7 @@ private:
     bool                        m_need_stop = false;
     size_t                      m_creating_index = 0;
     selectable_object_list_t    m_selector_list;
+    chutex_t                    m_chroutine_lock;
 };
 
 #endif

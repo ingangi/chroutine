@@ -14,7 +14,7 @@ AFLAGS += -r
 INC = -I../../engin -I../../util
 
 BINDIR = .
-SRCDIR = . ../../engin
+SRCDIR = . ../../engin  ../../util
 
 
 SRCS_PATH = $(SRCDIR) 

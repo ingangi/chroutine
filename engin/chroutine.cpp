@@ -6,11 +6,13 @@
 
 chroutine_t::chroutine_t() 
 {
+    LOG << "chroutine_t created:" << this << std::endl;
     stack = new char[STACK_SIZE];
 }
 
 chroutine_t::~chroutine_t() 
 {
+    LOG << "chroutine_t destroyed:" << this << std::endl;
     if (stack)
         delete [] stack;
 }
@@ -86,6 +88,7 @@ void chroutine_thread_t::sleep(std::time_t wait_time_ms)
 
 chroutine_t * chroutine_thread_t::get_chroutine(chroutine_id_t id)
 {
+    chutex_guard_t lock(m_chroutine_lock);
     if (id < 0 || id > int(m_schedule.chroutines.size()) - 1)
         return nullptr;
 
@@ -94,6 +97,7 @@ chroutine_t * chroutine_thread_t::get_chroutine(chroutine_id_t id)
 
 void chroutine_thread_t::remove_chroutine(chroutine_id_t id)
 {
+    chutex_guard_t lock(m_chroutine_lock);
     if (id < 0 || id > int(m_schedule.chroutines.size()) - 1)
         return;
         
@@ -124,8 +128,10 @@ void chroutine_thread_t::entry(void *arg)
     p_c->state = chroutine_state_running;
     p_c->func(p_c->arg);
     //p_c->state = chroutine_state_fin;
+    p_this->m_chroutine_lock.lock();
     p_this->m_schedule.chroutines_to_free.push_back(p_this->m_schedule.chroutines[p_this->m_schedule.running_id]);
     p_this->m_schedule.chroutines.erase(p_this->m_schedule.chroutines.begin() + p_this->m_schedule.running_id);
+    p_this->m_chroutine_lock.unlock();
     p_this->m_schedule.running_id = INVALID_ID;
 
     if (p_c->father != INVALID_ID) {
@@ -159,7 +165,7 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
 
     chroutine_id_t id = INVALID_ID;
     {
-        //std::lock_guard<std::mutex> lck (m_schedule.mutex);
+        chutex_guard_t lock(m_chroutine_lock);
         m_schedule.chroutines.push_back(c);
         id = m_schedule.chroutines.size() - 1;
     }
@@ -182,6 +188,7 @@ chroutine_id_t chroutine_thread_t::create_son_chroutine(func_t & func, const rep
     if (son == INVALID_ID)
         return INVALID_ID;
     
+    chutex_guard_t lock(m_chroutine_lock);
     chroutine_t * pson = m_schedule.chroutines[son].get();
     if (pson == nullptr)
         return INVALID_ID;
@@ -197,14 +204,19 @@ void chroutine_thread_t::yield_current(int tick)
     if (tick <= 0)
         return;
 
-    if (m_schedule.running_id < 0 || m_schedule.running_id > int(m_schedule.chroutines.size())-1)
-        return;
-    
-    chroutine_t * co = m_schedule.chroutines[m_schedule.running_id].get();
-    if (co == nullptr || co->state != chroutine_state_running)
-        return;
-    
-    //LOG << "yield_current ..." << m_schedule.running_id << std::endl;
+    std::shared_ptr<chroutine_t> co_ptr;
+    chroutine_t * co = nullptr;
+    {        
+        chutex_guard_t lock(m_chroutine_lock);
+        if (m_schedule.running_id < 0 || m_schedule.running_id > int(m_schedule.chroutines.size())-1)
+            return;
+        
+        co_ptr = m_schedule.chroutines[m_schedule.running_id];
+        co = co_ptr.get();
+        if (co == nullptr || co->state != chroutine_state_running)
+            return;
+    }
+        
     co->state = chroutine_state_suspend;
     co->yield_wait += tick;
     m_schedule.running_id = INVALID_ID;
@@ -216,12 +228,18 @@ void chroutine_thread_t::wait_current(std::time_t wait_time_ms, bool stop_son_af
     if (wait_time_ms <= 0)
         return;
 
-    if (m_schedule.running_id < 0 || m_schedule.running_id > int(m_schedule.chroutines.size())-1)
-        return;
-    
-    chroutine_t * co = m_schedule.chroutines[m_schedule.running_id].get();
-    if (co == nullptr || co->state != chroutine_state_running)
-        return;
+    std::shared_ptr<chroutine_t> co_ptr;
+    chroutine_t * co = nullptr;
+    {
+        chutex_guard_t lock(m_chroutine_lock);
+        if (m_schedule.running_id < 0 || m_schedule.running_id > int(m_schedule.chroutines.size())-1)
+            return;
+        
+        co_ptr = m_schedule.chroutines[m_schedule.running_id];
+        co = co_ptr.get();
+        if (co == nullptr || co->state != chroutine_state_running)
+            return;
+    }
     
     //LOG << "wait_current ..." << m_schedule.running_id << std::endl;
     co->state = chroutine_state_suspend;
@@ -238,12 +256,18 @@ bool chroutine_thread_t::done()
 
 void chroutine_thread_t::resume_to(chroutine_id_t id)
 {
-    if (id < 0 || id > int(m_schedule.chroutines.size())-1)
-        return;
+    std::shared_ptr<chroutine_t> co_ptr;
+    chroutine_t * co = nullptr;
+    {
+        chutex_guard_t lock(m_chroutine_lock);
+        if (id < 0 || id > int(m_schedule.chroutines.size())-1)
+            return;
 
-    chroutine_t * co = m_schedule.chroutines[id].get();
-    if (co == nullptr || co->state != chroutine_state_suspend)
-        return;
+        co_ptr = m_schedule.chroutines[id];
+        co = co_ptr.get();
+        if (co == nullptr || co->state != chroutine_state_suspend)
+            return;
+    }
     
     //LOG << "resume_to ..." << id << std::endl;
     swapcontext(&(m_schedule.main),&(co->ctx));
@@ -252,29 +276,32 @@ void chroutine_thread_t::resume_to(chroutine_id_t id)
 
 chroutine_id_t chroutine_thread_t::pick_run_chroutine()
 {
-    // clean finished nodes
-    m_schedule.chroutines_to_free.clear();
-
     if (m_schedule.running_id != INVALID_ID)
         return m_schedule.running_id;
-
-    if (m_schedule.chroutines.empty())
-        return INVALID_ID;
 
     chroutine_id_t index = INVALID_ID;
     chroutine_t *p_c = nullptr;
     std::time_t now = get_time_stamp();
-    size_t size = m_schedule.chroutines.size();
     chroutine_id_t i = m_schedule.last_run_id + 1;
     if (i < 0) i = 0;
 
-    for (; (size_t)i < size; i++) {
-        auto &node = m_schedule.chroutines[i];
-        if (node.get()->wait(now) > 0)
-            continue;
-        if (p_c == nullptr) {
-            p_c = node.get();
-            index = i;
+    std::shared_ptr<chroutine_t> co_ptr;
+    {
+        chutex_guard_t lock(m_chroutine_lock);
+        // clean finished nodes
+        m_schedule.chroutines_to_free.clear();
+        if (m_schedule.chroutines.empty())
+            return INVALID_ID;
+        size_t size = m_schedule.chroutines.size();
+        for (; (size_t)i < size; i++) {
+            auto &node = m_schedule.chroutines[i];
+            if (node.get()->wait(now) > 0)
+                continue;
+            if (p_c == nullptr) {
+                co_ptr = node;
+                p_c = co_ptr.get();
+                index = i;
+            }
         }
     }
 

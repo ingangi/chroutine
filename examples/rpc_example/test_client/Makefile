@@ -15,7 +15,7 @@ INC = -I../../../engin -I../../../net/rpc -I../../../net/proto_code  -I../../../
 
 BINDIR = .
 
-SRCS_PATH = . ../../../engin ../../../net/rpc ../../../net/proto_code
+SRCS_PATH = . ../../../engin ../../../net/rpc ../../../net/proto_code  ../../../util
 
 LIB_SRCS += $(foreach dir,$(SRCS_PATH),$(wildcard $(dir)/*.cpp))
 LIB_CC_SRCS += $(foreach dir,$(SRCS_PATH),$(wildcard $(dir)/*.cc))

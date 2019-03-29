@@ -15,7 +15,7 @@ AFLAGS += -r
 INC = -I../../engin -I../../net/http_client -I../../util
 
 BINDIR = .
-SRCDIR = . ../../engin ../../net/http_client
+SRCDIR = . ../../engin ../../net/http_client  ../../util
 
 
 SRCS_PATH = $(SRCDIR) 
