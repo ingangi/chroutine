@@ -2,6 +2,8 @@
 #include "engine.hpp"
 
 
+namespace chr {
+
 std::time_t get_time_stamp()
 {
     std::chrono::time_point<std::chrono::system_clock,std::chrono::milliseconds> tp = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
@@ -293,4 +295,6 @@ void engine_t::run()
         // todo: preemption for chroutines that exceed 10ms
         thread_ms_sleep(500);
     }
+}
+
 }

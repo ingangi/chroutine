@@ -12,6 +12,7 @@
 #include "grpc_async_client.hpp"
 #include "engine.hpp"
 
+namespace chr {
 
 template<typename RESULT_T>
 class client_sync_call_t : public client_call_it
@@ -89,4 +90,5 @@ private:
 	int m_chroutine_timeout_ms = 0;
 };
 
+}
 #endif

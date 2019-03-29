@@ -11,6 +11,8 @@
 
 #include <atomic>
 
+namespace chr {
+
 // it's a spin lock
 class chutex_t final
 {
@@ -49,5 +51,6 @@ private:
     chutex_t &m_chtex;
 };
 
+}
 
 #endif

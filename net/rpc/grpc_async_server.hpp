@@ -13,6 +13,8 @@
 #include <grpc++/grpc++.h>
 #include "selectable_obj.hpp"
 
+namespace chr {
+
 // a call_round_it is a calling process
 // every grpc function/interface should inherit from this
 class call_round_it
@@ -71,4 +73,5 @@ protected:
 	std::unique_ptr<::grpc::Server> m_grpc_server_ptr;
 };
 
+}
 #endif

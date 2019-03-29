@@ -12,6 +12,8 @@
 #include <iostream>
 #include <stdarg.h>
 
+namespace chr {
+
 class logger_t
 {
     const int MAX_LOG_LEN = 512;
@@ -50,6 +52,7 @@ private:
     std::ostream &m_stream = std::cout;   //replace with your log lib
 };
 
-#define LOG logger_t::instance()
+}
 
+#define LOG chr::logger_t::instance()
 #endif

@@ -1,6 +1,7 @@
 #include "engine.hpp"
 #include "channel.hpp"
 
+using namespace chr;
 
 int main(int argc, char **argv)
 {

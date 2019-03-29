@@ -3,16 +3,35 @@ With `chroutine`, we can easily develop highly concurrent programs in C++ and wr
 
 You can run the examples and see the code how to use it:
 ```
-├── test.cpp  (genaral use of chroutine)
-├── http_client_example  (http client)
-├── rpc_example  (rpc server and client)
+├── examples
+│   ├── channel_example
+│   │   ├── Makefile
+│   │   └── test_channel.cpp
+│   ├── chutex_example
+│   │   ├── Makefile
+│   │   └── test_chutex.cpp
+│   ├── http_client_example
+│   │   ├── Makefile
+│   │   └── test_main.cpp
+│   ├── rpc_example
+│   │   ├── Makefile
+│   │   ├── test_client
+│   │   │   ├── Makefile
+│   │   │   ├── test_client.cpp
+│   │   │   ├── test_client.hpp
+│   │   │   └── test_client_main.cpp
+│   │   ├── test_server.cpp
+│   │   ├── test_server.hpp
+│   │   └── test_server_main.cpp
+│   ├── Makefile
+│   └── test_chroutine.cpp
 
 make ALLTEST
 ```
 
 # env install (Relies on gRPC and libcurl)
 
-## install grpc
+## install grpc (if you need the RPC module)
 
 my system: CentOS Linux release 7.4.1708
 
@@ -87,7 +106,7 @@ You should see four files:
 │   └── test.pb.h
 ```
 
-## install libcurl
+## install libcurl (if you need the http client module)
 
 see:
 

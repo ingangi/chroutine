@@ -11,6 +11,8 @@
 
 #include <memory>
 
+namespace chr {
+
 typedef enum {
     result_ready = 0,  // not excuted
     result_done,  // excuted
@@ -63,5 +65,6 @@ private:
 
 };
 
+}
 
 #endif

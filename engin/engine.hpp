@@ -18,6 +18,13 @@
 #include "curl_stub.hpp"
 #endif
 
+#define ENGIN chr::engine_t::instance()
+#define ENGINE_INIT(thrds) {ENGIN.init(thrds);}
+#define YIELD() {ENGIN.yield();}
+#define WAIT(t) {ENGIN.wait(t);}
+#define SLEEP(t) {ENGIN.sleep(t);}
+
+namespace chr {
 
 typedef std::map<std::thread::id, std::shared_ptr<chroutine_thread_t> > thread_pool_t;
 typedef std::vector<std::shared_ptr<chroutine_thread_t> > creating_threads_t;
@@ -25,11 +32,6 @@ typedef std::vector<std::shared_ptr<chroutine_thread_t> > creating_threads_t;
 typedef std::map<std::thread::id, selectable_object_sptr_t > http_stub_pool_t;
 #endif
 
-#define ENGIN engine_t::instance()
-#define ENGINE_INIT(thrds) {ENGIN.init(thrds);}
-#define YIELD() {ENGIN.yield();}
-#define WAIT(t) {ENGIN.wait(t);}
-#define SLEEP(t) {ENGIN.sleep(t);}
 
 std::time_t get_time_stamp();
 void thread_ms_sleep(uint32_t ms);
@@ -120,4 +122,5 @@ private:
 #endif
 };
 
+}
 #endif

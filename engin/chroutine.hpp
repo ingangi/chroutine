@@ -23,6 +23,8 @@
 #include "logger.hpp"
 #include "chutex.hpp"
 
+namespace chr {
+
 const unsigned int STACK_SIZE = 1024*128;
 const int INVALID_ID = -1;
 const int MAX_RUN_MS_EACH = 10;
@@ -186,4 +188,5 @@ private:
     chutex_t                    m_chroutine_lock;
 };
 
+}
 #endif

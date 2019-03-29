@@ -14,6 +14,8 @@
 #include <memory>
 #include <thread>
 
+namespace chr {
+    
 const std::thread::id NULL_THREAD_ID;
 
 class selectable_object_it;
@@ -31,5 +33,6 @@ public:
     int unregister_from_engin(std::thread::id thread_id = NULL_THREAD_ID);
 };
 
+}
 
 #endif

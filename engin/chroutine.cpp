@@ -4,6 +4,8 @@
 #include "engine.hpp"
 
 
+namespace chr {
+
 chroutine_t::chroutine_t() 
 {
     LOG << "chroutine_t created:" << this << std::endl;
@@ -404,4 +406,6 @@ int chroutine_thread_t::awake_chroutine(chroutine_id_t id)
 
     remove_chroutine(p_c->yield_over(result_done));
     return 0;
+}
+
 }

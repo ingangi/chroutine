@@ -1,6 +1,7 @@
 #include "chutex.hpp"
 #include "engine.hpp"
 
+namespace chr {
 
 void chutex_t::lock()
 {
@@ -20,4 +21,6 @@ bool chutex_t::try_lock()
 {
     bool expected = false;
     return m_flag.compare_exchange_strong(expected, true, std::memory_order_acquire);
+}
+
 }

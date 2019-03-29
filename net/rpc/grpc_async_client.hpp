@@ -13,6 +13,8 @@
 #include <grpc++/grpc++.h>
 #include "selectable_obj.hpp"
 
+namespace chr {
+
 class grpc_async_client_t : public selectable_object_it
 {
 public:
@@ -75,4 +77,5 @@ protected:
 	int		m_timeout_seconds = 0;	// 0 -> no time limite
 };
 
+}
 #endif

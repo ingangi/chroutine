@@ -4,7 +4,7 @@
 
 int Test_HowAreYou::do_work() 
 {
-	assert(ENGIN.get_current_chroutine_id() != INVALID_ID);
+	assert(ENGIN.get_current_chroutine_id() != chr::INVALID_ID);
     LOG << __FUNCTION__ << " HowAreYou get req, in chroutine:" << ENGIN.get_current_chroutine_id() << std::endl;
 
 	SLEEP(2000);	//fake processing

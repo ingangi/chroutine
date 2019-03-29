@@ -2,6 +2,7 @@
 #include "engine.hpp"
 #include <unistd.h>
 
+using namespace chr;
 
 int main(int argc, char **argv)
 {   

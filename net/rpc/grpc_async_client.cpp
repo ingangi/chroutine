@@ -3,6 +3,9 @@
 #include "grpc_async_client.hpp"
 #include "logger.hpp"
 
+
+namespace chr {
+
 grpc_async_client_t::grpc_async_client_t(const std::string & addr)
 : m_channel(::grpc::CreateChannel(addr, ::grpc::InsecureChannelCredentials()))
 , m_addr(addr)
@@ -62,4 +65,6 @@ void client_call_it::set_opt()
 		m_context.set_deadline(std::chrono::system_clock::now() +
 			std::chrono::seconds(m_timeout_seconds));
 	}
+}
+
 }

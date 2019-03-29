@@ -6,15 +6,16 @@
 #include "test.grpc.pb.h"
 #include "grpc_sync_client_for_chroutine.hpp"
 
+typedef chr::client_sync_call_t<rpcpb::TestRsp> test_rsp_sync_call_t;
 
-class call_Test_HowAreYou final : public client_sync_call_t<rpcpb::TestRsp>
+class call_Test_HowAreYou final : public test_rsp_sync_call_t
 {
 public:
-	call_Test_HowAreYou(grpc_async_client_t *client);
+	call_Test_HowAreYou(chr::grpc_async_client_t *client);
 	call_Test_HowAreYou(call_Test_HowAreYou &other);
 
 private:
-	client_call_it * clone_me();
+	chr::client_call_it * clone_me();
 	int call_impl();
 
 public:

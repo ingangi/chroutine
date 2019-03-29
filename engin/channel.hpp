@@ -12,6 +12,8 @@
 #include <deque>
 #include "chroutine.hpp"
 
+namespace chr {    
+
 template<typename T>
 class channel_t
 {
@@ -123,5 +125,6 @@ private:
     std::deque<chroutine_chan_context_t> m_waiting_read_que;
 };
 
+}
 
 #endif

@@ -3,6 +3,7 @@
 #include <thread>
 #include "engine.hpp"
 
+using namespace chr;
 
 void fake_io_work(int costtime = 10)
 {    

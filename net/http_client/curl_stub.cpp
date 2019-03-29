@@ -8,6 +8,8 @@
 #include "curl_stub.hpp"
 #include "engine.hpp"
 
+namespace chr {
+
 const long MAX_CONCURRENT_TRANS_IN_CURLMULTI = 1000;
 
 
@@ -166,4 +168,6 @@ void curl_stub_t::read_and_clean()
             }
 		}
 	}
+}
+
 }

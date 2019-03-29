@@ -18,6 +18,8 @@
 
 #include "chroutine.hpp"
 
+namespace chr {
+
 const int CURL_CON_TIME_OUT = 30000;    //half minute
 const int CURL_TIME_OUT = 60000;    //1 minute
 typedef size_t(*data_slot_func_t)(void *, size_t, size_t, void *);
@@ -109,5 +111,7 @@ private:
     curl_rsp_t      m_rsp;
 	chroutine_id_t  m_my_chroutine = INVALID_ID;
 };
+
+}
 
 #endif

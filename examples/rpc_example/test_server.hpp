@@ -13,7 +13,7 @@
 // service Test {
 //     rpc HowAreYou(TestReq) returns (TestRsp) {}
 // }
-class Test_HowAreYou final : public call_round_it
+class Test_HowAreYou final : public chr::call_round_it
 {
   public:
 	Test_HowAreYou(::rpcpb::Test::AsyncService *service, ::grpc::ServerCompletionQueue *cq)
@@ -22,7 +22,7 @@ class Test_HowAreYou final : public call_round_it
 		, m_responser(&m_ctx)
 	{}
 
-	call_round_it *create_me() {
+	chr::call_round_it *create_me() {
 		return new Test_HowAreYou(m_service_ptr, m_que_ptr);
 	}
 
@@ -46,12 +46,12 @@ class Test_HowAreYou final : public call_round_it
 
 // it is your server, it carries the `Test` service and some other services if needed.
 // you have to pick a ip&port for your server to run on by calling the `start` function.
-class test_rpc_server : public grpc_async_server_it
+class test_rpc_server : public chr::grpc_async_server_it
 {
 public:
-	static selectable_object_sptr_t create() {
+	static chr::selectable_object_sptr_t create() {
 		test_rpc_server *p_this = new test_rpc_server();
-		selectable_object_sptr_t s_this = p_this->register_to_engin();		
+		chr::selectable_object_sptr_t s_this = p_this->register_to_engin();		
 		if (s_this.get() == nullptr) {
 			delete p_this;
 		} 

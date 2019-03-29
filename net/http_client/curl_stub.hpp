@@ -16,6 +16,8 @@
 #include "selectable_obj.hpp"
 #include "curl_req.hpp"
 
+namespace chr {
+
 // A curl_stub_t is reused by all requests in a chroutine_thread_t 
 class curl_stub_t : public selectable_object_it
 {
@@ -60,4 +62,5 @@ private:
     bool                    m_need_exit = false;
 };
 
+}
 #endif

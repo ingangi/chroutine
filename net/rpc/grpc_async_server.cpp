@@ -4,6 +4,7 @@
 #include "logger.hpp"
 #include "engine.hpp"
 
+namespace chr {
 
 void call_round_it::re_serve()
 {
@@ -112,4 +113,6 @@ int grpc_async_server_it::start_grpc_server(const std::string & addr)
 	m_grpc_que_ptr = builder.AddCompletionQueue();
 	m_grpc_server_ptr = builder.BuildAndStart();
 	return 0;
+}
+
 }

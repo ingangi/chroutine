@@ -4,6 +4,7 @@
 #include "curl_stub.hpp"
 #include "engine.hpp"
 
+namespace chr {
 
 curl_req_t::curl_req_t(unsigned int req_id) : m_req_id(req_id)
 {
@@ -108,4 +109,6 @@ curl_rsp_t::curl_rsp_t(curl_rsp_t && other)
     m_rsp_code = other.m_rsp_code;
     m_data_result = other.m_data_result;
     other.m_buf = tmp;
+}
+
 }
