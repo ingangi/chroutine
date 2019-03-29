@@ -31,6 +31,12 @@ public:
     void unlock() {
         m_flag.store(false, std::memory_order_release);
     }
+
+    // 
+    bool try_lock() {
+        bool expected = false;
+        return m_flag.compare_exchange_strong(expected, true, std::memory_order_acquire);
+    }
     
 private:
     chutex_t(const chutex_t&) = delete;
