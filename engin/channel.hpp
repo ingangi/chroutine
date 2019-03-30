@@ -119,6 +119,12 @@ private:
     void block() {
         SLEEP(518400000);
     }
+    
+private:
+    channel_t(const channel_t&) = delete;
+    channel_t(channel_t&&) = delete;
+    channel_t& operator=(const channel_t&) = delete;
+    channel_t& operator=(channel_t&&) = delete;
 
 
 private:

@@ -7,7 +7,8 @@ int main(int argc, char **argv)
 {
     ENGINE_INIT(2);
 
-    auto chan = *(channel_t<int>::create(10).get());
+    auto chan_sptr = channel_t<int>::create(10);
+    auto &chan = *(chan_sptr.get());
 
     // 2 read chroutines
     ENGIN.create_chroutine([&](void *){
