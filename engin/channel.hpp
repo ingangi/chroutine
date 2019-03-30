@@ -11,6 +11,7 @@
 
 #include <deque>
 #include "chroutine.hpp"
+#include "chutex.hpp"
 
 namespace chr {    
 
@@ -36,6 +37,7 @@ public:
 
     // write to the channel
     void operator << (const T& data) {
+        m_lock.lock();
         if (writable() < 1) {
             // add to m_waiting_write_que
             chroutine_chan_context_t ctx;
@@ -43,6 +45,7 @@ public:
             ctx.chrotine_id = ENGIN.get_current_chroutine_id();
             ctx.in_data = data;
             m_waiting_write_que.push_back(ctx);
+            m_lock.unlock();
             // block the chroutine
             block();
             return;
@@ -55,16 +58,19 @@ public:
             // wake the chroutine
             ENGIN.awake_chroutine(context.thread_id, context.chrotine_id);
             m_waiting_read_que.pop_front();
+            m_lock.unlock();
             return;
         }
 
         m_data_array[m_w_index] = data;
         m_unread++;
         m_w_index = (m_w_index + 1) % m_max_size;
+        m_lock.unlock();
     }
 
     // read from the channel
     void operator >> (T& data) {
+        m_lock.lock();
         if (readable() < 1) {
             // add to m_waiting_read_que
             chroutine_chan_context_t ctx;
@@ -72,6 +78,7 @@ public:
             ctx.chrotine_id = ENGIN.get_current_chroutine_id();
             ctx.out_ptr = &data;
             m_waiting_read_que.push_back(ctx);
+            m_lock.unlock();
             // block the chroutine
             block();
             return;
@@ -89,6 +96,7 @@ public:
             ENGIN.awake_chroutine(context.thread_id, context.chrotine_id);
             m_waiting_write_que.pop_front();
         }
+        m_lock.unlock();
     }    
 
 private:
@@ -123,6 +131,8 @@ private:
     
     std::deque<chroutine_chan_context_t> m_waiting_write_que;
     std::deque<chroutine_chan_context_t> m_waiting_read_que;
+    
+    chutex_t    m_lock;
 };
 
 }
