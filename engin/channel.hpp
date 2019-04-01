@@ -47,7 +47,7 @@ public:
             m_waiting_write_que.push_back(ctx);
             m_lock.unlock();
             // block the chroutine
-            block();
+            HOLD();
             return;
         }
 
@@ -80,7 +80,7 @@ public:
             m_waiting_read_que.push_back(ctx);
             m_lock.unlock();
             // block the chroutine
-            block();
+            HOLD();
             return;
         }
 
@@ -114,10 +114,6 @@ private:
     int readable() {
         // return m_w_index - m_r_index;
         return m_unread;
-    }
-
-    void block() {
-        SLEEP(518400000);
     }
     
 private:

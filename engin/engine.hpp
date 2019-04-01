@@ -23,6 +23,7 @@
 #define YIELD() {ENGIN.yield();}
 #define WAIT(t) {ENGIN.wait(t);}
 #define SLEEP(t) {ENGIN.sleep(t);}
+#define HOLD() {ENGIN.sleep(0xDC46C32800);}
 
 namespace chr {
 
