@@ -12,11 +12,19 @@
 #include <deque>
 #include "chroutine.hpp"
 #include "chutex.hpp"
+#include "engine.hpp"
 
-namespace chr {    
+namespace chr {
+
+class channel_it
+{
+public:
+    virtual bool write(const void* data_ptr, bool try_) = 0;
+    virtual bool read(void* data_ptr, bool try_) = 0;
+};
 
 template<typename T>
-class channel_t
+class channel_t final : public channel_it
 {
     typedef struct
     {
@@ -28,17 +36,54 @@ class channel_t
 
     typedef std::shared_ptr<channel_t<T> > channel_sptr_t;
 public:
-    virtual ~channel_t(){
+    ~channel_t(){
+        LOG << "channel:" << this << " released\n";
         delete [] m_data_array;
     }
     static channel_sptr_t create(int max_size = 1) {
         return channel_sptr_t(new channel_t<T>(max_size));
     }
 
+    friend class chan_selecter_t;
+
     // write to the channel
     void operator << (const T& data) {
+        write(&data, false);
+    }
+
+    // read from the channel
+    void operator >> (T& data) {
+        read(&data, false);
+    }
+
+private:
+    channel_t(int max_size) : m_max_size(max_size) {
+        if (m_max_size <= 0)
+            m_max_size = 1;
+        m_data_array = new T[m_max_size];
+        LOG << "channel:" << this << " created\n";
+    }
+
+    int writable() {
+        // return m_max_size - m_w_index;
+        return m_max_size - m_unread;
+    }
+
+    int readable() {
+        // return m_w_index - m_r_index;
+        return m_unread;
+    }
+
+protected:
+    bool write(const void* data_ptr, bool try_) {
+    // bool write(const T& data, bool try_ = false) {
+        const T& data = *(static_cast<const T*>(data_ptr));
         m_lock.lock();
         if (writable() < 1) {
+            if (try_) {
+                m_lock.unlock();
+                return false;
+            }
             // add to m_waiting_write_que
             chroutine_chan_context_t ctx;
             ctx.thread_id = std::this_thread::get_id();
@@ -48,7 +93,7 @@ public:
             m_lock.unlock();
             // block the chroutine
             HOLD();
-            return;
+            return true;
         }
 
         // if some one is waiting, give him the data directly
@@ -59,19 +104,25 @@ public:
             ENGIN.awake_chroutine(context.thread_id, context.chrotine_id);
             m_waiting_read_que.pop_front();
             m_lock.unlock();
-            return;
+            return true;
         }
 
         m_data_array[m_w_index] = data;
         m_unread++;
         m_w_index = (m_w_index + 1) % m_max_size;
         m_lock.unlock();
+        return true;
     }
 
-    // read from the channel
-    void operator >> (T& data) {
+    virtual bool read(void* data_ptr, bool try_) {
+    // bool read(T& data, bool try_ = false) {
+        T& data = *(static_cast<T*>(data_ptr));
         m_lock.lock();
         if (readable() < 1) {
+            if (try_) {
+                m_lock.unlock();
+                return false;
+            }
             // add to m_waiting_read_que
             chroutine_chan_context_t ctx;
             ctx.thread_id = std::this_thread::get_id();
@@ -81,7 +132,7 @@ public:
             m_lock.unlock();
             // block the chroutine
             HOLD();
-            return;
+            return true;
         }
 
         data = m_data_array[m_r_index];
@@ -97,23 +148,7 @@ public:
             m_waiting_write_que.pop_front();
         }
         m_lock.unlock();
-    }    
-
-private:
-    channel_t(int max_size) : m_max_size(max_size) {
-        if (m_max_size <= 0)
-            m_max_size = 1;
-        m_data_array = new T[m_max_size];
-    }
-
-    int writable() {
-        // return m_max_size - m_w_index;
-        return m_max_size - m_unread;
-    }
-
-    int readable() {
-        // return m_w_index - m_r_index;
-        return m_unread;
+        return true;
     }
     
 private:
