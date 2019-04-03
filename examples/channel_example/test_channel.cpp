@@ -43,7 +43,7 @@ void test_channel_basic() {
 }
 
 void test_channel_select() {
-    static auto chan_int = channel_t<int>::create(2);
+    static auto chan_int = channel_t<int>::create();
     static auto chan_string = channel_t<std::string>::create();
     static auto chan_char = channel_t<char>::create();
 
@@ -102,12 +102,39 @@ void test_channel_select() {
 
 }
 
+
+void test_channel_select_timeout() {
+    static auto chan_data = channel_t<int>::create();
+    static auto chan_timeout = channel_t<int>::create();
+
+    ENGIN.create_chroutine([&](void *){    
+        int int_read = 0;
+        chan_selecter_t chan_selecter;
+
+        ENGIN.create_son_chroutine([&](void *) {
+            SLEEP(3000);    // timeout 3 seconds
+            *chan_timeout << 1;
+        }, nullptr);
+
+        chan_selecter.add_case(chan_data.get(), &int_read, [&](){
+            LOG << "int read:" << int_read << std::endl;
+        });
+        
+        chan_selecter.add_case(chan_timeout.get(), &int_read, [&](){
+            LOG << "read data timeout !!!" << std::endl;
+        });
+
+        chan_selecter.select();
+    }, nullptr);
+}
+
 int main(int argc, char **argv)
 {
     ENGINE_INIT(2);
 
     // test_channel_basic();
-    test_channel_select();
+    // test_channel_select();
+    test_channel_select_timeout();
 
 
     ENGIN.run();    
