@@ -50,7 +50,7 @@ private:
     chan_selecter_t(chan_selecter_t&&) = delete;
     chan_selecter_t& operator=(const chan_selecter_t&) = delete;
     chan_selecter_t& operator=(chan_selecter_t&&) = delete;
-    cases_t::iterator select_once();
+    int select_once();
 
 private:
     chan_select_node_t m_default;

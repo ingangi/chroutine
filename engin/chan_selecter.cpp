@@ -47,8 +47,10 @@ int chan_selecter_t::del_case(channel_it* chan)
     return 0;
 }
 
-chan_selecter_t::cases_t::iterator chan_selecter_t::select_once() 
+#define SYNC_CASE
+int chan_selecter_t::select_once() 
 {
+    int called = 0;
     cases_t::iterator iter = m_cases.begin();
     for (; iter != m_cases.end(); iter++) {
         auto &node = iter->second;
@@ -58,7 +60,15 @@ chan_selecter_t::cases_t::iterator chan_selecter_t::select_once()
 
         if (node.type == selecter_type_read) {
             if (node.chan->read(node.data_ptr, true)) {
+                called++;
+#ifdef SYNC_CASE
                 node.callback();
+#else
+                // callbacks run in other chroutine
+                ENGIN.create_son_chroutine([&](void *){
+                    node.callback();
+                }, nullptr);
+#endif
                 break;
             }
         } else {
@@ -66,24 +76,31 @@ chan_selecter_t::cases_t::iterator chan_selecter_t::select_once()
         }
     }
 
-    return iter;
+    return called;
 }
 
 void chan_selecter_t::select()
 {
     for (;;) {
-        auto iter = select_once();
-        if (iter == m_cases.end()) {
-            // call the default case
-            if (m_default.callback != nullptr) {
-                m_default.callback();
-                break;
-            } else {
-                SLEEP(10);
-            }
-        } else {
+        if (select_once() > 0) {
+            // shuffle_cases();
             break;
         }
+
+        if (m_default.callback != nullptr) {
+            // call the default case
+#ifdef SYNC_CASE
+            m_default.callback();
+#else
+            ENGIN.create_son_chroutine([&](void *){
+                m_default.callback();
+            }, nullptr);
+#endif
+            break;
+        }
+
+        // no default case set
+        SLEEP(10);
     }
 }
 

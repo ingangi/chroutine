@@ -53,6 +53,7 @@ void test_channel_select() {
         char char_read = '0';
         chan_selecter_t chan_selecter;
 
+        // all callbacks of all cases will run in this chroutine
         chan_selecter.add_case(chan_int.get(), &int_read, [&](){
             LOG << "int read:" << int_read << std::endl;
         });
