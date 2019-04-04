@@ -6,7 +6,7 @@ using namespace chr;
 
 void test_channel_basic() {
     static auto chan_sptr = channel_t<int>::create(10);
-    auto &chan = *(chan_sptr.get());
+    auto &chan = *chan_sptr;
 
     // 2 read chroutines
     ENGIN.create_chroutine([&](void *){
@@ -85,13 +85,13 @@ void test_channel_select() {
             switch (i%3)
             {
                 case 0:
-                    *(chan_int.get()) << i;
+                    *chan_int << i;
                     break;
                 case 1:
-                    *(chan_string.get()) << "hi~~~";
+                    *chan_string << "hi~~~";
                     break;
                 case 2:
-                    *(chan_char.get()) << '0'+i;
+                    *chan_char << '0'+i;
                     break;
             
                 default:

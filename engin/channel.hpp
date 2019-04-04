@@ -19,7 +19,14 @@ namespace chr {
 class channel_it
 {
 public:
+    // write data to channel.
+    // @try_ = false: will block your chroutine if channel is full untill the channel become writable and then return true
+    // @try_ = true: will return false immediately if channel is full
     virtual bool write(const void* data_ptr, bool try_) = 0;
+    
+    // read data from channel.
+    // @try_ = false: will block your chroutine if channel is empty untill the channel become readable and then return true
+    // @try_ = true: will return false immediately if channel is empty
     virtual bool read(void* data_ptr, bool try_) = 0;
 };
 
@@ -76,7 +83,6 @@ private:
 
 protected:
     bool write(const void* data_ptr, bool try_) {
-    // bool write(const T& data, bool try_ = false) {
         const T& data = *(static_cast<const T*>(data_ptr));
         m_lock.lock();
         if (writable() < 1) {
@@ -115,7 +121,6 @@ protected:
     }
 
     virtual bool read(void* data_ptr, bool try_) {
-    // bool read(T& data, bool try_ = false) {
         T& data = *(static_cast<T*>(data_ptr));
         m_lock.lock();
         if (readable() < 1) {
