@@ -54,7 +54,7 @@ public:
     }
 
 private:
-    char *          m_buf = nullptr;  //for test, we won't write data to buf, only print it
+    uint8_t *       m_buf = nullptr;  //for test, we won't write data to buf, only print it
     long            m_rsp_code = -1;
     long            m_data_result = -1;
 };
@@ -101,6 +101,8 @@ public:
 
     void on_rsp(long rsp_code, long data_result);
 
+    void set_post_data(uint8_t *data, uint32_t len);
+
 private:
     curl_req_t(unsigned int req_id);
 
@@ -110,6 +112,9 @@ private:
     unsigned int    m_req_id = 0;
     curl_rsp_t      m_rsp;
 	chroutine_id_t  m_my_chroutine = INVALID_ID;
+
+    uint8_t *       m_post_buf = nullptr;
+    uint32_t        m_post_buf_len = 0;
 };
 
 }

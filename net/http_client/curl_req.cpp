@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <cstring>
 #include "curl_req.hpp"
 #include "curl_stub.hpp"
 #include "engine.hpp"
@@ -9,6 +10,10 @@ namespace chr {
 curl_req_t::curl_req_t(unsigned int req_id) : m_req_id(req_id)
 {
     m_curl_ptr = curl_easy_init();
+
+    if (m_curl_ptr) {
+	    curl_easy_setopt(m_curl_ptr, CURLOPT_HTTPGET, 1);
+    }
 }
 
 std::shared_ptr<curl_req_t> curl_req_t::new_curl_req(unsigned int req_id)
@@ -20,6 +25,9 @@ std::shared_ptr<curl_req_t> curl_req_t::new_curl_req(unsigned int req_id)
 curl_req_t::~curl_req_t()
 {
     curl_easy_cleanup(m_curl_ptr);
+    if (m_post_buf) {
+        delete [] m_post_buf;
+    }
 }
 
 CURL *curl_req_t::get_curl_handler()
@@ -58,6 +66,24 @@ CURLcode curl_req_t::set_data_slot(data_slot_func_t func, void *func_handler)
 
     curl_easy_setopt(m_curl_ptr, CURLOPT_WRITEDATA, func_handler);
     return curl_easy_setopt(m_curl_ptr, CURLOPT_WRITEFUNCTION, func);
+}
+
+void curl_req_t::set_post_data(uint8_t *data, uint32_t len)
+{
+    if (data == nullptr || len == 0) {
+        return;
+    }
+
+    m_type = EN_CURL_TYPE_POST;
+    if (m_post_buf) {
+        delete [] m_post_buf;
+    }
+    m_post_buf_len = len;
+    m_post_buf = new uint8_t[m_post_buf_len];
+    std::memcpy(m_post_buf, data, m_post_buf_len);    
+    curl_easy_setopt(m_curl_ptr, CURLOPT_POST, 1);
+    curl_easy_setopt(m_curl_ptr, CURLOPT_POSTFIELDSIZE, m_post_buf_len);
+    curl_easy_setopt(m_curl_ptr, CURLOPT_POSTFIELDS, m_post_buf);
 }
 
 CURLcode curl_req_t::execute_sync()
@@ -104,7 +130,7 @@ void curl_req_t::on_rsp(long rsp_code, long data_result)
 
 curl_rsp_t::curl_rsp_t(curl_rsp_t && other) 
 {
-    char *tmp = m_buf;
+    uint8_t *tmp = m_buf;
     m_buf = other.m_buf;
     m_rsp_code = other.m_rsp_code;
     m_data_result = other.m_data_result;

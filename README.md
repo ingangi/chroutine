@@ -26,10 +26,16 @@ You can run the examples and see the code how to use it:
 │   ├── Makefile
 │   └── test_chroutine.cpp
 
+cd examples
 make ALLTEST
 ```
 
 # env install (Relies on gRPC and libcurl)
+
+## my platform: 
+
+- CentOS Linux release 7.4.1708, x86_64
+- gcc (GCC) 4.8.5 20150623
 
 ## install grpc (if you need the RPC module)
 
