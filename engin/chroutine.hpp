@@ -145,11 +145,15 @@ public:
     // awake waiting chroutine
     int awake_chroutine(chroutine_id_t id);
 
-private:
-    chroutine_thread_t();
-
+    void set_main_thread_flag(bool flag) {
+        m_is_main_thread = flag;
+    }
+    
     // the while loop of the thread
     int schedule();
+
+private:
+    chroutine_thread_t();
 
     // called by yield
     void yield_current(int tick);
@@ -186,6 +190,7 @@ private:
     size_t                      m_creating_index = 0;
     selectable_object_list_t    m_selector_list;
     chutex_t                    m_chroutine_lock;
+    bool                        m_is_main_thread = false;
 };
 
 }

@@ -322,8 +322,10 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
 int chroutine_thread_t::schedule()
 {
     m_is_running = true;
-    LOG << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;
-    engine_t::instance().on_thread_ready(m_creating_index, std::this_thread::get_id());
+    LOG << "chroutine_thread_t::schedule is_running " << m_is_running << ", is main:" << m_is_main_thread << std::endl;
+    if (!m_is_main_thread) {
+        engine_t::instance().on_thread_ready(m_creating_index, std::this_thread::get_id());
+    }
     while (!m_need_stop) {        
         int processed = 0;
         processed += select_all();
@@ -332,7 +334,7 @@ int chroutine_thread_t::schedule()
             thread_ms_sleep(10);
     }
     m_is_running = false;
-    LOG << "chroutine_thread_t::schedule is_running " << m_is_running << std::endl;
+    LOG << "chroutine_thread_t::schedule is_running " << m_is_running << ", is main:" << m_is_main_thread << std::endl;
     return 0;
 }
 

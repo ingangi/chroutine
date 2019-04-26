@@ -53,6 +53,9 @@ void engine_t::init(size_t init_pool_size)
     while (!m_init_over) {
         thread_ms_sleep(10);
     }
+    
+    // main thread do not need start()
+    m_main_thread = chroutine_thread_t::new_thread();
     LOG << __FUNCTION__ << " OVER" << std::endl;
 }
 
@@ -111,15 +114,23 @@ void engine_t::sleep(std::time_t wait_time_ms)
 chroutine_id_t engine_t::create_chroutine(func_t func, void *arg)
 {    
     // check called in main thread
-    if (m_main_thread_id != std::this_thread::get_id()) {
-        LOG << __FUNCTION__ << " error: not called in main thread!\n";
-        return INVALID_ID;
-    }
+    // if (m_main_thread_id != std::this_thread::get_id()) {
+    //     LOG << __FUNCTION__ << " error: not called in main thread!\n";
+    //     return INVALID_ID;
+    // }
     chroutine_thread_t *pthrd = get_lightest_thread();
     if (pthrd == nullptr)
         return INVALID_ID;
 
     return pthrd->create_chroutine(func, arg);
+}
+
+chroutine_id_t engine_t::create_chroutine_in_mainthread(func_t func, void *arg)
+{
+    if (m_main_thread)
+        return m_main_thread->create_chroutine(func, arg);        
+
+    return INVALID_ID;
 }
 
 reporter_base_t * engine_t::create_son_chroutine(func_t func, const reporter_sptr_t & reporter, std::time_t timeout_ms)
@@ -153,8 +164,14 @@ chroutine_thread_t *engine_t::get_current_thread()
         LOG << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
         return nullptr;
     }
+
+    std::thread::id cur_id = std::this_thread::get_id();
+    if (cur_id == m_main_thread_id) {
+        return m_main_thread.get();
+    }
+
     //std::lock_guard<std::mutex> lck (m_pool_lock);
-    const auto& iter = m_pool.find(std::this_thread::get_id());
+    const auto& iter = m_pool.find(cur_id);
     if (iter == m_pool.end())
         return nullptr;
 
@@ -291,10 +308,16 @@ std::shared_ptr<curl_rsp_t> engine_t::exec_curl(const std::string & url
 
 void engine_t::run()
 {
-    while(1) {
-        // todo: preemption for chroutines that exceed 10ms
-        thread_ms_sleep(500);
+    if (!m_main_thread) {
+        LOG << "main thread<chroutine_thread_t> is null!" << std::endl;
+        return;
     }
+    m_main_thread->set_main_thread_flag(true);
+    LOG << "main thread is about to run, check the id:" 
+        << m_main_thread_id << "==" << std::this_thread::get_id() 
+        << std::endl;
+
+    m_main_thread->schedule();
 }
 
 }

@@ -59,7 +59,6 @@ public:
     void sleep(std::time_t wait_time_ms);
     
     // create and run a chroutine in the lightest thread.
-    // not thread safe, should be called only by main thread !!!
     chroutine_id_t create_chroutine(func_t func, void *arg);
 
     // create and run a son chroutine for the current chroutine.
@@ -110,6 +109,10 @@ private:
     // get current chroutine's reporter
     // (maybe no longer needed)
     reporter_base_t *get_my_reporter();
+    
+    // create and run a chroutine in the main thread.
+    // main thread is for runtime tasks only
+    chroutine_id_t create_chroutine_in_mainthread(func_t func, void *arg);
 
 private:
     std::mutex          m_pool_lock;            // only used during m_init_over is false
@@ -121,6 +124,7 @@ private:
 #ifdef ENABLE_HTTP_PLUGIN
     http_stub_pool_t    m_http_stubs;
 #endif
+    std::shared_ptr<chroutine_thread_t>     m_main_thread = nullptr;
 };
 
 }
