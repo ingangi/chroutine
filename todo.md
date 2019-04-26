@@ -1,9 +1,5 @@
 # Upcoming
 
-## chroutine in main thread
-
-## write to channel with select
-
 ## schedule 2.0
 ### A. move chroutines to other thread if current thread is blocked for some time
 ### B. Dynamic allocation when thread resources are insufficient
@@ -15,6 +11,8 @@
 ## share chroutine stack
 
 # Low priority
+
+## write to channel with select
 
 ## mysql client
 

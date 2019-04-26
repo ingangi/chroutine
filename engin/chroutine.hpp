@@ -191,6 +191,7 @@ private:
     selectable_object_list_t    m_selector_list;
     chutex_t                    m_chroutine_lock;
     bool                        m_is_main_thread = false;
+    std::atomic<uint64_t>       m_breath_time;  // check thread alive?
 };
 
 }
