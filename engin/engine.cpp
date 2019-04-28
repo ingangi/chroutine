@@ -306,6 +306,40 @@ std::shared_ptr<curl_rsp_t> engine_t::exec_curl(const std::string & url
 }
 #endif
 
+void engine_t::check_threads()
+{
+    time_t now = time(NULL);
+    thread_vector_t goods;
+    thread_vector_t bads;
+    for (auto it = m_pool.begin(); it != m_pool.end(); it++) {
+        auto &thrd = it->second;
+        if (thrd) {
+            LOG << "engine_t::check_thread:" << thrd.get() 
+                << ", entry time:" << thrd->entry_time()
+                << std::endl;
+
+            if (thrd->entry_time() > 0 && now > thrd->entry_time()+1) {
+                bads.push_back(thrd);
+            } else {
+                goods.push_back(thrd);
+            }
+        }
+    }
+
+    if (bads.size() > 0) {
+        size_t goodsize = goods.size();
+        if (goodsize == 0) {
+            LOG << "threads need switch, but no good threads left!!!" << std::endl;
+            return;
+        }
+
+        int goodindex = 0;
+        for (auto &bad : bads) {
+            bad->move_chroutines_to_thread(goods[goodindex++ % goodsize]);
+        }
+    }
+}
+
 void engine_t::run()
 {
     if (!m_main_thread) {
@@ -316,6 +350,13 @@ void engine_t::run()
     LOG << "main thread is about to run, check the id:" 
         << m_main_thread_id << "==" << std::this_thread::get_id() 
         << std::endl;
+
+    create_chroutine_in_mainthread([this](void *){
+        while (true) {
+            m_main_thread->sleep(2000);
+            check_threads();
+        }        
+    }, nullptr);
 
     m_main_thread->schedule();
 }

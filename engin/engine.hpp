@@ -28,7 +28,7 @@
 namespace chr {
 
 typedef std::map<std::thread::id, std::shared_ptr<chroutine_thread_t> > thread_pool_t;
-typedef std::vector<std::shared_ptr<chroutine_thread_t> > creating_threads_t;
+typedef std::vector<std::shared_ptr<chroutine_thread_t> > thread_vector_t;
 #ifdef ENABLE_HTTP_PLUGIN
 typedef std::map<std::thread::id, selectable_object_sptr_t > http_stub_pool_t;
 #endif
@@ -114,10 +114,14 @@ private:
     // main thread is for runtime tasks only
     chroutine_id_t create_chroutine_in_mainthread(func_t func, void *arg);
 
+    // check threads availability
+    // if thread was block, move it to a good one
+    void check_threads();
+
 private:
     std::mutex          m_pool_lock;            // only used during m_init_over is false
     thread_pool_t       m_pool;                 // is readonly after m_init_over become true
-    creating_threads_t  m_creating;             // is readonly after m_init_over become true
+    thread_vector_t     m_creating;             // is readonly after m_init_over become true
     bool                m_init_over = false;    // if all threads ready    
     std::thread::id     m_main_thread_id = NULL_THREAD_ID;
     int                 m_dispatch_seed = 0;

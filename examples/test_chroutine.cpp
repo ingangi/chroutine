@@ -56,15 +56,17 @@ void fun_3(void *arg)
 {
     while (1) {
         LOG << __FUNCTION__ << " running ...\n";
-        SLEEP(2000);
+        //SLEEP(2000);
+        usleep(5000000);  //testing block os thread
+        break;
     }
 }
 
 int main(int argc, char **argv)
 {
-    ENGINE_INIT(1);
+    ENGINE_INIT(2);
 
-    ENGIN.create_chroutine(fun_1, nullptr);  
+    // ENGIN.create_chroutine(fun_1, nullptr);  
     ENGIN.create_chroutine([](void *){
     int tick = 0;
         while (1) {
@@ -72,7 +74,7 @@ int main(int argc, char **argv)
             SLEEP(1000);
 
             // create another chroutine in the same thread
-            if (tick % 2 == 0) {
+            if (tick == 2) {
                 LOG << "try to create another chroutin\n";
                 ENGIN.create_son_chroutine(fun_3, nullptr);
             }

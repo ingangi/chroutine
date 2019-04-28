@@ -92,6 +92,14 @@ typedef struct schedule_t {
     {}    
 }schedule_t;
 
+typedef enum {
+    thread_state_t_init = 0,
+    thread_state_t_running,
+    thread_state_t_shifting,    // moving chroutines to other thread
+    thread_state_t_blocking,
+    thread_state_t_finished,
+} thread_state_t;
+
 // chroutine_thread_t hold a os thread 
 // and a list of chroutines run in the thread.
 class chroutine_thread_t
@@ -152,6 +160,21 @@ public:
     // the while loop of the thread
     int schedule();
 
+    time_t entry_time() {
+        return m_entry_time;
+    }
+
+    // this thread is blocked, move chroutines to other thread.
+    void move_chroutines_to_thread(const std::shared_ptr<chroutine_thread_t> & other_thread);
+
+    void set_state(thread_state_t state) {
+        m_state.store(state,std::memory_order_relaxed);
+    }
+
+    thread_state_t state() {
+        return m_state.load(std::memory_order_relaxed);
+    }
+
 private:
     chroutine_thread_t();
 
@@ -191,7 +214,8 @@ private:
     selectable_object_list_t    m_selector_list;
     chutex_t                    m_chroutine_lock;
     bool                        m_is_main_thread = false;
-    std::atomic<uint64_t>       m_breath_time;  // check thread alive?
+    volatile time_t             m_entry_time = 0;  // for thread alive check
+    std::atomic<thread_state_t> m_state;
 };
 
 }

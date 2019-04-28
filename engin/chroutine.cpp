@@ -68,6 +68,7 @@ std::shared_ptr<chroutine_thread_t> chroutine_thread_t::new_thread()
 
 chroutine_thread_t::chroutine_thread_t()
 {
+    set_state(thread_state_t_init);
 }
 
 chroutine_thread_t::~chroutine_thread_t()
@@ -147,6 +148,10 @@ void chroutine_thread_t::entry(void *arg)
 
 chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
 {
+    if (state() > thread_state_t_running) {
+        LOG << "cant create_chroutine, thread state is:" << state() << std::endl;
+        return INVALID_ID;
+    }
     if (func == nullptr) 
         return INVALID_ID;
 
@@ -178,6 +183,10 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
 
 chroutine_id_t chroutine_thread_t::create_son_chroutine(func_t & func, const reporter_sptr_t & reporter)
 {
+    if (state() > thread_state_t_running) {
+        LOG << "cant create_son_chroutine, thread state is:" << state() << std::endl;
+        return INVALID_ID;
+    }
     //LOG << "create_son_chroutine start, " << m_schedule.running_id << std::endl;
 
     chroutine_t * pfather = get_chroutine(m_schedule.running_id);
@@ -312,7 +321,13 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
         remove_chroutine(p_c->yield_over());  // remove time out son chroutin
         p_c->state = chroutine_state_running;
         m_schedule.running_id = index;
+        m_entry_time = time(NULL);
+        if (!m_is_main_thread)
+            LOG << "set m_entry_time=" << m_entry_time << std::endl;
         swapcontext(&(m_schedule.main),&(p_c->ctx));
+        m_entry_time = 0;
+        if (!m_is_main_thread)
+            LOG << "clr m_entry_time=" << m_entry_time << std::endl;
         //LOG << "pick_run_chroutine ..." << index << " over" << std::endl;
     }
     m_schedule.last_run_id = index;
@@ -321,8 +336,9 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
 
 int chroutine_thread_t::schedule()
 {
+    set_state(thread_state_t_running);
     m_is_running = true;
-    LOG << "chroutine_thread_t::schedule is_running " << m_is_running << ", is main:" << m_is_main_thread << std::endl;
+    LOG << "chroutine_thread_t " << this << " schedule is_running " << m_is_running << ", is main:" << m_is_main_thread << std::endl;
     if (!m_is_main_thread) {
         engine_t::instance().on_thread_ready(m_creating_index, std::this_thread::get_id());
     }
@@ -334,7 +350,8 @@ int chroutine_thread_t::schedule()
             thread_ms_sleep(10);
     }
     m_is_running = false;
-    LOG << "chroutine_thread_t::schedule is_running " << m_is_running << ", is main:" << m_is_main_thread << std::endl;
+    set_state(thread_state_t_finished);
+    LOG << "chroutine_thread_t " << this << " schedule is_running " << m_is_running << ", is main:" << m_is_main_thread << std::endl;
     return 0;
 }
 
@@ -408,6 +425,15 @@ int chroutine_thread_t::awake_chroutine(chroutine_id_t id)
 
     remove_chroutine(p_c->yield_over(result_done));
     return 0;
+}
+
+void chroutine_thread_t::move_chroutines_to_thread(const std::shared_ptr<chroutine_thread_t> & other_thread)
+{
+    set_state(thread_state_t_shifting);
+    LOG << "thread:" << this << " move_chroutines_to_thread " << other_thread.get() << std::endl;
+    // todo
+
+    set_state(thread_state_t_blocking);
 }
 
 }
