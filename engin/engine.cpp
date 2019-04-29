@@ -3,6 +3,9 @@
 
 
 namespace chr {
+    
+const static int MAX_ENTRY_CALL_TIME_MS = 500;
+const static int ENTRY_CALL_CHECK_TIMER_MS = MAX_ENTRY_CALL_TIME_MS/2;
 
 std::time_t get_time_stamp()
 {
@@ -308,17 +311,21 @@ std::shared_ptr<curl_rsp_t> engine_t::exec_curl(const std::string & url
 
 void engine_t::check_threads()
 {
-    time_t now = time(NULL);
+    std::time_t now = get_time_stamp();
     thread_vector_t goods;
     thread_vector_t bads;
     for (auto it = m_pool.begin(); it != m_pool.end(); it++) {
         auto &thrd = it->second;
         if (thrd) {
-            LOG << "engine_t::check_thread:" << thrd.get() 
-                << ", entry time:" << thrd->entry_time()
-                << std::endl;
+            std::time_t thrd_entry_time = thrd->entry_time();
+            if (thrd_entry_time != 0) {
+                LOG << "engine_t::check_thread:" << thrd.get() 
+                    << ", entry time:" << thrd_entry_time
+                    << ", now time:" << now
+                    << std::endl;
+            }
 
-            if (thrd->entry_time() > 0 && now > thrd->entry_time()+1) {
+            if (thrd_entry_time != 0 && now - thrd_entry_time > MAX_ENTRY_CALL_TIME_MS) {
                 bads.push_back(thrd);
             } else {
                 goods.push_back(thrd);
@@ -346,6 +353,12 @@ void engine_t::run()
         LOG << "main thread<chroutine_thread_t> is null!" << std::endl;
         return;
     }
+
+    if (m_main_thread->is_running()) {
+        LOG << "main thread run failed: already running!" << std::endl;
+        return;
+    }
+
     m_main_thread->set_main_thread_flag(true);
     LOG << "main thread is about to run, check the id:" 
         << m_main_thread_id << "==" << std::this_thread::get_id() 
@@ -353,7 +366,8 @@ void engine_t::run()
 
     create_chroutine_in_mainthread([this](void *){
         while (true) {
-            m_main_thread->sleep(2000);
+            // max error value ENTRY_CALL_CHECK_TIMER_MS
+            m_main_thread->sleep(ENTRY_CALL_CHECK_TIMER_MS);
             check_threads();
         }        
     }, nullptr);

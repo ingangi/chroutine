@@ -69,6 +69,7 @@ std::shared_ptr<chroutine_thread_t> chroutine_thread_t::new_thread()
 chroutine_thread_t::chroutine_thread_t()
 {
     set_state(thread_state_t_init);
+    clear_entry_time();
 }
 
 chroutine_thread_t::~chroutine_thread_t()
@@ -321,13 +322,13 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
         remove_chroutine(p_c->yield_over());  // remove time out son chroutin
         p_c->state = chroutine_state_running;
         m_schedule.running_id = index;
-        m_entry_time = time(NULL);
-        if (!m_is_main_thread)
-            LOG << "set m_entry_time=" << m_entry_time << std::endl;
+        set_entry_time();
+        // if (!m_is_main_thread)
+        //     LOG << "set m_entry_time=" << entry_time() << std::endl;
         swapcontext(&(m_schedule.main),&(p_c->ctx));
-        m_entry_time = 0;
-        if (!m_is_main_thread)
-            LOG << "clr m_entry_time=" << m_entry_time << std::endl;
+        clear_entry_time();
+        // if (!m_is_main_thread)
+        //     LOG << "clr m_entry_time=" << entry_time() << std::endl;
         //LOG << "pick_run_chroutine ..." << index << " over" << std::endl;
     }
     m_schedule.last_run_id = index;
@@ -434,6 +435,21 @@ void chroutine_thread_t::move_chroutines_to_thread(const std::shared_ptr<chrouti
     // todo
 
     set_state(thread_state_t_blocking);
+}
+
+std::time_t chroutine_thread_t::entry_time() 
+{
+    return m_entry_time.load(std::memory_order_relaxed);
+}
+
+void chroutine_thread_t::set_entry_time() 
+{
+    m_entry_time.store(get_time_stamp(),std::memory_order_relaxed);
+}
+
+void chroutine_thread_t::clear_entry_time() 
+{
+    m_entry_time.store(0,std::memory_order_relaxed);
 }
 
 }

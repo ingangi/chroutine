@@ -160,9 +160,7 @@ public:
     // the while loop of the thread
     int schedule();
 
-    time_t entry_time() {
-        return m_entry_time;
-    }
+    std::time_t entry_time();
 
     // this thread is blocked, move chroutines to other thread.
     void move_chroutines_to_thread(const std::shared_ptr<chroutine_thread_t> & other_thread);
@@ -206,6 +204,9 @@ private:
     // rpc/tcp/http/pipe for this thread
     int select_all();
 
+    void set_entry_time();
+    void clear_entry_time();
+
 private:
     schedule_t                  m_schedule;
     bool                        m_is_running = false;
@@ -214,7 +215,7 @@ private:
     selectable_object_list_t    m_selector_list;
     chutex_t                    m_chroutine_lock;
     bool                        m_is_main_thread = false;
-    volatile time_t             m_entry_time = 0;  // for thread alive check
+    std::atomic<std::time_t>    m_entry_time;  // for thread alive check
     std::atomic<thread_state_t> m_state;
 };
 

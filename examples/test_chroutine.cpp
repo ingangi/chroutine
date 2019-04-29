@@ -57,7 +57,7 @@ void fun_3(void *arg)
     while (1) {
         LOG << __FUNCTION__ << " running ...\n";
         //SLEEP(2000);
-        usleep(5000000);  //testing block os thread
+        usleep(710000);  //testing block os thread
         break;
     }
 }
