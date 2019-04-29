@@ -6,15 +6,17 @@
 
 namespace chr {
 
-chroutine_t::chroutine_t() 
+chroutine_id_t chroutine_thread_t::ms_chroutine_id = 0;
+
+chroutine_t::chroutine_t(chroutine_id_t id) : me(id)
 {
-    LOG << "chroutine_t created:" << this << std::endl;
+    LOG << "chroutine_t created:" << me << std::endl;
     stack = new char[STACK_SIZE];
 }
 
 chroutine_t::~chroutine_t() 
 {
-    LOG << "chroutine_t destroyed:" << this << std::endl;
+    LOG << "chroutine_t destroyed:" << me << std::endl;
     if (stack)
         delete [] stack;
 }
@@ -93,20 +95,34 @@ void chroutine_thread_t::sleep(std::time_t wait_time_ms)
 chroutine_t * chroutine_thread_t::get_chroutine(chroutine_id_t id)
 {
     chutex_guard_t lock(m_chroutine_lock);
-    if (id < 0 || id > int(m_schedule.chroutines.size()) - 1)
-        return nullptr;
 
-    return m_schedule.chroutines[id].get();
+    auto iter = m_schedule.chroutines_map.find(id);
+    if (iter == m_schedule.chroutines_map.end()) {
+        return nullptr;
+    }
+
+    return iter->second.get();
 }
 
 void chroutine_thread_t::remove_chroutine(chroutine_id_t id)
 {
     chutex_guard_t lock(m_chroutine_lock);
-    if (id < 0 || id > int(m_schedule.chroutines.size()) - 1)
+    
+    auto iter = m_schedule.chroutines_map.find(id);
+    if (iter == m_schedule.chroutines_map.end()) {
         return;
+    }
         
-    m_schedule.chroutines_to_free.push_back(m_schedule.chroutines[id]);
-    m_schedule.chroutines.erase(m_schedule.chroutines.begin() + id);
+    m_schedule.chroutines_to_free.push_back(iter->second);
+    m_schedule.chroutines_map.erase(iter);
+    size_t sz = m_schedule.chroutines.size();
+    // FIXME
+    for (size_t i = 0; i < sz; i++) {
+        if (m_schedule.chroutines[i]->id() == id) {
+            m_schedule.chroutines.erase(m_schedule.chroutines.begin() + i);
+            break;
+        }
+    }
 }
 
 reporter_base_t * chroutine_thread_t::get_current_reporter()
@@ -128,14 +144,10 @@ void chroutine_thread_t::entry(void *arg)
     if (p_c == nullptr)
         return;
 
-    //LOG << "entry start, " << p_this->m_schedule.running_id << " left:" << p_this->m_schedule.chroutines.size()  << std::endl;
     p_c->state = chroutine_state_running;
     p_c->func(p_c->arg);
     //p_c->state = chroutine_state_fin;
-    p_this->m_chroutine_lock.lock();
-    p_this->m_schedule.chroutines_to_free.push_back(p_this->m_schedule.chroutines[p_this->m_schedule.running_id]);
-    p_this->m_schedule.chroutines.erase(p_this->m_schedule.chroutines.begin() + p_this->m_schedule.running_id);
-    p_this->m_chroutine_lock.unlock();
+    p_this->remove_chroutine(p_c->id());
     p_this->m_schedule.running_id = INVALID_ID;
 
     if (p_c->father != INVALID_ID) {
@@ -144,7 +156,6 @@ void chroutine_thread_t::entry(void *arg)
             father->son_finished();
         }
     }
-    //LOG << "entry over, " << p_this->m_schedule.running_id << " left:" << p_this->m_schedule.chroutines.size() << std::endl;
 }
 
 chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
@@ -156,7 +167,8 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
     if (func == nullptr) 
         return INVALID_ID;
 
-    std::shared_ptr<chroutine_t> c(new chroutine_t);
+    chroutine_id_t id = chroutine_thread_t::gen_chroutine_id();
+    std::shared_ptr<chroutine_t> c(new chroutine_t(id));
     chroutine_t *p_c = c.get();
     if (p_c == nullptr)
         return INVALID_ID;
@@ -171,11 +183,10 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
     p_c->state = chroutine_state_ready;
     makecontext(&(p_c->ctx),(void (*)(void))(entry), 1, this);
 
-    chroutine_id_t id = INVALID_ID;
     {
         chutex_guard_t lock(m_chroutine_lock);
+        m_schedule.chroutines_map[id] = c;
         m_schedule.chroutines.push_back(c);
-        id = m_schedule.chroutines.size() - 1;
     }
 
     //LOG << "create_chroutine over, " << id << std::endl;
@@ -201,7 +212,7 @@ chroutine_id_t chroutine_thread_t::create_son_chroutine(func_t & func, const rep
         return INVALID_ID;
     
     chutex_guard_t lock(m_chroutine_lock);
-    chroutine_t * pson = m_schedule.chroutines[son].get();
+    chroutine_t * pson = m_schedule.chroutines_map[son].get();
     if (pson == nullptr)
         return INVALID_ID;
 
@@ -215,16 +226,14 @@ void chroutine_thread_t::yield_current(int tick)
 {
     if (tick <= 0)
         return;
+        
+    if (m_schedule.running_id == INVALID_ID)
+        return;
 
-    std::shared_ptr<chroutine_t> co_ptr;
     chroutine_t * co = nullptr;
     {        
-        chutex_guard_t lock(m_chroutine_lock);
-        if (m_schedule.running_id < 0 || m_schedule.running_id > int(m_schedule.chroutines.size())-1)
-            return;
-        
-        co_ptr = m_schedule.chroutines[m_schedule.running_id];
-        co = co_ptr.get();
+        chutex_guard_t lock(m_chroutine_lock);        
+        co = m_schedule.chroutines_map[m_schedule.running_id].get();
         if (co == nullptr || co->state != chroutine_state_running)
             return;
     }
@@ -240,15 +249,13 @@ void chroutine_thread_t::wait_current(std::time_t wait_time_ms, bool stop_son_af
     if (wait_time_ms <= 0)
         return;
 
-    std::shared_ptr<chroutine_t> co_ptr;
+    if (m_schedule.running_id == INVALID_ID)
+        return;
+
     chroutine_t * co = nullptr;
     {
-        chutex_guard_t lock(m_chroutine_lock);
-        if (m_schedule.running_id < 0 || m_schedule.running_id > int(m_schedule.chroutines.size())-1)
-            return;
-        
-        co_ptr = m_schedule.chroutines[m_schedule.running_id];
-        co = co_ptr.get();
+        chutex_guard_t lock(m_chroutine_lock);        
+        co = m_schedule.chroutines_map[m_schedule.running_id].get();
         if (co == nullptr || co->state != chroutine_state_running)
             return;
     }
@@ -263,23 +270,14 @@ void chroutine_thread_t::wait_current(std::time_t wait_time_ms, bool stop_son_af
 
 bool chroutine_thread_t::done()
 {
-    return m_schedule.chroutines.empty();
+    return m_schedule.chroutines_map.empty();
 }
 
 void chroutine_thread_t::resume_to(chroutine_id_t id)
 {
-    std::shared_ptr<chroutine_t> co_ptr;
-    chroutine_t * co = nullptr;
-    {
-        chutex_guard_t lock(m_chroutine_lock);
-        if (id < 0 || id > int(m_schedule.chroutines.size())-1)
-            return;
-
-        co_ptr = m_schedule.chroutines[id];
-        co = co_ptr.get();
-        if (co == nullptr || co->state != chroutine_state_suspend)
-            return;
-    }
+    chroutine_t * co = get_chroutine(id);
+    if (co == nullptr || co->state != chroutine_state_suspend)
+        return;
     
     //LOG << "resume_to ..." << id << std::endl;
     swapcontext(&(m_schedule.main),&(co->ctx));
@@ -294,24 +292,24 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
     chroutine_id_t index = INVALID_ID;
     chroutine_t *p_c = nullptr;
     std::time_t now = get_time_stamp();
-    chroutine_id_t i = m_schedule.last_run_id + 1;
-    if (i < 0) i = 0;
 
-    std::shared_ptr<chroutine_t> co_ptr;
     {
         chutex_guard_t lock(m_chroutine_lock);
-        // clean finished nodes
+        // clean finished tasks
         m_schedule.chroutines_to_free.clear();
         if (m_schedule.chroutines.empty())
             return INVALID_ID;
+
         size_t size = m_schedule.chroutines.size();
+        chroutine_id_t i = m_schedule.last_run_id + 1;
+        if (i < 0 || (size_t)i >= size) i = 0;
+
         for (; (size_t)i < size; i++) {
             auto &node = m_schedule.chroutines[i];
             if (node.get()->wait(now) > 0)
                 continue;
             if (p_c == nullptr) {
-                co_ptr = node;
-                p_c = co_ptr.get();
+                p_c = node.get();
                 index = i;
             }
         }
@@ -321,7 +319,7 @@ chroutine_id_t chroutine_thread_t::pick_run_chroutine()
         //LOG << "pick_run_chroutine ..." << index << std::endl;
         remove_chroutine(p_c->yield_over());  // remove time out son chroutin
         p_c->state = chroutine_state_running;
-        m_schedule.running_id = index;
+        m_schedule.running_id = p_c->id();
         set_entry_time();
         // if (!m_is_main_thread)
         //     LOG << "set m_entry_time=" << entry_time() << std::endl;

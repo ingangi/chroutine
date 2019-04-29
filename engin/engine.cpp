@@ -173,7 +173,6 @@ chroutine_thread_t *engine_t::get_current_thread()
         return m_main_thread.get();
     }
 
-    //std::lock_guard<std::mutex> lck (m_pool_lock);
     const auto& iter = m_pool.find(cur_id);
     if (iter == m_pool.end())
         return nullptr;
@@ -197,7 +196,6 @@ chroutine_thread_t *engine_t::get_thread_by_id(std::thread::id thread_id)
 
 chroutine_thread_t *engine_t::get_lightest_thread()
 {
-    //std::lock_guard<std::mutex> lck (m_pool_lock);
     if (!m_init_over) {
         LOG << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
         return nullptr;

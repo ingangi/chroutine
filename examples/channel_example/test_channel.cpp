@@ -116,6 +116,11 @@ void test_channel_select_timeout() {
             SLEEP(3000);    // timeout 3 seconds
             *chan_timeout << 1;
         }, nullptr);
+        
+        ENGIN.create_son_chroutine([&](void *) {
+            SLEEP(3100);
+            *chan_data << 1;
+        }, nullptr);
 
         chan_selecter.add_case(chan_data.get(), &int_read, [&](){
             LOG << "int read:" << int_read << std::endl;

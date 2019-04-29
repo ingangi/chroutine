@@ -18,6 +18,7 @@
 #include <string.h>
 #include <iostream>
 #include <functional>
+#include <unordered_map>
 #include "reporter.hpp"
 #include "selectable_obj.hpp"
 #include "logger.hpp"
@@ -26,7 +27,7 @@
 namespace chr {
 
 const unsigned int STACK_SIZE = 1024*128;
-const int INVALID_ID = -1;
+const int64_t INVALID_ID = -1;
 const int MAX_RUN_MS_EACH = 10;
 
 typedef std::function<void(void *)> func_t;
@@ -40,13 +41,13 @@ typedef enum {
 
 } chroutine_state_t;
 
-typedef int chroutine_id_t;
+typedef int64_t chroutine_id_t;
 class chroutine_t
 {
     friend class chroutine_thread_t;
 
 public:
-    chroutine_t();
+    chroutine_t(chroutine_id_t id);
     ~chroutine_t();
 
     // if wait is over, return 0
@@ -61,6 +62,11 @@ public:
     // get son's excute result and returned data
     reporter_base_t *get_reporter();
 
+    // get my ID
+    chroutine_id_t id() const {
+        return me;
+    }
+
 private:
     ucontext_t          ctx;
     func_t              func = nullptr;
@@ -69,6 +75,7 @@ private:
     char *              stack = nullptr;
     int                 yield_wait = 0; // yield by frame count
     std::time_t         yield_to = 0;   // yield until some time
+    chroutine_id_t      me = INVALID_ID;
     chroutine_id_t      father = INVALID_ID;
     chroutine_id_t      son = INVALID_ID;
     reporter_sptr_t     reporter;   // son chroutine excute result
@@ -77,14 +84,15 @@ private:
 
 
 typedef std::vector<std::shared_ptr<chroutine_t> > chroutine_list_t;
+typedef std::unordered_map<chroutine_id_t, std::shared_ptr<chroutine_t> > chroutine_map_t;
 
 typedef struct schedule_t {
-    //std::mutex          mutex;
     ucontext_t          main;
     chroutine_id_t      running_id;
     chroutine_id_t      last_run_id;
-    chroutine_list_t    chroutines;
+    chroutine_list_t    chroutines;     // for sequence sched
     chroutine_list_t    chroutines_to_free;
+    chroutine_map_t     chroutines_map; // for const id index
 
     schedule_t() 
     : running_id(INVALID_ID)
@@ -173,6 +181,10 @@ public:
         return m_state.load(std::memory_order_relaxed);
     }
 
+    static chroutine_id_t gen_chroutine_id() {
+        return ++ms_chroutine_id;
+    }
+
 private:
     chroutine_thread_t();
 
@@ -217,6 +229,8 @@ private:
     bool                        m_is_main_thread = false;
     std::atomic<std::time_t>    m_entry_time;  // for thread alive check
     std::atomic<thread_state_t> m_state;
+
+    static chroutine_id_t       ms_chroutine_id;
 };
 
 }
