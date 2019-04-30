@@ -41,6 +41,7 @@ public:
     int del_case(channel_it* chan);
     void default_case(const callback_t& callback);
     void select();
+    int select_once();
 
 // private:
 //     void shuffle_cases();
@@ -50,7 +51,6 @@ private:
     chan_selecter_t(chan_selecter_t&&) = delete;
     chan_selecter_t& operator=(const chan_selecter_t&) = delete;
     chan_selecter_t& operator=(chan_selecter_t&&) = delete;
-    int select_once();
 
 private:
     chan_select_node_t m_default;
