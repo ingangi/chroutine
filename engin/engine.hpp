@@ -11,6 +11,7 @@
 
 #include <map>
 #include <thread>
+#include <vector>
 #include "chroutine.hpp"
 #include "selectable_obj.hpp"
 

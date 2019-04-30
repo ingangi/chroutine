@@ -62,9 +62,47 @@ void fun_3(void *arg)
     }
 }
 
+void test_fair_sched() {
+    ENGIN.create_chroutine([](void *){
+        int i = 0;
+        while (i<5) {
+            LOG << "I am 1\n";
+            i++;
+            YIELD();
+        }
+    }, nullptr);
+    
+    ENGIN.create_chroutine([](void *){
+        int i = 0;
+        while (i<5) {
+            LOG << "I am 2\n";
+            i++;
+            YIELD();
+        }
+    }, nullptr);
+    
+    ENGIN.create_chroutine([](void *){
+        int i = 0;
+        while (i<5) {
+            LOG << "I am 3\n";
+            i++;
+            YIELD();
+        }
+    }, nullptr);
+    
+    ENGIN.create_chroutine([](void *){
+        int i = 0;
+        while (i<5) {
+            LOG << "I am 4\n";
+            i++;
+            YIELD();
+        }
+    }, nullptr);
+}
+
 int main(int argc, char **argv)
 {
-    ENGINE_INIT(2);
+    ENGINE_INIT(1);
 
     // ENGIN.create_chroutine(fun_1, nullptr);  
     ENGIN.create_chroutine([](void *){
@@ -80,6 +118,8 @@ int main(int argc, char **argv)
             }
         }
     }, nullptr);
+
+    // test_fair_sched();
 
     ENGIN.run();    
     LOG << "over ..." << std::endl;

@@ -14,7 +14,7 @@
 #include <ucontext.h>
 #include <mutex>
 #include <memory>
-#include <vector>
+#include <list>
 #include <string.h>
 #include <iostream>
 #include <functional>
@@ -83,20 +83,21 @@ private:
 };
 
 
-typedef std::vector<std::shared_ptr<chroutine_t> > chroutine_list_t;
+typedef std::list<std::shared_ptr<chroutine_t> > chroutine_list_t;
 typedef std::unordered_map<chroutine_id_t, std::shared_ptr<chroutine_t> > chroutine_map_t;
 
 typedef struct schedule_t {
     ucontext_t          main;
     chroutine_id_t      running_id;
-    chroutine_id_t      last_run_id;
-    chroutine_list_t    chroutines;     // for sequence sched
-    chroutine_list_t    chroutines_to_free;
     chroutine_map_t     chroutines_map; // for const id index
+    
+    chroutine_list_t    chroutines_sched;     // for sequence sched
+    chroutine_list_t    chroutines_to_free;
+    chroutine_list_t::iterator      sched_iter;
 
     schedule_t() 
     : running_id(INVALID_ID)
-    , last_run_id(INVALID_ID)
+    , sched_iter(chroutines_sched.end())
     {}    
 }schedule_t;
 
@@ -204,7 +205,7 @@ private:
     bool done();
 
     // chroutine schdule, pick next chroutine to run (swap happens)
-    chroutine_id_t pick_run_chroutine();
+    int pick_run_chroutine();
 
     // get chroutine pointer by id
     chroutine_t * get_chroutine(chroutine_id_t id);

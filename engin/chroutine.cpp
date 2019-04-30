@@ -115,11 +115,12 @@ void chroutine_thread_t::remove_chroutine(chroutine_id_t id)
         
     m_schedule.chroutines_to_free.push_back(iter->second);
     m_schedule.chroutines_map.erase(iter);
-    size_t sz = m_schedule.chroutines.size();
-    // FIXME
-    for (size_t i = 0; i < sz; i++) {
-        if (m_schedule.chroutines[i]->id() == id) {
-            m_schedule.chroutines.erase(m_schedule.chroutines.begin() + i);
+
+    auto iter_list = m_schedule.chroutines_sched.begin();
+    for (; iter_list != m_schedule.chroutines_sched.end(); iter_list++) {
+        if ((*iter_list)->id() == id) {
+            iter_list = m_schedule.chroutines_sched.erase(iter_list);
+            m_schedule.sched_iter = iter_list;
             break;
         }
     }
@@ -186,7 +187,7 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
     {
         chutex_guard_t lock(m_chroutine_lock);
         m_schedule.chroutines_map[id] = c;
-        m_schedule.chroutines.push_back(c);
+        m_schedule.chroutines_sched.push_back(c);
     }
 
     //LOG << "create_chroutine over, " << id << std::endl;
@@ -284,53 +285,50 @@ void chroutine_thread_t::resume_to(chroutine_id_t id)
     //LOG << "resume_to ..." << id << " over" << std::endl;
 }
 
-chroutine_id_t chroutine_thread_t::pick_run_chroutine()
+int chroutine_thread_t::pick_run_chroutine()
 {
     if (m_schedule.running_id != INVALID_ID)
-        return m_schedule.running_id;
+        return 1;
 
-    chroutine_id_t index = INVALID_ID;
+    chroutine_list_t::iterator sched_iter = m_schedule.chroutines_sched.end();
     chroutine_t *p_c = nullptr;
+    int pick_count = 0;
     std::time_t now = get_time_stamp();
 
     {
         chutex_guard_t lock(m_chroutine_lock);
         // clean finished tasks
         m_schedule.chroutines_to_free.clear();
-        if (m_schedule.chroutines.empty())
-            return INVALID_ID;
+        if (m_schedule.chroutines_sched.empty())
+            return pick_count;
 
-        size_t size = m_schedule.chroutines.size();
-        chroutine_id_t i = m_schedule.last_run_id + 1;
-        if (i < 0 || (size_t)i >= size) i = 0;
+        if (m_schedule.sched_iter == m_schedule.chroutines_sched.end()) {
+            m_schedule.sched_iter = m_schedule.chroutines_sched.begin();
+        }
 
-        for (; (size_t)i < size; i++) {
-            auto &node = m_schedule.chroutines[i];
+        for (; m_schedule.sched_iter != m_schedule.chroutines_sched.end(); m_schedule.sched_iter++) {
+            auto &node = *(m_schedule.sched_iter);
             if (node.get()->wait(now) > 0)
                 continue;
             if (p_c == nullptr) {
                 p_c = node.get();
-                index = i;
+                sched_iter = m_schedule.sched_iter;
+                sched_iter++;
+                pick_count++;
             }
         }
     }
 
+    m_schedule.sched_iter = sched_iter;
     if (p_c) {
-        //LOG << "pick_run_chroutine ..." << index << std::endl;
         remove_chroutine(p_c->yield_over());  // remove time out son chroutin
         p_c->state = chroutine_state_running;
         m_schedule.running_id = p_c->id();
         set_entry_time();
-        // if (!m_is_main_thread)
-        //     LOG << "set m_entry_time=" << entry_time() << std::endl;
         swapcontext(&(m_schedule.main),&(p_c->ctx));
         clear_entry_time();
-        // if (!m_is_main_thread)
-        //     LOG << "clr m_entry_time=" << entry_time() << std::endl;
-        //LOG << "pick_run_chroutine ..." << index << " over" << std::endl;
     }
-    m_schedule.last_run_id = index;
-    return index;
+    return pick_count;
 }
 
 int chroutine_thread_t::schedule()
