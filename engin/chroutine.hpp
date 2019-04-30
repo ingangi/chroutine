@@ -231,7 +231,7 @@ private:
     std::atomic<std::time_t>    m_entry_time;  // for thread alive check
     std::atomic<thread_state_t> m_state;
 
-    static chroutine_id_t       ms_chroutine_id;
+    static std::atomic<chroutine_id_t>       ms_chroutine_id;
 };
 
 }

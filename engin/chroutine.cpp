@@ -6,7 +6,7 @@
 
 namespace chr {
 
-chroutine_id_t chroutine_thread_t::ms_chroutine_id = 0;
+std::atomic<chroutine_id_t> chroutine_thread_t::ms_chroutine_id(0);
 
 chroutine_t::chroutine_t(chroutine_id_t id) : me(id)
 {
