@@ -41,8 +41,8 @@ class channel_t final : public channel_it
         T               in_data;
     }chroutine_chan_context_t;
 
-    typedef std::shared_ptr<channel_t<T> > channel_sptr_t;
 public:
+    typedef std::shared_ptr<channel_t<T> > channel_sptr_t;
     ~channel_t(){
         LOG << "channel:" << this << " released\n";
         delete [] m_data_array;

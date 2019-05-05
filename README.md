@@ -13,6 +13,7 @@ You can run the examples and see the code how to use it:
 │   ├── http_client_example
 │   │   ├── Makefile
 │   │   └── test_main.cpp
+│   ├── Makefile
 │   ├── rpc_example
 │   │   ├── Makefile
 │   │   ├── test_client
@@ -23,8 +24,10 @@ You can run the examples and see the code how to use it:
 │   │   ├── test_server.cpp
 │   │   ├── test_server.hpp
 │   │   └── test_server_main.cpp
-│   ├── Makefile
-│   └── test_chroutine.cpp
+│   ├── test_chroutine.cpp
+│   └── timer_example
+│       ├── Makefile
+│       └── test_timer.cpp
 
 cd examples
 make ALLTEST
