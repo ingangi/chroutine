@@ -14,12 +14,15 @@ int main(int argc, char **argv)
 
         timer->start();
 
-        SLEEP(5000);
-        LOG << "test chroutine CONTINUE\n";
+        SLEEP(5050);
 
         timer->stop();
 
-        timer->destroy();   // will make the engin to delete the timer
+        LOG << "run once more!\n";
+        timer->start(true);
+        SLEEP(2050);
+
+        timer->abandon();   // will make the engin to delete the timer
 
         LOG << "test chroutine exit\n";
     }, nullptr);

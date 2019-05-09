@@ -26,7 +26,7 @@ int chr_timer_t::select(int wait_ms)
     return m_selecter.select_once();
 }
 
-bool chr_timer_t::start()
+bool chr_timer_t::start(bool once)
 {
     if (m_running) {
         LOG << "chr_timer_t::start ignored: already running\n";
@@ -39,21 +39,27 @@ bool chr_timer_t::start()
     }
 
     m_running = true;
+    m_once = once;
     // start the trigger chroutine
     m_trigger_chroutine_id = ENGIN.create_son_chroutine([&](void *){
+        SLEEP(m_interval_ms);
         while (m_running) {
-            SLEEP(m_interval_ms);
             *m_trigger << 1;
-        }     
+            SLEEP(m_interval_ms);
+        }
         m_trigger_chroutine_id = INVALID_ID;
         LOG << "timer:" << this << " stopped!\n";
     }, nullptr);
 
     // add select case
     m_selecter.add_case(m_trigger.get(), &m_d, [&](){
-        LOG << "timer triggled !!!" << std::endl;
+        LOG << "timer triggled !!! m_running=" << m_running << std::endl;
+        if (!m_running) {
+            return;
+        }
         ENGIN.create_son_chroutine([&](void *){
             if (m_cb != nullptr) m_cb();
+            if (m_once) stop();
         }, nullptr);
     });
 
@@ -67,13 +73,23 @@ void chr_timer_t::stop()
         return;
     }
     m_running = false;
-    m_cb = nullptr;
+    //m_cb = nullptr;
+    m_selecter.select_once();   //clear the channel
     m_selecter.del_case(m_trigger.get());
     LOG << "timer:" << this << " stopping ...\n";
     while (m_trigger_chroutine_id != INVALID_ID) {
         SLEEP(5);
     }
     
+}
+
+void chr_timer_t::abandon() 
+{
+    if (m_running) {
+        LOG << "chr_timer_t::abandon: timer(" << this << ") is running, stop it!\n";
+        stop();
+    }
+    unregister_from_engin();
 }
 
 }

@@ -36,11 +36,11 @@ public:
 		return dynamic_cast<chr_timer_t *>(s_this.get());
 	}
 
-    void destroy() {
-        unregister_from_engin();
-    }
+    // no more use
+    void abandon();
 
-    bool start();
+    // @once: true - the callback will only triggle once
+    bool start(bool once = false);
     void stop();
 
 private:
@@ -54,6 +54,7 @@ private:
     chroutine_id_t      m_trigger_chroutine_id = INVALID_ID;    
     channel_t<int>::channel_sptr_t      m_trigger = nullptr;
     int                 m_d = 0;    // for channel read
+    bool                m_once = false;
 };
 
 }

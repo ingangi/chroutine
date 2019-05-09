@@ -8,8 +8,6 @@
 
 > third party APIs (mysql client etc.)
 
-## timer in chroutine
-
 ## share chroutine stack
 
 # Low priority
