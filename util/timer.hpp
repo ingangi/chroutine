@@ -36,7 +36,8 @@ public:
 		return dynamic_cast<chr_timer_t *>(s_this.get());
 	}
 
-    // no more use
+    // if the timer is no more use, call this to detach from engin.
+    // after this, the timer will be deleted.
     void abandon();
 
     // @once: true - the callback will only triggle once

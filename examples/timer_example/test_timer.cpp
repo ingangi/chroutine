@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 
         LOG << "run once more!\n";
         timer->start(true);
-        SLEEP(2050);
+        SLEEP(1550);
 
         timer->abandon();   // will make the engin to delete the timer
 

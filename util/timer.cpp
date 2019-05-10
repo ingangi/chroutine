@@ -48,7 +48,6 @@ bool chr_timer_t::start(bool once)
             SLEEP(m_interval_ms);
         }
         m_trigger_chroutine_id = INVALID_ID;
-        LOG << "timer:" << this << " stopped!\n";
     }, nullptr);
 
     // add select case
@@ -72,15 +71,22 @@ void chr_timer_t::stop()
         LOG << "chr_timer_t::stop ignored: not running\n";
         return;
     }
-    m_running = false;
-    //m_cb = nullptr;
-    m_selecter.select_once();   //clear the channel
-    m_selecter.del_case(m_trigger.get());
+
     LOG << "timer:" << this << " stopping ...\n";
+    m_running = false;
+    m_selecter.select_once();   //clear the channel buf
+    m_selecter.del_case(m_trigger.get());
+
+    //wake up and go die!
+    if (m_trigger_chroutine_id != INVALID_ID) {
+        ENGIN.awake_chroutine(m_trigger_chroutine_id);  
+    }
+
+    // wait till triggle chroutine finished
     while (m_trigger_chroutine_id != INVALID_ID) {
         SLEEP(5);
     }
-    
+    LOG << "timer:" << this << " stopped!\n";    
 }
 
 void chr_timer_t::abandon() 
