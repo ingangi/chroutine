@@ -342,7 +342,7 @@ int chroutine_thread_t::schedule()
     while (!m_need_stop) {        
         int processed = 0;
         processed += select_all();
-        processed += pick_run_chroutine() == INVALID_ID ? 0 : 1;
+        processed += pick_run_chroutine();
         if (processed == 0)
             thread_ms_sleep(10);
     }
