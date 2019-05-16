@@ -11,7 +11,7 @@ LDFLAGS += -lpthread #-lc
 LDFLAGS += -L. -Wl,--no-as-needed  ##-lenc -lsyslink  -lbinder -llog    -losa -lpdi -lsdk  -lz -lrt -lsplice -lmem -ldec
 AFLAGS += -r
 
-INC = -I../../engin -I../../util
+INC = -I../../engin -I../../util -I../../vendors
 
 BINDIR = .
 SRCDIR = . ../../engin ../../util

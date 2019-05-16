@@ -1,5 +1,6 @@
 
 *.json
+*.log
 *.o
 *.a
 .vscode/

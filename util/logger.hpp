@@ -11,21 +11,40 @@
 
 #include <iostream>
 #include <stdarg.h>
+#include "spdlog/spdlog.h"
+#include "spdlog/async.h"
+#include "spdlog/sinks/daily_file_sink.h"
+
+#define MAX_LOG_LEN  512
+
+#define TRACE       ::spdlog::level::trace
+#define DEBUG       ::spdlog::level::debug
+#define INFO        ::spdlog::level::info
+#define WARN        ::spdlog::level::warn
+#define ERROR       ::spdlog::level::err
+#define CRITICAL    ::spdlog::level::critical
+#define OFF         ::spdlog::level::off
+
 
 namespace chr {
 
+
 class logger_t
 {
-    const int MAX_LOG_LEN = 512;
 private:
-    logger_t(){}
+    logger_t(){
+        _async_file = ::spdlog::daily_logger_mt<::spdlog::async_factory_nonblock>("ENGINE", "ENGINE.log", 0, 0);
+    }
 
 public:
     static logger_t &instance() {
         static logger_t instance;
         return instance;
     }
-    ~logger_t(){}
+    ~logger_t(){
+        ::spdlog::shutdown();
+        ::spdlog::drop_all();
+    }
 
     template <typename T> logger_t& operator<<(const T& value) {
         m_stream << value;
@@ -49,10 +68,15 @@ public:
     }
 
 private:
-    std::ostream &m_stream = std::cout;   //replace with your log lib
+    std::ostream &m_stream = std::cout;   //consol
+
+public:
+    std::shared_ptr<::spdlog::logger> _async_file;
 };
 
 }
 
 #define LOG chr::logger_t::instance()
+#define SPDLOG(level, format, ...) {chr::logger_t::instance()._async_file->log(level, format,  ##__VA_ARGS__);}
+
 #endif
