@@ -413,7 +413,7 @@ void engine_t::run()
 
     // async logger flush
 #ifdef DEBUG_BUILD
-    uint32_t flush_timer_ms = 1000;
+    uint32_t flush_timer_ms = 500;
 #else
     uint32_t flush_timer_ms = 5000;
 #endif

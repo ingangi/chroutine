@@ -14,6 +14,9 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/async.h"
 #include "spdlog/sinks/daily_file_sink.h"
+#ifdef DEBUG_BUILD
+#include "spdlog/sinks/stdout_color_sinks.h"
+#endif
 
 namespace chr {
 
@@ -35,6 +38,7 @@ private:
         
 #ifdef DEBUG_BUILD
         _async_file->set_level(TRACE);
+        _console = ::spdlog::stdout_color_mt("console");
 #else
         _async_file->set_level(INFO);
 #endif
@@ -82,15 +86,26 @@ private:
 
 public:
     std::shared_ptr<::spdlog::logger> _async_file;
+    std::shared_ptr<::spdlog::logger> _console;
 };
 
 }
 
 #define LOG chr::logger_t::instance()
+
+#ifdef DEBUG_BUILD
+#define SPDLOG(level, format, ...) {\
+    if (chr::logger_t::instance()._async_file->should_log(level)) {\
+        chr::logger_t::instance()._async_file->log(level, format,  ##__VA_ARGS__);\
+        chr::logger_t::instance()._console->log(level, format,  ##__VA_ARGS__);\
+    }\
+}
+#else
 #define SPDLOG(level, format, ...) {\
     if (chr::logger_t::instance()._async_file->should_log(level)) {\
         chr::logger_t::instance()._async_file->log(level, format,  ##__VA_ARGS__);\
     }\
 }
+#endif
 
 #endif
