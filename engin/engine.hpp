@@ -38,6 +38,7 @@ typedef std::map<std::thread::id, selectable_object_sptr_t > http_stub_pool_t;
 std::time_t get_time_stamp();
 void thread_ms_sleep(uint32_t ms);
 
+class chr_timer_t;
 class engine_t final
 {
     friend class chroutine_thread_t;
@@ -91,6 +92,9 @@ public:
     // the main thread
     void run();
 
+    void stop_all();
+    void stop_main();
+
 #ifdef ENABLE_HTTP_PLUGIN
     // excute http req. thread safe after `m_init_over` become true
     std::shared_ptr<curl_rsp_t> exec_curl(const std::string & url
@@ -130,6 +134,7 @@ private:
     http_stub_pool_t    m_http_stubs;
 #endif
     std::shared_ptr<chroutine_thread_t>     m_main_thread = nullptr;
+    chr_timer_t*        m_flush_timer;
 };
 
 }

@@ -190,7 +190,7 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
         m_schedule.chroutines_sched.push_back(c);
     }
 
-    //LOG << "create_chroutine over, " << id << std::endl;
+    LOG << "create_chroutine over, " << id << ", is in main:" << m_is_main_thread << std::endl;
     return id;
 }
 
@@ -365,6 +365,7 @@ void chroutine_thread_t::start(size_t creating_index)
 void chroutine_thread_t::stop()
 {
     m_need_stop = true;
+    SPDLOG(CRITICAL, "chroutine_thread_t 0x{0:x} exiting...", (uint64_t)this);
 }
 
 int chroutine_thread_t::select_all()

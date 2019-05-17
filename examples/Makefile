@@ -4,7 +4,7 @@ LD	= @echo " ld  $@"; ld
 AR	= @echo " ar  $@"; ar
 RM	= @echo " RM	$@"; rm -f
 
-CFLAGS += -Wall -std=c++11 #-Wextra -pedantic -Wconversion
+CFLAGS += -Wall -std=c++11 -DDEBUG_BUILD #-Wextra -pedantic -Wconversion
 CFLAGS += -g3
 
 #LDFLAGS += "-Wl" -lpthread -lc

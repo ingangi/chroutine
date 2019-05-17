@@ -1,6 +1,11 @@
 #include <unistd.h>
+#include<signal.h>
 #include "engine.hpp"
+#include "timer.hpp"
 
+void signal_handle(int signal_num){
+    ENGIN.stop_all();
+}
 
 namespace chr {
     
@@ -345,6 +350,39 @@ void engine_t::check_threads()
     }
 }
 
+void engine_t::stop_main()
+{
+    create_chroutine_in_mainthread([this](void *){
+        // clean timer
+        if (m_flush_timer) {
+            m_flush_timer->stop();
+            m_flush_timer->abandon();
+            m_flush_timer = nullptr;
+        }
+        // clean others
+
+        // stop the main sched
+        if (m_main_thread) {
+            m_main_thread->stop();
+        }
+    }, nullptr);
+}
+
+void engine_t::stop_all()
+{
+    // stop pool
+    for (auto it = m_pool.begin(); it != m_pool.end(); it++) {
+        auto &thrd = it->second;
+        if (thrd) {
+            thrd->stop();
+        }
+    }
+    // todo: join
+
+    // end main
+    stop_main();
+}
+
 void engine_t::run()
 {
     if (!m_main_thread) {
@@ -357,6 +395,9 @@ void engine_t::run()
         return;
     }
 
+    signal(SIGINT, signal_handle);
+    signal(SIGQUIT, signal_handle);
+    signal(SIGTERM, signal_handle);
     m_main_thread->set_main_thread_flag(true);
     LOG << "main thread is about to run, check the id:" 
         << m_main_thread_id << "==" << std::this_thread::get_id() 
@@ -370,7 +411,24 @@ void engine_t::run()
         }        
     }, nullptr);
 
+    // async logger flush
+#ifdef DEBUG_BUILD
+    uint32_t flush_timer_ms = 1000;
+#else
+    uint32_t flush_timer_ms = 5000;
+#endif
+    m_flush_timer = chr_timer_t::create(flush_timer_ms, [](){
+        LOG.flush();
+    });
+    if (m_flush_timer) {
+        m_flush_timer->start();
+    }
+
     m_main_thread->schedule();
+
+    // clean
+    SPDLOG(CRITICAL, "main thread exited!");
+    LOG.flush();
 }
 
 }

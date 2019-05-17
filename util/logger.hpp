@@ -15,6 +15,8 @@
 #include "spdlog/async.h"
 #include "spdlog/sinks/daily_file_sink.h"
 
+namespace chr {
+
 #define MAX_LOG_LEN  512
 
 #define TRACE       ::spdlog::level::trace
@@ -25,15 +27,17 @@
 #define CRITICAL    ::spdlog::level::critical
 #define OFF         ::spdlog::level::off
 
-
-namespace chr {
-
-
 class logger_t
 {
 private:
     logger_t(){
         _async_file = ::spdlog::daily_logger_mt<::spdlog::async_factory_nonblock>("ENGINE", "ENGINE.log", 0, 0);
+        
+#ifdef DEBUG_BUILD
+        _async_file->set_level(TRACE);
+#else
+        _async_file->set_level(INFO);
+#endif
     }
 
 public:
@@ -42,8 +46,8 @@ public:
         return instance;
     }
     ~logger_t(){
-        ::spdlog::shutdown();
         ::spdlog::drop_all();
+        ::spdlog::shutdown();
     }
 
     template <typename T> logger_t& operator<<(const T& value) {
@@ -67,6 +71,12 @@ public:
         return (*this);
     }
 
+    void flush() {
+        if (_async_file) {
+            _async_file->flush();
+        }
+    }
+
 private:
     std::ostream &m_stream = std::cout;   //consol
 
@@ -77,6 +87,10 @@ public:
 }
 
 #define LOG chr::logger_t::instance()
-#define SPDLOG(level, format, ...) {chr::logger_t::instance()._async_file->log(level, format,  ##__VA_ARGS__);}
+#define SPDLOG(level, format, ...) {\
+    if (chr::logger_t::instance()._async_file->should_log(level)) {\
+        chr::logger_t::instance()._async_file->log(level, format,  ##__VA_ARGS__);\
+    }\
+}
 
 #endif
