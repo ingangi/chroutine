@@ -10,11 +10,10 @@ int main(int argc, char **argv)
     ENGIN.create_chroutine([](void *){
         test_rpc_server *server = dynamic_cast<test_rpc_server *>(test_rpc_server::create().get());
         if (server == nullptr || server->start("0.0.0.0:50061") != 0) {
-            LOG << "test_rpc_server start failed\n";
+            SPDLOG(INFO, "test_rpc_server start failed");
         }
-        LOG << "test_rpc_server is running.\n";
+        SPDLOG(INFO, "test_rpc_server is running.");
     }, nullptr);
     
-    ENGIN.run(); 
-    LOG << "over ..." << std::endl;
+    ENGIN.run();
 }

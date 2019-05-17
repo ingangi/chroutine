@@ -13,11 +13,10 @@ int main(int argc, char *argv[])
         while (1) {
             std::shared_ptr<curl_rsp_t> rsp = ENGIN.exec_curl("xxx");
             if (rsp.get())
-                LOG << "rsp code:" << rsp.get()->get_rsp_code() << std::endl;
+                SPDLOG(INFO, "rsp code:{}", rsp.get()->get_rsp_code());
             SLEEP(5000);
         }
     }, nullptr);
 
     ENGIN.run();
-    LOG << "over ..." << std::endl;
 }

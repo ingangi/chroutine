@@ -5,11 +5,11 @@
 int Test_HowAreYou::do_work() 
 {
 	assert(ENGIN.get_current_chroutine_id() != chr::INVALID_ID);
-    LOG << __FUNCTION__ << " HowAreYou get req, in chroutine:" << ENGIN.get_current_chroutine_id() << std::endl;
+    SPDLOG(INFO, "{} HowAreYou get req, in chroutine: {}", __FUNCTION__, ENGIN.get_current_chroutine_id());
 
 	SLEEP(2000);	//fake processing
 
-	LOG << __FUNCTION__ << ": process over, response now\n";
+    SPDLOG(INFO, "{}: process over, response now", __FUNCTION__);
 	m_rsp_msg.set_rsp("Fine thank you, and you?!");
 	::grpc::Status status;
 	m_responser.Finish(m_rsp_msg, status, this);

@@ -10,33 +10,33 @@ void test_channel_basic() {
 
     // 2 read chroutines
     ENGIN.create_chroutine([&](void *){
-        LOG << "reader 1 in thread:" << std::this_thread::get_id() << std::endl;
+        SPDLOG(INFO, "reader 1 in thread:{}", std::this_thread::get_id());
         for (int i=0; i < 20; i++) {
             int r = -1;
-            LOG << "[" << i << "]reader 1 try to read r ..." << std::endl;
+            SPDLOG(INFO, "[{}]reader 1 try to read r ...", i);
             chan >> r;
-            LOG << "[" << i << "]reader 1 read r:" << r << std::endl;
+            SPDLOG(INFO, "[{}]reader 1 read r:{}", i, r);
         }
     }, nullptr);
     ENGIN.create_chroutine([&](void *){
-        LOG << "reader 2 in thread:" << std::this_thread::get_id() << std::endl;
+        SPDLOG(INFO, "reader 2 in thread:{}", std::this_thread::get_id());
         for (int i=0; i < 20; i++) {
             int r = -1;
-            LOG << "[" << i << "]reader 2 try to read r ..." << std::endl;
+            SPDLOG(INFO, "[{}]reader 2 try to read r ...", i);
             chan >> r;
-            LOG << "[" << i << "]reader 2 read r:" << r << std::endl;
+            SPDLOG(INFO, "[{}]reader 2 read r:{}", i, r);
         }
     }, nullptr);
     
     
     // 1 write chroutine
     ENGIN.create_chroutine([&](void *){
-        LOG << "writer 1 in thread:" << std::this_thread::get_id() << std::endl;
+        SPDLOG(INFO, "writer 1 in thread:{}", std::this_thread::get_id());
         SLEEP(3000);
         for (int i=0; i < 30; i++) {
-            LOG << "[" << i << "]try to write chan" << std::endl;
+            SPDLOG(INFO, "[{}]try to write chan", i);
             chan << i;
-            LOG << "[" << i << "]write chan over" << std::endl;
+            SPDLOG(INFO, "[{}]write chan over", i);
             SLEEP(1000);
         }
     }, nullptr);
@@ -55,20 +55,20 @@ void test_channel_select() {
 
         // all callbacks of all cases will run in this chroutine
         chan_selecter.add_case(chan_int.get(), &int_read, [&](){
-            LOG << "int read:" << int_read << std::endl;
+            SPDLOG(INFO, "int read:{}", int_read);
         });
         
         chan_selecter.add_case(chan_string.get(), &string_read, [&](){
-            LOG << "string read:" << string_read << std::endl;
+            SPDLOG(INFO, "string read:{}", string_read);
         });
         
         chan_selecter.add_case(chan_char.get(), &char_read, [&](){
-            LOG << "char read:" << char_read << std::endl;
+            SPDLOG(INFO, "char read:{}", char_read);SPDLOG(INFO, "nothing to read now");
         });
 
         // if nothing todo with default, do not add it
         // chan_selecter.default_case([](){
-        //     LOG << "nothing to read now" << std::endl;
+        //     SPDLOG(INFO, "nothing to read now");
         //     SLEEP(100);  // if you add the default case, pay attention to yeild
         // });
 
@@ -123,11 +123,11 @@ void test_channel_select_timeout() {
         }, nullptr);
 
         chan_selecter.add_case(chan_data.get(), &int_read, [&](){
-            LOG << "int read:" << int_read << std::endl;
+            SPDLOG(INFO, "nt read:{}", int_read);
         });
         
         chan_selecter.add_case(chan_timeout.get(), &int_read, [&](){
-            LOG << "read data timeout !!!" << std::endl;
+            SPDLOG(INFO, "read data timeout !!!");
         });
 
         chan_selecter.select();
@@ -143,6 +143,5 @@ int main(int argc, char **argv)
     test_channel_select_timeout();
 
 
-    ENGIN.run();    
-    LOG << "over ..." << std::endl;
+    ENGIN.run();
 }

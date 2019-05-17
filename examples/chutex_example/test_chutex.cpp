@@ -13,53 +13,52 @@ int main(int argc, char **argv)
 
     // 2 read chroutines
     ENGIN.create_chroutine([&](void *){
-        LOG << "reader 1 in thread:" << std::this_thread::get_id() << std::endl;
+        SPDLOG(INFO, "reader 1 in thread:{}", std::this_thread::get_id());
         SLEEP(3010);
 #if 0
         if (!chutex.try_lock()) {
-            LOG << "reader 1 trylock failed, exit\n";
+            SPDLOG(INFO, "reader 1 trylock failed, exit");
             return;
         }
 #else        
         chutex.lock();
 #endif
-        LOG << "reader 1 get lock\n";
+        SPDLOG(INFO, "reader 1 get lock");
         for (auto iter = m.begin(); iter != m.end(); iter++) {
-            LOG("reader 1; m[%d]:%d", iter->first, iter->second);
+            SPDLOG(INFO, "reader 1; m[{}]:{}", iter->first, iter->second);
             SLEEP(1000);
         }
         m.clear();
         chutex.unlock();
-        LOG << "reader 1 unlock\n";
+        SPDLOG(INFO, "reader 1 unlock");
     }, nullptr);
     ENGIN.create_chroutine([&](void *){
-        LOG << "reader 2 in thread:" << std::this_thread::get_id() << std::endl;
+        SPDLOG(INFO, "reader 2 in thread:{}", std::this_thread::get_id());
         SLEEP(3000);
         chutex_guard_t guard(chutex);
-        LOG << "reader 2 get lock\n";
+        SPDLOG(INFO, "reader 2 get lock");
         for (auto iter = m.begin(); iter != m.end(); iter++) {
-            LOG("reader 2; m[%d]:%d", iter->first, iter->second);
+            SPDLOG(INFO, "reader 2; m[{}]:{}", iter->first, iter->second);
             SLEEP(1000);
         }
         m.clear();
-        LOG << "reader 2 unlock\n";
+        SPDLOG(INFO, "reader 2 unlock");
     }, nullptr);
     
     
     // 1 write chroutine
     ENGIN.create_chroutine([&](void *){
-        LOG << "writer 1 in thread:" << std::this_thread::get_id() << std::endl;
+        SPDLOG(INFO, "writer 1 in thread:{}", std::this_thread::get_id());
         chutex.lock();
-        LOG << "writer 1 get lock\n";
+        SPDLOG(INFO, "writer 1 get lock");
         for (int i = 0; i < 10; i++) {
             m[i] = i;
-            LOG("writer 1; m[%d]:%d", i, i);
+            SPDLOG(INFO, "writer 1; m[{}]:{}", i, i);
             SLEEP(100);
         }
         chutex.unlock();
-        LOG << "writer 1 unlock\n";
+        SPDLOG(INFO, "writer 1 unlock");
     }, nullptr);
 
-    ENGIN.run();    
-    LOG << "over ..." << std::endl;
+    ENGIN.run();
 }

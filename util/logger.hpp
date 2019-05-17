@@ -22,13 +22,13 @@ namespace chr {
 
 #define MAX_LOG_LEN  512
 
-#define TRACE       ::spdlog::level::trace
+#define TRACE       ::spdlog::level::trace      // 0
 #define DEBUG       ::spdlog::level::debug
 #define INFO        ::spdlog::level::info
 #define WARN        ::spdlog::level::warn
 #define ERROR       ::spdlog::level::err
 #define CRITICAL    ::spdlog::level::critical
-#define OFF         ::spdlog::level::off
+#define OFF         ::spdlog::level::off        // 6
 
 class logger_t
 {
@@ -50,10 +50,22 @@ public:
         return instance;
     }
     ~logger_t(){
+        flush();
         ::spdlog::drop_all();
         ::spdlog::shutdown();
     }
 
+    void flush() {
+        if (_async_file) {
+            _async_file->flush();
+        }
+    }
+
+public:
+    std::shared_ptr<::spdlog::logger> _async_file;
+    std::shared_ptr<::spdlog::logger> _console;
+
+#if 0
     template <typename T> logger_t& operator<<(const T& value) {
         m_stream << value;
 		return (*this);
@@ -74,19 +86,9 @@ public:
         std::endl(m_stream);
         return (*this);
     }
-
-    void flush() {
-        if (_async_file) {
-            _async_file->flush();
-        }
-    }
-
 private:
     std::ostream &m_stream = std::cout;   //consol
-
-public:
-    std::shared_ptr<::spdlog::logger> _async_file;
-    std::shared_ptr<::spdlog::logger> _console;
+#endif
 };
 
 }

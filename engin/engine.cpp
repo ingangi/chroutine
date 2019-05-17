@@ -55,8 +55,7 @@ void engine_t::init(size_t init_pool_size)
         thrd.get()->start(i);
     }
 
-    LOG("%s: init_pool_size = %d, m_main_thread_id = ", __FUNCTION__, init_pool_size)
-        << m_main_thread_id << std::endl;
+    SPDLOG(CRITICAL, "{}: init_pool_size = {}, m_main_thread_id = {}", __FUNCTION__, init_pool_size, m_main_thread_id);
 
     while (!m_init_over) {
         thread_ms_sleep(10);
@@ -64,7 +63,7 @@ void engine_t::init(size_t init_pool_size)
     
     // main thread do not need start()
     m_main_thread = chroutine_thread_t::new_thread();
-    LOG << __FUNCTION__ << " OVER" << std::endl;
+    SPDLOG(CRITICAL, "{}: OVER", __FUNCTION__);
 }
 
 void engine_t::on_thread_ready(size_t creating_index, std::thread::id thread_id)
@@ -75,10 +74,9 @@ void engine_t::on_thread_ready(size_t creating_index, std::thread::id thread_id)
     }
 
     m_pool[thread_id] = m_creating[creating_index];
-    // LOG << __FUNCTION__ << ". run in thread:" << std::this_thread::get_id() << " thread ready:" << thread_id << std::endl;
     if (m_pool.size() == m_creating.size()) {
         m_init_over = true; 
-        LOG << __FUNCTION__ << " m_init_over now is TRUE" << std::endl;
+        SPDLOG(CRITICAL, "{}: m_init_over now is TRUE", __FUNCTION__);
 
 #ifdef ENABLE_HTTP_PLUGIN
         curl_global_init(CURL_GLOBAL_ALL);
@@ -123,7 +121,7 @@ chroutine_id_t engine_t::create_chroutine(func_t func, void *arg)
 {    
     // check called in main thread
     // if (m_main_thread_id != std::this_thread::get_id()) {
-    //     LOG << __FUNCTION__ << " error: not called in main thread!\n";
+    //     SPDLOG(ERROR, "{} error: not called in main thread!", __FUNCTION__);
     //     return INVALID_ID;
     // }
     chroutine_thread_t *pthrd = get_lightest_thread();
@@ -169,7 +167,7 @@ chroutine_id_t engine_t::create_son_chroutine(func_t func, void *arg)
 chroutine_thread_t *engine_t::get_current_thread()
 {
     if (!m_init_over) {
-        LOG << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
+        SPDLOG(ERROR, "{} failed: m_init_over FALSE", __FUNCTION__);
         return nullptr;
     }
 
@@ -188,7 +186,7 @@ chroutine_thread_t *engine_t::get_current_thread()
 chroutine_thread_t *engine_t::get_thread_by_id(std::thread::id thread_id)
 {
     if (!m_init_over) {
-        LOG << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
+        SPDLOG(ERROR, "{} failed: m_init_over FALSE", __FUNCTION__);
         return nullptr;
     }
     
@@ -202,7 +200,7 @@ chroutine_thread_t *engine_t::get_thread_by_id(std::thread::id thread_id)
 chroutine_thread_t *engine_t::get_lightest_thread()
 {
     if (!m_init_over) {
-        LOG << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
+        SPDLOG(ERROR, "{} failed: m_init_over FALSE", __FUNCTION__);
         return nullptr;
     }
 
@@ -233,7 +231,6 @@ int engine_t::register_select_obj(const selectable_object_sptr_t & select_obj, s
     if (pthrd == nullptr)
         return -1;
 
-    // LOG << __FUNCTION__ << " run in thread:" << std::this_thread::get_id() << std::endl;
     pthrd->register_selector(select_obj);
     return 0;
 }
@@ -291,23 +288,22 @@ std::shared_ptr<curl_rsp_t> engine_t::exec_curl(const std::string & url
     , void *w_func_handler)
 {
     if (!m_init_over) {
-        LOG << __FUNCTION__ << " failed: m_init_over FALSE" << std::endl;
+        SPDLOG(ERROR, "{} failed: m_init_over FALSE", __FUNCTION__);
         return nullptr;
     }
     
     const auto& iter = m_http_stubs.find(std::this_thread::get_id());
     if (iter == m_http_stubs.end()){
-        LOG << __FUNCTION__ << " failed: cant find http_stub" << std::endl;
+        SPDLOG(ERROR, "{} failed: cant find http_stub", __FUNCTION__);
         return nullptr;
     }
 
     curl_stub_t *stub = dynamic_cast<curl_stub_t *>(iter->second.get());
     if (stub == nullptr) {
-        LOG << __FUNCTION__ << " failed: curl_stub_t * is nullptr" << std::endl;
+        SPDLOG(ERROR, "{} failed: curl_stub_t * is nullptr", __FUNCTION__);
         return nullptr;
     }
 
-    //LOG << "thread:" << std::this_thread::get_id() << " exec_curl:" << url << std::endl;
     return stub->exec_curl(url, connect_timeout, timeout, w_func, w_func_handler);
 }
 #endif
@@ -322,10 +318,10 @@ void engine_t::check_threads()
         if (thrd) {
             std::time_t thrd_entry_time = thrd->entry_time();
             if (thrd_entry_time != 0) {
-                LOG << "engine_t::check_thread:" << thrd.get() 
-                    << ", entry time:" << thrd_entry_time
-                    << ", now time:" << now
-                    << std::endl;
+                SPDLOG(TRACE, "engine_t::check_thread: {}, entry time: {}, , now time: {}"
+                    , thrd.get()
+                    , thrd_entry_time
+                    , now);
             }
 
             if (thrd_entry_time != 0 && now - thrd_entry_time > MAX_ENTRY_CALL_TIME_MS) {
@@ -339,7 +335,7 @@ void engine_t::check_threads()
     if (bads.size() > 0) {
         size_t goodsize = goods.size();
         if (goodsize == 0) {
-            LOG << "threads need switch, but no good threads left!!!" << std::endl;
+            SPDLOG(CRITICAL, "threads need switch, but no good threads left!!!");
             return;
         }
 
@@ -386,12 +382,12 @@ void engine_t::stop_all()
 void engine_t::run()
 {
     if (!m_main_thread) {
-        LOG << "main thread<chroutine_thread_t> is null!" << std::endl;
+        SPDLOG(CRITICAL, "main thread<chroutine_thread_t> is null!");
         return;
     }
 
     if (m_main_thread->is_running()) {
-        LOG << "main thread run failed: already running!" << std::endl;
+        SPDLOG(CRITICAL, "main thread run failed: already running!");
         return;
     }
 
@@ -399,9 +395,7 @@ void engine_t::run()
     signal(SIGQUIT, signal_handle);
     signal(SIGTERM, signal_handle);
     m_main_thread->set_main_thread_flag(true);
-    LOG << "main thread is about to run, check the id:" 
-        << m_main_thread_id << "==" << std::this_thread::get_id() 
-        << std::endl;
+    SPDLOG(DEBUG, "main thread is about to run, check the id:{}=={}", m_main_thread_id, std::this_thread::get_id());
 
     create_chroutine_in_mainthread([this](void *){
         while (true) {
@@ -428,7 +422,6 @@ void engine_t::run()
 
     // clean
     SPDLOG(CRITICAL, "main thread exited!");
-    LOG.flush();
 }
 
 }

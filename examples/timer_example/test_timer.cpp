@@ -9,7 +9,7 @@ int main(int argc, char **argv)
 
     ENGIN.create_chroutine([&](void *){
         chr_timer_t* timer = chr_timer_t::create(1000, [](){
-            LOG << "i am called by timer:" << get_time_stamp() << std::endl;
+            SPDLOG(INFO, "i am called by timer");
         });
 
         timer->start();
@@ -18,15 +18,14 @@ int main(int argc, char **argv)
 
         timer->stop();
 
-        LOG << "run once more!\n";
+        SPDLOG(INFO, "run once more!");
         timer->start(true);
         SLEEP(1550);
 
         timer->abandon();   // will make the engin to delete the timer
 
-        LOG << "test chroutine exit\n";
+        SPDLOG(INFO, "test chroutine exit");
     }, nullptr);
 
-    ENGIN.run();    
-    LOG << "over ..." << std::endl;
+    ENGIN.run();
 }

@@ -23,7 +23,7 @@ void fun_1(void *arg)
     int tick = 0;
     while (1) {
         tick++;
-        LOG << "fun_1 tick = " << tick << " (" << std::this_thread::get_id() << ")" << std::endl;
+        SPDLOG(INFO, "fun_1 tick = {}: ({})", tick, std::this_thread::get_id());
         fake_io_work(1000);
 
         if (tick % 3 == 0) {
@@ -33,19 +33,19 @@ void fun_1(void *arg)
             // if timeout happens during son's running, son will be stopped and removed immediately            
             reporter_base_t * rpt = ENGIN.create_son_chroutine([](void *d) {
                 test_return_data_t *data = (test_return_data_t *)d;
-                LOG << "son-of-func_1 (" << std::this_thread::get_id() << ") " << get_time_stamp() << std::endl;
+                SPDLOG(INFO, "son-of-func_1 ({})", std::this_thread::get_id());
                 fake_io_work(5000);
                 data->a = 888;
                 data->b = "hello father";
-                LOG << "son-of-func_1 (" << std::this_thread::get_id() << ") OVER " << get_time_stamp() << std::endl;
+                SPDLOG(INFO, "son-of-func_1 ({}) OVER", std::this_thread::get_id());
             }, reporter_t<test_return_data_t>::create(), 5100);
 
             // son is over, check the result
             if (rpt) {
-                LOG << "fun_1 (" << std::this_thread::get_id() << ") finish wait, son result:" << rpt->get_result() << std::endl;
+                SPDLOG(INFO, "fun_1 ({}) finish wait, son result:{}", std::this_thread::get_id(), rpt->get_result());
                 if (rpt->get_result() == result_done) {
                     test_return_data_t *p_data = static_cast<test_return_data_t*>(rpt->get_data());
-                    LOG << "son chroutine is done, test_return_data_t.a=" << p_data->a << ", b=" << p_data->b << std::endl;
+                    SPDLOG(INFO, "son chroutine is done, test_return_data_t.a={}, b={}", p_data->a, p_data->b);
                 }
             }
         }
@@ -55,7 +55,6 @@ void fun_1(void *arg)
 void fun_3(void *arg)
 {
     while (1) {
-        LOG << __FUNCTION__ << " running ...\n";
         //SLEEP(2000);
         usleep(710000);  //testing block os thread
         break;
@@ -66,7 +65,7 @@ void test_fair_sched() {
     ENGIN.create_chroutine([](void *){
         int i = 0;
         while (i<5) {
-            LOG << "I am 1\n";
+            SPDLOG(INFO, "I am 1");
             i++;
             YIELD();
         }
@@ -75,7 +74,7 @@ void test_fair_sched() {
     ENGIN.create_chroutine([](void *){
         int i = 0;
         while (i<5) {
-            LOG << "I am 2\n";
+            SPDLOG(INFO, "I am 2");
             i++;
             YIELD();
         }
@@ -84,7 +83,7 @@ void test_fair_sched() {
     ENGIN.create_chroutine([](void *){
         int i = 0;
         while (i<5) {
-            LOG << "I am 3\n";
+            SPDLOG(INFO, "I am 3");
             i++;
             YIELD();
         }
@@ -93,7 +92,7 @@ void test_fair_sched() {
     ENGIN.create_chroutine([](void *){
         int i = 0;
         while (i<5) {
-            LOG << "I am 4\n";
+            SPDLOG(INFO, "I am 4");
             i++;
             YIELD();
         }
@@ -108,12 +107,12 @@ int main(int argc, char **argv)
     ENGIN.create_chroutine([](void *){
     int tick = 0;
         while (1) {
-            LOG << "fun_2 tick = " << ++tick << " (" << std::this_thread::get_id() << ")" << std::endl;
+            SPDLOG(INFO, "fun_2 tick = {} ({})", ++tick, std::this_thread::get_id());
             SLEEP(1000);
 
             // create another chroutine in the same thread
             if (tick == 2) {
-                LOG << "try to create another chroutin\n";
+                SPDLOG(INFO, "try to create another chroutin");
                 ENGIN.create_son_chroutine(fun_3, nullptr);
             }
         }
@@ -121,6 +120,5 @@ int main(int argc, char **argv)
 
     // test_fair_sched();
 
-    ENGIN.run();    
-    LOG << "over ..." << std::endl;
+    ENGIN.run();
 }
