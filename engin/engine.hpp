@@ -10,8 +10,8 @@
 #define ENGINE_H
 
 #include <map>
-#include <thread>
 #include <vector>
+#include "tools.hpp"
 #include "chroutine.hpp"
 #include "selectable_obj.hpp"
 
@@ -34,10 +34,6 @@ typedef std::vector<std::shared_ptr<chroutine_thread_t> > thread_vector_t;
 typedef std::map<std::thread::id, selectable_object_sptr_t > http_stub_pool_t;
 #endif
 
-
-std::time_t get_time_stamp();
-void thread_ms_sleep(uint32_t ms);
-std::string readable_thread_id(const std::thread::id & id);
 
 class chr_timer_t;
 class engine_t final
