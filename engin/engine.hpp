@@ -37,6 +37,7 @@ typedef std::map<std::thread::id, selectable_object_sptr_t > http_stub_pool_t;
 
 std::time_t get_time_stamp();
 void thread_ms_sleep(uint32_t ms);
+std::string readable_thread_id(const std::thread::id & id);
 
 class chr_timer_t;
 class engine_t final

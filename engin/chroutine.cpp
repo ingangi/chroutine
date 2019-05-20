@@ -328,7 +328,7 @@ int chroutine_thread_t::schedule()
 {
     set_state(thread_state_t_running);
     m_is_running = true;
-    SPDLOG(INFO, "chroutine_thread_t {} schedule is_running {}, is main:{}", this, m_is_running, m_is_main_thread);
+    SPDLOG(INFO, "chroutine_thread_t {:p} schedule is_running {}, is main:{}", (void*)(this), m_is_running, m_is_main_thread);
     if (!m_is_main_thread) {
         engine_t::instance().on_thread_ready(m_creating_index, std::this_thread::get_id());
     }
@@ -341,7 +341,7 @@ int chroutine_thread_t::schedule()
     }
     m_is_running = false;
     set_state(thread_state_t_finished);
-    SPDLOG(INFO, "chroutine_thread_t {} schedule is_running {}, is main:{}", this, m_is_running, m_is_main_thread);
+    SPDLOG(INFO, "chroutine_thread_t {:p} schedule is_running {}, is main:{}", (void*)(this), m_is_running, m_is_main_thread);
     return 0;
 }
 
@@ -358,7 +358,7 @@ void chroutine_thread_t::start(size_t creating_index)
 void chroutine_thread_t::stop()
 {
     m_need_stop = true;
-    SPDLOG(CRITICAL, "chroutine_thread_t 0x{0:x} exiting...", (uint64_t)this);
+    SPDLOG(INFO, "chroutine_thread_t {:p} exiting...", (void*)this);
 }
 
 int chroutine_thread_t::select_all()
@@ -418,7 +418,7 @@ int chroutine_thread_t::awake_chroutine(chroutine_id_t id)
 void chroutine_thread_t::move_chroutines_to_thread(const std::shared_ptr<chroutine_thread_t> & other_thread)
 {
     set_state(thread_state_t_shifting);
-    SPDLOG(CRITICAL, "thread:{} move_chroutines_to_thread {}", this, other_thread.get());
+    SPDLOG(INFO, "thread:{:p} move_chroutines_to_thread {:p}", (void*)(this), (void*)(other_thread.get()));
     // todo
 
     set_state(thread_state_t_blocking);

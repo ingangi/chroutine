@@ -37,8 +37,9 @@ private:
         _async_file = ::spdlog::daily_logger_mt<::spdlog::async_factory_nonblock>("ENGINE", "ENGINE.log", 0, 0);
         
 #ifdef DEBUG_BUILD
-        _async_file->set_level(TRACE);
         _console = ::spdlog::stdout_color_mt("console");
+        _console->set_level(DEBUG);
+        _async_file->set_level(DEBUG);
 #else
         _async_file->set_level(INFO);
 #endif

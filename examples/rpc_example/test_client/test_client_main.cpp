@@ -15,7 +15,7 @@ int main(int argc, char **argv)
             return;
         }
 
-        SPDLOG(INFO, "grpc_async_client_t {} created, is it ready? {}", client, client->ready());
+        SPDLOG(INFO, "grpc_async_client_t {:p} created, is it ready? {}", (void*)client, client->ready());
 
         int i = 0;
         call_Test_HowAreYou caller(client);

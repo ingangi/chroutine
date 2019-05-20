@@ -23,7 +23,7 @@ void fun_1(void *arg)
     int tick = 0;
     while (1) {
         tick++;
-        SPDLOG(INFO, "fun_1 tick = {}: ({})", tick, std::this_thread::get_id());
+        SPDLOG(INFO, "fun_1 tick = {}: ({})", tick, readable_thread_id(std::this_thread::get_id()));
         fake_io_work(1000);
 
         if (tick % 3 == 0) {
@@ -33,16 +33,16 @@ void fun_1(void *arg)
             // if timeout happens during son's running, son will be stopped and removed immediately            
             reporter_base_t * rpt = ENGIN.create_son_chroutine([](void *d) {
                 test_return_data_t *data = (test_return_data_t *)d;
-                SPDLOG(INFO, "son-of-func_1 ({})", std::this_thread::get_id());
+                SPDLOG(INFO, "son-of-func_1 ({})", readable_thread_id(std::this_thread::get_id()));
                 fake_io_work(5000);
                 data->a = 888;
                 data->b = "hello father";
-                SPDLOG(INFO, "son-of-func_1 ({}) OVER", std::this_thread::get_id());
+                SPDLOG(INFO, "son-of-func_1 ({}) OVER", readable_thread_id(std::this_thread::get_id()));
             }, reporter_t<test_return_data_t>::create(), 5100);
 
             // son is over, check the result
             if (rpt) {
-                SPDLOG(INFO, "fun_1 ({}) finish wait, son result:{}", std::this_thread::get_id(), rpt->get_result());
+                SPDLOG(INFO, "fun_1 ({}) finish wait, son result:{}", readable_thread_id(std::this_thread::get_id()), rpt->get_result());
                 if (rpt->get_result() == result_done) {
                     test_return_data_t *p_data = static_cast<test_return_data_t*>(rpt->get_data());
                     SPDLOG(INFO, "son chroutine is done, test_return_data_t.a={}, b={}", p_data->a, p_data->b);
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
     ENGIN.create_chroutine([](void *){
     int tick = 0;
         while (1) {
-            SPDLOG(INFO, "fun_2 tick = {} ({})", ++tick, std::this_thread::get_id());
+            SPDLOG(INFO, "fun_2 tick = {} ({})", ++tick, readable_thread_id(std::this_thread::get_id()));
             SLEEP(1000);
 
             // create another chroutine in the same thread

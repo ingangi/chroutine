@@ -115,7 +115,7 @@ void curl_req_t::make_default_opts()
 
 size_t curl_rsp_t::write_rsp_data_func(void *buffer, size_t size, size_t nmemb, void *userp)
 {
-    LOG << size * nmemb << " bytes written " << userp << ", string: "<< (const char*)buffer << std::endl;
+    SPDLOG(TRACE, "{} bytes written {}, string:({})", size * nmemb, userp, (const char*)buffer);
     return size * nmemb;
 }
 

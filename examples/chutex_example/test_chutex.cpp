@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 
     // 2 read chroutines
     ENGIN.create_chroutine([&](void *){
-        SPDLOG(INFO, "reader 1 in thread:{}", std::this_thread::get_id());
+        SPDLOG(INFO, "reader 1 in thread:{}", readable_thread_id(std::this_thread::get_id()));
         SLEEP(3010);
 #if 0
         if (!chutex.try_lock()) {
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
         SPDLOG(INFO, "reader 1 unlock");
     }, nullptr);
     ENGIN.create_chroutine([&](void *){
-        SPDLOG(INFO, "reader 2 in thread:{}", std::this_thread::get_id());
+        SPDLOG(INFO, "reader 2 in thread:{}", readable_thread_id(std::this_thread::get_id()));
         SLEEP(3000);
         chutex_guard_t guard(chutex);
         SPDLOG(INFO, "reader 2 get lock");
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     
     // 1 write chroutine
     ENGIN.create_chroutine([&](void *){
-        SPDLOG(INFO, "writer 1 in thread:{}", std::this_thread::get_id());
+        SPDLOG(INFO, "writer 1 in thread:{}", readable_thread_id(std::this_thread::get_id()));
         chutex.lock();
         SPDLOG(INFO, "writer 1 get lock");
         for (int i = 0; i < 10; i++) {

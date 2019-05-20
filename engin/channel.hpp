@@ -44,7 +44,7 @@ class channel_t final : public channel_it
 public:
     typedef std::shared_ptr<channel_t<T> > channel_sptr_t;
     ~channel_t(){
-        SPDLOG(TRACE, "channel {} released", this);
+        SPDLOG(TRACE, "channel {:p} released", (void*)this);
         delete [] m_data_array;
     }
     static channel_sptr_t create(int max_size = 1) {
@@ -68,7 +68,7 @@ private:
         if (m_max_size <= 0)
             m_max_size = 1;
         m_data_array = new T[m_max_size];
-        SPDLOG(TRACE, "channel {} created", this);
+        SPDLOG(TRACE, "channel {:p} created", (void*)this);
     }
 
     int writable() {

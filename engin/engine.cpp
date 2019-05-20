@@ -1,5 +1,6 @@
 #include <unistd.h>
-#include<signal.h>
+#include <signal.h>
+#include <sstream>
 #include "engine.hpp"
 #include "timer.hpp"
 
@@ -26,6 +27,12 @@ void thread_ms_sleep(uint32_t ms)
     while ((-1 == nanosleep(&ts, &ts)) && (EINTR == errno));
 }
 
+std::string readable_thread_id(const std::thread::id & id)
+{
+    std::stringstream sin;
+    sin << id;
+    return sin.str();
+}
 
 engine_t& engine_t::instance()
 {
@@ -55,7 +62,7 @@ void engine_t::init(size_t init_pool_size)
         thrd.get()->start(i);
     }
 
-    SPDLOG(CRITICAL, "{}: init_pool_size = {}, m_main_thread_id = {}", __FUNCTION__, init_pool_size, m_main_thread_id);
+    SPDLOG(INFO, "{}: init_pool_size = {}, m_main_thread_id = {}", __FUNCTION__, init_pool_size, readable_thread_id(m_main_thread_id));
 
     while (!m_init_over) {
         thread_ms_sleep(10);
@@ -63,7 +70,7 @@ void engine_t::init(size_t init_pool_size)
     
     // main thread do not need start()
     m_main_thread = chroutine_thread_t::new_thread();
-    SPDLOG(CRITICAL, "{}: OVER", __FUNCTION__);
+    SPDLOG(INFO, "{}: OVER", __FUNCTION__);
 }
 
 void engine_t::on_thread_ready(size_t creating_index, std::thread::id thread_id)
@@ -76,7 +83,7 @@ void engine_t::on_thread_ready(size_t creating_index, std::thread::id thread_id)
     m_pool[thread_id] = m_creating[creating_index];
     if (m_pool.size() == m_creating.size()) {
         m_init_over = true; 
-        SPDLOG(CRITICAL, "{}: m_init_over now is TRUE", __FUNCTION__);
+        SPDLOG(INFO, "{}: m_init_over now is TRUE", __FUNCTION__);
 
 #ifdef ENABLE_HTTP_PLUGIN
         curl_global_init(CURL_GLOBAL_ALL);
@@ -318,8 +325,8 @@ void engine_t::check_threads()
         if (thrd) {
             std::time_t thrd_entry_time = thrd->entry_time();
             if (thrd_entry_time != 0) {
-                SPDLOG(TRACE, "engine_t::check_thread: {}, entry time: {}, , now time: {}"
-                    , thrd.get()
+                SPDLOG(TRACE, "engine_t::check_thread: {:p}, entry time: {}, , now time: {}"
+                    , (void*)(thrd.get())
                     , thrd_entry_time
                     , now);
             }
@@ -382,12 +389,12 @@ void engine_t::stop_all()
 void engine_t::run()
 {
     if (!m_main_thread) {
-        SPDLOG(CRITICAL, "main thread<chroutine_thread_t> is null!");
+        SPDLOG(ERROR, "main thread<chroutine_thread_t> is null!");
         return;
     }
 
     if (m_main_thread->is_running()) {
-        SPDLOG(CRITICAL, "main thread run failed: already running!");
+        SPDLOG(ERROR, "main thread run failed: already running!");
         return;
     }
 
@@ -395,7 +402,7 @@ void engine_t::run()
     signal(SIGQUIT, signal_handle);
     signal(SIGTERM, signal_handle);
     m_main_thread->set_main_thread_flag(true);
-    SPDLOG(DEBUG, "main thread is about to run, check the id:{}=={}", m_main_thread_id, std::this_thread::get_id());
+    SPDLOG(DEBUG, "main thread is about to run, check the id:{}=={}", readable_thread_id(m_main_thread_id), readable_thread_id(std::this_thread::get_id()));
 
     create_chroutine_in_mainthread([this](void *){
         while (true) {
@@ -421,7 +428,7 @@ void engine_t::run()
     m_main_thread->schedule();
 
     // clean
-    SPDLOG(CRITICAL, "main thread exited!");
+    SPDLOG(INFO, "main thread exited!");
 }
 
 }

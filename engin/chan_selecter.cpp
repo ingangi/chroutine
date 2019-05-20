@@ -11,13 +11,13 @@ chan_selecter_t::~chan_selecter_t()
 int chan_selecter_t::add_case(channel_it* chan, /*act_type_t type, */void *data_ptr, const callback_t& callback)
 {
     if (chan == nullptr || data_ptr == nullptr) {
-        SPDLOG(ERROR, "{} error: chan(0x{0:x}), data_ptr(0x{0:x})", __FUNCTION__, chan, data_ptr);
+        SPDLOG(ERROR, "{} error: chan({:p}), data_ptr({:p})", __FUNCTION__, (void*)chan, (void*)data_ptr);
         return -1;
     }
 
     auto iter_find = m_cases.find(chan);
     if (iter_find != m_cases.end()) {
-        SPDLOG(ERROR, "{} error:key conflict(will delete the old one): 0x{0:x}", __FUNCTION__, chan);
+        SPDLOG(ERROR, "{} error:key conflict(will delete the old one): {:p}", __FUNCTION__, (void*)(chan));
         m_cases.erase(iter_find);
     }
 
@@ -40,7 +40,7 @@ int chan_selecter_t::del_case(channel_it* chan)
 {
     auto iter_find = m_cases.find(chan);
     if (iter_find != m_cases.end()) {
-        SPDLOG(DEBUG, "{} delete key: 0x{0:x}", __FUNCTION__, chan);
+        SPDLOG(DEBUG, "{} delete key: {:p}", __FUNCTION__, (void*)(chan));
         m_cases.erase(iter_find);
     }
 

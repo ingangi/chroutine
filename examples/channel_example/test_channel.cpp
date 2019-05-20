@@ -10,7 +10,7 @@ void test_channel_basic() {
 
     // 2 read chroutines
     ENGIN.create_chroutine([&](void *){
-        SPDLOG(INFO, "reader 1 in thread:{}", std::this_thread::get_id());
+        SPDLOG(INFO, "reader 1 in thread:{}", readable_thread_id(std::this_thread::get_id()));
         for (int i=0; i < 20; i++) {
             int r = -1;
             SPDLOG(INFO, "[{}]reader 1 try to read r ...", i);
@@ -19,7 +19,7 @@ void test_channel_basic() {
         }
     }, nullptr);
     ENGIN.create_chroutine([&](void *){
-        SPDLOG(INFO, "reader 2 in thread:{}", std::this_thread::get_id());
+        SPDLOG(INFO, "reader 2 in thread:{}", readable_thread_id(std::this_thread::get_id()));
         for (int i=0; i < 20; i++) {
             int r = -1;
             SPDLOG(INFO, "[{}]reader 2 try to read r ...", i);
@@ -31,7 +31,7 @@ void test_channel_basic() {
     
     // 1 write chroutine
     ENGIN.create_chroutine([&](void *){
-        SPDLOG(INFO, "writer 1 in thread:{}", std::this_thread::get_id());
+        SPDLOG(INFO, "writer 1 in thread:{}", readable_thread_id(std::this_thread::get_id()));
         SLEEP(3000);
         for (int i=0; i < 30; i++) {
             SPDLOG(INFO, "[{}]try to write chan", i);
@@ -63,7 +63,7 @@ void test_channel_select() {
         });
         
         chan_selecter.add_case(chan_char.get(), &char_read, [&](){
-            SPDLOG(INFO, "char read:{}", char_read);SPDLOG(INFO, "nothing to read now");
+            SPDLOG(INFO, "char read:{}", char_read);
         });
 
         // if nothing todo with default, do not add it

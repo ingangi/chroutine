@@ -15,8 +15,6 @@ void call_round_it::re_serve()
 
 void call_round_it::process()
 {
-	// LOG << __FUNCTION__ << ":" << this << ", step:" <<  m_step << std::endl;
-
 	if (m_step == CREATE) {
 		m_step = PROCESS;
 		request_service();
@@ -30,7 +28,7 @@ void call_round_it::process()
 		}, nullptr);
 	} else {
 		if (m_step != FINISH) {
-			LOG("ERROR: wrong state %d, delete it anyway", m_step);
+			SPDLOG(ERROR, "wrong state {}, delete it anyway", m_step);
 		}
 		delete this;
 	}
@@ -82,11 +80,11 @@ grpc_async_server_it::~grpc_async_server_it()
 int grpc_async_server_it::start(const std::string & addr)
 {
 	if (m_running) {
-		LOG("start grpc_async_server_it(%s) failed, already running!", addr.c_str());
+		SPDLOG(ERROR, "start grpc_async_server_it({}) failed, already running!", addr.c_str());
 		return 0;
 	}
 
-	LOG("start grpc_async_server_it(%s)!", addr.c_str());
+	SPDLOG(INFO, "start grpc_async_server_it(%s)!", addr.c_str());
 
 	if (0 != start_grpc_server(addr))
 		return -1;

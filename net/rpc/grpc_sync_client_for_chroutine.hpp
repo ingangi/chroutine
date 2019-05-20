@@ -76,8 +76,7 @@ protected:
 			}, reporter_t<rpc_call_wait_t>::create(), m_chroutine_timeout_ms);
 			
 			if (rpt) {
-				LOG << "wait_call, call result:" << rpt->get_result() 
-				<< ", status.ok:" << m_status.ok() << std::endl;
+				SPDLOG(DEBUG, "wait_call, call result:{}, status.ok:{}", rpt->get_result(), m_status.ok());
 			}
 		}
 		// 

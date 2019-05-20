@@ -4,7 +4,7 @@ LD	= @echo " ld  $@"; ld
 AR	= @echo " ar  $@"; ar
 RM	= @echo " RM	$@"; rm -f
 
-CFLAGS += -Wall -std=c++11 -DENABLE_HTTP_PLUGIN
+CFLAGS += -Wall -std=c++11 -DENABLE_HTTP_PLUGIN -DDEBUG_BUILD
 CFLAGS += -g
 
 #LDFLAGS += "-Wl" -lpthread -lc

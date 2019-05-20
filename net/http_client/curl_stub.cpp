@@ -17,12 +17,11 @@ curl_stub_t::curl_stub_t()
 {
     m_multi_handle = curl_multi_init();
     if (m_multi_handle == nullptr)  {
-        LOG << "curl_multi_init error!" << std::endl;
+        SPDLOG(CRITICAL, "curl_multi_init error!");
         exit(1);
         return;
     }
 
-    LOG << "m_multi_handle created:" << m_multi_handle << std::endl;
 	curl_multi_setopt(m_multi_handle, CURLMOPT_MAXCONNECTS, MAX_CONCURRENT_TRANS_IN_CURLMULTI);
 }
 
@@ -40,7 +39,7 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
 {
     chroutine_id_t chroutine_id = ENGIN.get_current_chroutine_id();
     if (chroutine_id == INVALID_ID) {
-        LOG << "curl_stub_t::exec_curl error: can't get current_chroutine_id" << std::endl;
+        SPDLOG(ERROR, "curl_stub_t::exec_curl error: can't get current_chroutine_id!");
         return nullptr;
     }
 
@@ -72,7 +71,7 @@ std::shared_ptr<curl_rsp_t> curl_stub_t::exec_curl(const std::string & url
         }, reporter_t<curl_call_wait_t>::create(), timeout);
         
         if (rpt) {
-            LOG << "curl_call_wait_t, call result:" << rpt->get_result() << std::endl;
+            SPDLOG(DEBUG, "curl_call_wait_t, call result:{}", rpt->get_result());
         }
     }
 
@@ -127,7 +126,6 @@ void curl_stub_t::execute_all_async()
 		&& nSelectTimeoutTimes < SELECT_TIMEOUT_TIMES) {
 
 		if (curl_multi_wait(m_multi_handle, NULL, 0, SELECT_TIMEOUT, &numfds) != CURLM_OK) {
-			LOG << ("HttpAgent::PerformTransfer, curl_multi_wait fail\n");
 			return;
 		}
 		nSelectTimes++;
@@ -136,8 +134,6 @@ void curl_stub_t::execute_all_async()
 		} else {
 			nSelectTimeoutTimes = 0;
 			curl_multi_perform(m_multi_handle, &nCountOfEasyHandlesRun);
-			if (nSelectTimes % 10 == 0) //reduce log;
-				LOG << "HttpAgent::PerformTransfer after one while, nCountOfEasyHandlesRun=" << nCountOfEasyHandlesRun << ",nSelectTimes=" << nSelectTimes << ", nSelectTimeoutTimes=" << nSelectTimeoutTimes << std::endl;
 		}
 	}    
 }
@@ -164,7 +160,7 @@ void curl_stub_t::read_and_clean()
                 }
                 m_curl_req_doing_map.erase(iter);
             } else {
-                LOG << "cant find curl_req_t in m_curl_req_doing_map\n";
+                SPDLOG(ERROR, "cant find curl_req_t in m_curl_req_doing_map");
             }
 		}
 	}

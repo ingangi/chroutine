@@ -7,12 +7,10 @@ chr_timer_t::chr_timer_t(uint32_t interval_ms, timer_callback_t &cb)
     m_trigger = channel_t<int>::create();
     m_cb = std::move(cb);
     m_interval_ms = interval_ms;
-    LOG << "timer:" << this << " created\n";
 }
 
 chr_timer_t::~chr_timer_t()
-{    
-    LOG << "timer:" << this << " destroyed\n";
+{
 }
 
 
@@ -29,12 +27,12 @@ int chr_timer_t::select(int wait_ms)
 bool chr_timer_t::start(bool once)
 {
     if (m_running) {
-        LOG << "chr_timer_t::start ignored: already running\n";
+		SPDLOG(ERROR, "chr_timer_t::start ignored: already running");
         return false;
     }
 
     if (m_cb == nullptr || m_interval_ms == 0) {
-        LOG << "chr_timer_t::start error: m_cb == nullptr || m_interval_ms == 0\n";
+		SPDLOG(ERROR, "chr_timer_t::start error: m_cb == nullptr || m_interval_ms == 0");
         return false;
     }
 
@@ -52,7 +50,6 @@ bool chr_timer_t::start(bool once)
 
     // add select case
     m_selecter.add_case(m_trigger.get(), &m_d, [&](){
-        LOG << "timer triggled !!! m_running=" << m_running << std::endl;
         if (!m_running) {
             return;
         }
@@ -68,11 +65,11 @@ bool chr_timer_t::start(bool once)
 void chr_timer_t::stop()
 {
     if (!m_running) {
-        LOG << "chr_timer_t::stop ignored: not running\n";
+		SPDLOG(ERROR, "chr_timer_t::stop ignored: not running");
         return;
     }
 
-    LOG << "timer:" << this << " stopping ...\n";
+	SPDLOG(DEBUG, "timer:{:p} stopping ...", (void*)this);
     m_running = false;
     m_selecter.select_once();   //clear the channel buf
     m_selecter.del_case(m_trigger.get());
@@ -86,13 +83,13 @@ void chr_timer_t::stop()
     while (m_trigger_chroutine_id != INVALID_ID) {
         SLEEP(5);
     }
-    LOG << "timer:" << this << " stopped!\n";    
+	SPDLOG(DEBUG, "timer:{:p} stopped!", (void*)this); 
 }
 
 void chr_timer_t::abandon() 
 {
     if (m_running) {
-        LOG << "chr_timer_t::abandon: timer(" << this << ") is running, stop it!\n";
+	    SPDLOG(DEBUG, "chr_timer_t::abandon: timer({:p}) is running, stop it!", (void*)this);
         stop();
     }
     unregister_from_engin();
