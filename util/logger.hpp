@@ -34,7 +34,7 @@ class logger_t
 {
 private:
     logger_t(){
-        _async_file = ::spdlog::daily_logger_mt<::spdlog::async_factory_nonblock>("ENGINE", "ENGINE.log", 0, 0);
+        _async_file = ::spdlog::daily_logger_st<::spdlog::async_factory_nonblock>("ENGINE", "ENGINE.log", 0, 0);
         
 #ifdef DEBUG_BUILD
         _console = ::spdlog::stdout_color_mt("console");
