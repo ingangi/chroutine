@@ -50,6 +50,8 @@ public:
     chroutine_t(chroutine_id_t id);
     ~chroutine_t();
 
+    chroutine_t(chroutine_t &&other);
+
     // if wait is over, return 0
     int wait(std::time_t now);
 
@@ -67,8 +69,16 @@ public:
         return me;
     }
 
+    // this task was moved to another thread, please remove it
+    void set_moved() {
+        moved = true;
+    }
+    bool has_moved() {
+        return moved;
+    }
+
 private:
-    ucontext_t          ctx;
+    ucontext_t *        ctx = nullptr;
     func_t              func = nullptr;
     void *              arg = nullptr;
     chroutine_state_t   state = chroutine_state_suspend;
@@ -80,6 +90,7 @@ private:
     chroutine_id_t      son = INVALID_ID;
     reporter_sptr_t     reporter;   // son chroutine excute result
     bool                stop_son_when_yield_over = false;
+    bool                moved = false;
 };
 
 
@@ -185,6 +196,8 @@ public:
     static chroutine_id_t gen_chroutine_id() {
         return ++ms_chroutine_id;
     }
+
+    chroutine_id_t resettle(chroutine_t &chroutine);
 
 private:
     chroutine_thread_t();

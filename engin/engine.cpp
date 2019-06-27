@@ -310,10 +310,16 @@ void engine_t::check_threads()
                     , now);
             }
 
-            if (thrd_entry_time != 0 && now - thrd_entry_time > MAX_ENTRY_CALL_TIME_MS) {
-                bads.push_back(thrd);
+            if (thrd_entry_time != 0 && now > MAX_ENTRY_CALL_TIME_MS + thrd_entry_time) {
+                if (thread_state_t_running == thrd->state()) {
+                    bads.push_back(thrd);
+                }
             } else {
-                goods.push_back(thrd);
+                if (thread_state_t_blocking == thrd->state()) {
+                    thrd->set_state(thread_state_t_running); //TODO: more smart
+                } else {
+                    goods.push_back(thrd);
+                }
             }
         }
     }

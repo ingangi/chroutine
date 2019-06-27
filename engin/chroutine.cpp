@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <iostream>
+#include <algorithm>    // std::swap
 #include "chroutine.hpp"
 #include "engine.hpp"
 
@@ -12,13 +13,14 @@ chroutine_t::chroutine_t(chroutine_id_t id) : me(id)
 {
     SPDLOG(TRACE, "chroutine_t created: {}", me);
     stack = new char[STACK_SIZE];
+    ctx = new ucontext_t;
 }
 
 chroutine_t::~chroutine_t() 
 {
     SPDLOG(TRACE, "chroutine_t destroyed: {}", me);
-    if (stack)
-        delete [] stack;
+    delete [] stack;
+    delete ctx;
 }
 
 int chroutine_t::wait(std::time_t now) 
@@ -172,15 +174,15 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
     if (p_c == nullptr)
         return INVALID_ID;
 
-    getcontext(&(p_c->ctx));
-    p_c->ctx.uc_stack.ss_sp = p_c->stack;
-    p_c->ctx.uc_stack.ss_size = STACK_SIZE;
-    p_c->ctx.uc_stack.ss_flags = 0;
-    p_c->ctx.uc_link = &(m_schedule.main);
+    getcontext(p_c->ctx);
+    p_c->ctx->uc_stack.ss_sp = p_c->stack;
+    p_c->ctx->uc_stack.ss_size = STACK_SIZE;
+    p_c->ctx->uc_stack.ss_flags = 0;
+    p_c->ctx->uc_link = &(m_schedule.main);
     p_c->func = std::move(func);
     p_c->arg = arg;
     p_c->state = chroutine_state_ready;
-    makecontext(&(p_c->ctx),(void (*)(void))(entry), 1, this);
+    makecontext(p_c->ctx,(void (*)(void))(entry), 1, this);
 
     {
         chutex_guard_t lock(m_chroutine_lock);
@@ -238,7 +240,7 @@ void chroutine_thread_t::yield_current(int tick)
     co->state = chroutine_state_suspend;
     co->yield_wait += tick;
     m_schedule.running_id = INVALID_ID;
-    swapcontext(&(co->ctx), &(m_schedule.main));
+    swapcontext(co->ctx, &(m_schedule.main));
 }
 
 void chroutine_thread_t::wait_current(std::time_t wait_time_ms, bool stop_son_after_wait)
@@ -261,7 +263,7 @@ void chroutine_thread_t::wait_current(std::time_t wait_time_ms, bool stop_son_af
     co->yield_to = get_time_stamp() + wait_time_ms;
     co->stop_son_when_yield_over = stop_son_after_wait;
     m_schedule.running_id = INVALID_ID;
-    swapcontext(&(co->ctx), &(m_schedule.main));
+    swapcontext(co->ctx, &(m_schedule.main));
 }
 
 bool chroutine_thread_t::done()
@@ -275,7 +277,7 @@ void chroutine_thread_t::resume_to(chroutine_id_t id)
     if (co == nullptr || co->state != chroutine_state_suspend)
         return;
     
-    swapcontext(&(m_schedule.main),&(co->ctx));
+    swapcontext(&(m_schedule.main), co->ctx);
 }
 
 int chroutine_thread_t::pick_run_chroutine()
@@ -318,7 +320,7 @@ int chroutine_thread_t::pick_run_chroutine()
         p_c->state = chroutine_state_running;
         m_schedule.running_id = p_c->id();
         set_entry_time();
-        swapcontext(&(m_schedule.main),&(p_c->ctx));
+        swapcontext(&(m_schedule.main), p_c->ctx);
         clear_entry_time();
     }
     return pick_count;
@@ -417,11 +419,62 @@ int chroutine_thread_t::awake_chroutine(chroutine_id_t id)
 
 void chroutine_thread_t::move_chroutines_to_thread(const std::shared_ptr<chroutine_thread_t> & other_thread)
 {
+    if (other_thread.get() == this) {
+        return;
+    }
+
     set_state(thread_state_t_shifting);
-    SPDLOG(INFO, "thread:{:p} move_chroutines_to_thread {:p}", (void*)(this), (void*)(other_thread.get()));
-    // todo
+    
+    {
+        chutex_guard_t lock(m_chroutine_lock);
+        auto iter_list = m_schedule.chroutines_sched.begin();
+        for (; iter_list != m_schedule.chroutines_sched.end(); iter_list++) {
+            if ((*iter_list)->id() != m_schedule.running_id) {
+                (*iter_list)->set_moved();
+                other_thread->resettle(*(iter_list->get()));
+                SPDLOG(INFO, "chroutine({}) of thread:{:p} move_chroutines_to_thread {:p}"
+                        , (*iter_list)->id()
+                        , (void*)(this)
+                        , (void*)(other_thread.get()));
+            }
+        }
+    }
 
     set_state(thread_state_t_blocking);
+}
+
+chroutine_t::chroutine_t(chroutine_t &&other)
+{
+    SPDLOG(DEBUG, "moving chroutine_t ...");
+    std::swap(ctx, other.ctx);
+    func = std::move(other.func);
+    arg = other.arg;
+    state = other.state;
+    std::swap(stack, other.stack);
+    yield_wait = other.yield_wait;
+    yield_to = other.yield_to;
+    me = other.me;
+    father = other.father;
+    son = other.son;
+    reporter = other.reporter;
+    stop_son_when_yield_over = other.stop_son_when_yield_over;
+}
+
+chroutine_id_t chroutine_thread_t::resettle(chroutine_t &chroutine)
+{
+    std::shared_ptr<chroutine_t> c(new chroutine_t(std::move(chroutine)));
+    chroutine_t *p_c = c.get();
+    if (p_c == nullptr)
+        return INVALID_ID;
+        
+    p_c->ctx->uc_link = &(m_schedule.main);
+    {
+        chutex_guard_t lock(m_chroutine_lock);
+        m_schedule.chroutines_map[p_c->id()] = c;
+        m_schedule.chroutines_sched.push_back(c);
+    }
+
+    return p_c->id();
 }
 
 std::time_t chroutine_thread_t::entry_time() 
