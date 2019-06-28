@@ -76,6 +76,11 @@ public:
     bool has_moved() {
         return moved;
     }
+    
+private:
+    chroutine_t(const chroutine_t &) = delete;
+    chroutine_t& operator=(const chroutine_t &) = delete;
+    chroutine_t& operator=(chroutine_t &&) = delete;
 
 private:
     ucontext_t *        ctx = nullptr;
@@ -197,6 +202,11 @@ public:
 
 private:
     chroutine_thread_t();
+    
+    chroutine_thread_t(const chroutine_thread_t &) = delete;
+    chroutine_thread_t(chroutine_thread_t &&) = delete;
+    chroutine_thread_t& operator=(const chroutine_thread_t &) = delete;
+    chroutine_thread_t& operator=(chroutine_thread_t &&) = delete;
 
     // called by yield
     void yield_current(int tick);
