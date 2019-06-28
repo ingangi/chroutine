@@ -6,8 +6,7 @@ void test_resettle_sched() {
     ENGIN.create_chroutine([](void *){
         int i = 0;
         while (1) {
-            SPDLOG(INFO, "I am 1, {} thread {}", i, readable_thread_id(std::this_thread::get_id()));
-            i++;
+            SPDLOG(INFO, "I am 1, {} thread {}", i++, readable_thread_id(std::this_thread::get_id()));
             SLEEP(1000);
             // block happens!
             if (i == 5) {
@@ -21,8 +20,7 @@ void test_resettle_sched() {
     ENGIN.create_chroutine([](void *){
         int i = 0;
         while (1) {
-            SPDLOG(INFO, "I am 2, {} thread {}", i, readable_thread_id(std::this_thread::get_id()));
-            i++;
+            SPDLOG(INFO, "I am 2, {} thread {}", i++, readable_thread_id(std::this_thread::get_id()));
             SLEEP(1000);
         }
     }, nullptr);
@@ -30,8 +28,7 @@ void test_resettle_sched() {
     ENGIN.create_chroutine([](void *){
         int i = 0;
         while (1) {
-            SPDLOG(INFO, "I am 3, {} thread {}", i, readable_thread_id(std::this_thread::get_id()));
-            i++;
+            SPDLOG(INFO, "I am 3, {} thread {}", i++, readable_thread_id(std::this_thread::get_id()));
             SLEEP(1000);
         }
     }, nullptr);

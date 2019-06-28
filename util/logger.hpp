@@ -40,6 +40,7 @@ private:
         _console = ::spdlog::stdout_color_mt("console");
         _console->set_level(DEBUG);
         _async_file->set_level(DEBUG);
+        _async_file->sinks().push_back(_console->sinks()[0]);
 #else
         _async_file->set_level(INFO);
 #endif
@@ -95,20 +96,10 @@ private:
 }
 
 #define LOG chr::logger_t::instance()
-
-#ifdef DEBUG_BUILD
-#define SPDLOG(level, format, ...) {\
-    if (chr::logger_t::instance()._async_file->should_log(level)) {\
-        chr::logger_t::instance()._async_file->log(level, format,  ##__VA_ARGS__);\
-        chr::logger_t::instance()._console->log(level, format,  ##__VA_ARGS__);\
-    }\
-}
-#else
 #define SPDLOG(level, format, ...) {\
     if (chr::logger_t::instance()._async_file->should_log(level)) {\
         chr::logger_t::instance()._async_file->log(level, format,  ##__VA_ARGS__);\
     }\
 }
-#endif
 
 #endif
