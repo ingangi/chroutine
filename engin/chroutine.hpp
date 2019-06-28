@@ -185,13 +185,9 @@ public:
     // this thread is blocked, move chroutines to other thread.
     void move_chroutines_to_thread(const std::shared_ptr<chroutine_thread_t> & other_thread);
 
-    void set_state(thread_state_t state) {
-        m_state.store(state,std::memory_order_relaxed);
-    }
+    void set_state(thread_state_t state);
 
-    thread_state_t state() {
-        return m_state.load(std::memory_order_relaxed);
-    }
+    thread_state_t state();
 
     static chroutine_id_t gen_chroutine_id() {
         return ++ms_chroutine_id;
@@ -232,6 +228,8 @@ private:
 
     void set_entry_time();
     void clear_entry_time();
+
+    void clear_all_chroutine();
 
 private:
     schedule_t                  m_schedule;

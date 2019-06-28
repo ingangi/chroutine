@@ -61,64 +61,24 @@ void fun_3(void *arg)
     }
 }
 
-void test_fair_sched() {
-    ENGIN.create_chroutine([](void *){
-        int i = 0;
-        while (i<5) {
-            SPDLOG(INFO, "I am 1");
-            i++;
-            YIELD();
-        }
-    }, nullptr);
-    
-    ENGIN.create_chroutine([](void *){
-        int i = 0;
-        while (i<5) {
-            SPDLOG(INFO, "I am 2");
-            i++;
-            YIELD();
-        }
-    }, nullptr);
-    
-    ENGIN.create_chroutine([](void *){
-        int i = 0;
-        while (i<5) {
-            SPDLOG(INFO, "I am 3");
-            i++;
-            YIELD();
-        }
-    }, nullptr);
-    
-    ENGIN.create_chroutine([](void *){
-        int i = 0;
-        while (i<5) {
-            SPDLOG(INFO, "I am 4");
-            i++;
-            YIELD();
-        }
-    }, nullptr);
-}
-
 int main(int argc, char **argv)
 {
     ENGINE_INIT(2);
 
-    // ENGIN.create_chroutine(fun_1, nullptr);  
-    // ENGIN.create_chroutine([](void *){
-    // int tick = 0;
-    //     while (1) {
-    //         SPDLOG(INFO, "fun_2 tick = {} ({})", ++tick, readable_thread_id(std::this_thread::get_id()));
-    //         SLEEP(1000);
+    ENGIN.create_chroutine(fun_1, nullptr);  
+    ENGIN.create_chroutine([](void *){
+    int tick = 0;
+        while (1) {
+            SPDLOG(INFO, "fun_2 tick = {} ({})", ++tick, readable_thread_id(std::this_thread::get_id()));
+            SLEEP(1000);
 
-    //         // create another chroutine in the same thread
-    //         if (tick == 2) {
-    //             SPDLOG(INFO, "try to create another chroutin");
-    //             ENGIN.create_son_chroutine(fun_3, nullptr);
-    //         }
-    //     }
-    // }, nullptr);
-
-    test_fair_sched();
+            // create another chroutine in the same thread
+            if (tick == 2) {
+                SPDLOG(INFO, "try to create another chroutin");
+                ENGIN.create_son_chroutine(fun_3, nullptr);
+            }
+        }
+    }, nullptr);
 
     ENGIN.run();
 }

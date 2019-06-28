@@ -23,6 +23,23 @@ chroutine_t::~chroutine_t()
     delete ctx;
 }
 
+chroutine_t::chroutine_t(chroutine_t &&other)
+{
+    SPDLOG(DEBUG, "chroutine_t created: {} (by move constructor)", other.me);
+    std::swap(ctx, other.ctx);
+    func = std::move(other.func);
+    arg = other.arg;
+    state = other.state;
+    std::swap(stack, other.stack);
+    yield_wait = other.yield_wait;
+    yield_to = other.yield_to;
+    me = other.me;
+    father = other.father;
+    son = other.son;
+    reporter = other.reporter;
+    stop_son_when_yield_over = other.stop_son_when_yield_over;
+}
+
 int chroutine_t::wait(std::time_t now) 
 {
     if (yield_wait > 0)
@@ -102,6 +119,14 @@ chroutine_t * chroutine_thread_t::get_chroutine(chroutine_id_t id)
     }
 
     return iter->second.get();
+}
+
+void chroutine_thread_t::clear_all_chroutine()
+{
+    chutex_guard_t lock(m_chroutine_lock);
+    m_schedule.chroutines_map.clear();
+    m_schedule.chroutines_to_free.clear();
+    m_schedule.chroutines_sched.clear();
 }
 
 void chroutine_thread_t::remove_chroutine(chroutine_id_t id)
@@ -303,7 +328,7 @@ int chroutine_thread_t::pick_run_chroutine()
 
         for (; m_schedule.sched_iter != m_schedule.chroutines_sched.end(); m_schedule.sched_iter++) {
             auto &node = *(m_schedule.sched_iter);
-            if (node.get()->wait(now) > 0)
+            if (node->has_moved() || node->wait(now) > 0)
                 continue;
             if (p_c == nullptr) {
                 p_c = node.get();
@@ -343,6 +368,7 @@ int chroutine_thread_t::schedule()
     }
     m_is_running = false;
     set_state(thread_state_t_finished);
+    clear_all_chroutine();
     SPDLOG(INFO, "chroutine_thread_t {:p} schedule is_running {}, is main:{}", (void*)(this), m_is_running, m_is_main_thread);
     return 0;
 }
@@ -417,6 +443,17 @@ int chroutine_thread_t::awake_chroutine(chroutine_id_t id)
     return 0;
 }
 
+void chroutine_thread_t::set_state(thread_state_t state) 
+{
+    SPDLOG(INFO, "chroutine_thread_t {:p} state change {}->{}", (void*)this, this->state(), state);
+    m_state.store(state,std::memory_order_relaxed);
+}
+
+thread_state_t chroutine_thread_t::state() 
+{
+    return m_state.load(std::memory_order_relaxed);
+}
+
 void chroutine_thread_t::move_chroutines_to_thread(const std::shared_ptr<chroutine_thread_t> & other_thread)
 {
     if (other_thread.get() == this) {
@@ -424,40 +461,32 @@ void chroutine_thread_t::move_chroutines_to_thread(const std::shared_ptr<chrouti
     }
 
     set_state(thread_state_t_shifting);
+    std::vector<chroutine_id_t> ids_to_move;
     
     {
         chutex_guard_t lock(m_chroutine_lock);
         auto iter_list = m_schedule.chroutines_sched.begin();
         for (; iter_list != m_schedule.chroutines_sched.end(); iter_list++) {
             if ((*iter_list)->id() != m_schedule.running_id) {
-                (*iter_list)->set_moved();
-                other_thread->resettle(*(iter_list->get()));
-                SPDLOG(INFO, "chroutine({}) of thread:{:p} move_chroutines_to_thread {:p}"
+                chroutine_id_t resettled_id = other_thread->resettle(*(iter_list->get()));
+                if ((*iter_list)->id() == resettled_id) {
+                    (*iter_list)->set_moved();
+                    ids_to_move.push_back((*iter_list)->id());
+                }
+                SPDLOG(INFO, "chroutine({}) of thread:{:p} move_chroutines_to_thread {:p} with resettled_id {}"
                         , (*iter_list)->id()
                         , (void*)(this)
-                        , (void*)(other_thread.get()));
+                        , (void*)(other_thread.get())
+                        , resettled_id);
             }
         }
     }
 
-    set_state(thread_state_t_blocking);
-}
+    for (auto &i : ids_to_move) {
+        remove_chroutine(i);
+    }
 
-chroutine_t::chroutine_t(chroutine_t &&other)
-{
-    SPDLOG(DEBUG, "moving chroutine_t ...");
-    std::swap(ctx, other.ctx);
-    func = std::move(other.func);
-    arg = other.arg;
-    state = other.state;
-    std::swap(stack, other.stack);
-    yield_wait = other.yield_wait;
-    yield_to = other.yield_to;
-    me = other.me;
-    father = other.father;
-    son = other.son;
-    reporter = other.reporter;
-    stop_son_when_yield_over = other.stop_son_when_yield_over;
+    set_state(thread_state_t_blocking);
 }
 
 chroutine_id_t chroutine_thread_t::resettle(chroutine_t &chroutine)
