@@ -1,8 +1,35 @@
-# usage
-With `chroutine`, we can easily develop highly concurrent programs in C++ and write code with synchronization semantics.
+# Chroutine
 
-You can run the examples and see the code how to use it:
+![image](https://img.shields.io/badge/build-passing-green)
+![image](https://img.shields.io/badge/license-MIT-blue)
+![image](https://img.shields.io/badge/platform-linux--64-lightgrey)
+
+With `Chroutine`, you can easily develop highly concurrent programs in C++ and write code with synchronization semantics.
+
+## Usage
+
+Create a chroutine is very simple:
+
+```cpp
+
+ENGIN.create_chroutine([](void *){
+    while (1) {
+        SPDLOG(INFO, "hello Chroutine 1, looping");
+        SLEEP(1000);
+    }
+}, nullptr);
+
+ENGIN.create_chroutine([](void *){
+    SPDLOG(INFO, "hello Chroutine 2");
+    SLEEP(1000);
+    SPDLOG(INFO, "hello Chroutine 2, exit now");
+}, nullptr);
+
 ```
+
+You can also run the examples and see the code to learn more:
+
+```shell
 ├── examples
 │   ├── channel_example
 │   │   ├── Makefile
@@ -24,33 +51,36 @@ You can run the examples and see the code how to use it:
 │   │   ├── test_server.cpp
 │   │   ├── test_server.hpp
 │   │   └── test_server_main.cpp
+│   ├── sched_test
+│   │   ├── Makefile
+│   │   └── test_sched.cpp
 │   ├── test_chroutine.cpp
 │   └── timer_example
 │       ├── Makefile
 │       └── test_timer.cpp
 
-cd examples
-make ALLTEST
+$ cd examples
+$ make ALLTEST
 ```
 
-# env install (Relies on gRPC and libcurl)
+## Install
 
-## my platform: 
+### my platform
 
 - CentOS Linux release 7.4.1708, x86_64
 - gcc (GCC) 4.8.5 20150623
 
-## install grpc (if you need the RPC module)
+### install grpc (if you need the RPC module)
 
 my system: CentOS Linux release 7.4.1708
 
-### get ready
+#### get ready
 
 ```shell
 sudo yum install autoconf automake autogen libtool shtool build-essential pkg-config libgflags-dev libgtest-dev clang libc++-dev
 ```
 
-### build and install
+#### build and install
 
 ```shell
 git clone https://github.com/grpc/grpc
@@ -61,11 +91,12 @@ make
 ```
 
 
-### error and solution
+#### error and solution
 
 if get configure error: 
 
-> configure in doc/example fails with "cannot find install-sh, install.sh, or shtool in "." "./.." "./../..""
+
+configure in doc/example fails with "cannot find install-sh, install.sh, or shtool in "." "./.." "./../..""
 
 try:
 
@@ -89,7 +120,7 @@ Submodule 'third_party/protobuf' (https://github.com/google/protobuf.git) regist
 Submodule 'third_party/zlib' (https://github.com/madler/zlib) registered for path 'third_party/zlib'
 ```
 
-## install protoc
+#### install protoc
 
 it was build but not installed:
 
@@ -98,7 +129,7 @@ cd third_party/protobuf
 sudo make install
 ```
 
-### try to generate protobuf code
+#### try to generate protobuf code
 
 ```shell
 cd proto_def
@@ -115,7 +146,7 @@ You should see four files:
 │   └── test.pb.h
 ```
 
-## install libcurl (if you need the http client module)
+### install libcurl (if you need the http client module)
 
 see:
 
