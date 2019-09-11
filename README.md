@@ -90,18 +90,18 @@ make
 [sudo] make install
 ```
 
-
 #### error and solution
 
-if get configure error: 
+if get configure error:
 
-
+```shell
 configure in doc/example fails with "cannot find install-sh, install.sh, or shtool in "." "./.." "./../..""
+```
 
 try:
 
 ```shell
-cd third_party/protobuf; 
+cd third_party/protobuf
 autoreconf -i -v -f
 ```
 
@@ -148,8 +148,4 @@ You should see four files:
 
 ### install libcurl (if you need the http client module)
 
-see:
-
-```
-https://github.com/curl/curl.git
-```
+[curl.git](https://github.com/curl/curl.git)
