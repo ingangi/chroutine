@@ -68,9 +68,12 @@ HTTPC:
 
 SCHED:
 	(cd ./sched_test; make clean; make;)
+	
+STACK:
+	(cd ./stack_test; make clean; make;)
 
 CLEAN:
-	(make clean;cd ./rpc_example; make clean; cd ../rpc_example/test_client; make clean; cd ../../http_client_example; make clean;cd ../channel_example; make clean;cd ../chutex_example; make clean;cd ../timer_example; make clean;cd ../sched_test; make clean;)
+	(make clean;cd ./rpc_example; make clean; cd ../rpc_example/test_client; make clean; cd ../../http_client_example; make clean;cd ../channel_example; make clean;cd ../chutex_example; make clean;cd ../timer_example; make clean;cd ../sched_test; make clean;cd ../stack_test; make clean;)
 
 ALLTEST:
-	(make clean;make;make RPCS;make RPCC;make HTTPC;make CHAN;make LOCK;make TIMER;make SCHED)
+	(make clean;make;make RPCS;make RPCC;make HTTPC;make CHAN;make LOCK;make TIMER;make SCHED;make STACK)
