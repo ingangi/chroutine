@@ -299,6 +299,7 @@ void engine_t::check_threads()
     std::time_t now = get_time_stamp();
     thread_vector_t goods;
     thread_vector_t bads;
+    const float load_warning = 0.7;
     for (auto it = m_pool.begin(); it != m_pool.end(); it++) {
         auto &thrd = it->second;
         if (thrd) {
@@ -320,6 +321,11 @@ void engine_t::check_threads()
                 } else {
                     goods.push_back(thrd);
                 }
+            }
+
+            float load = thrd->load();
+            if (load > load_warning) {
+                SPDLOG(WARN, "engine_t::check_thread: {:p}, load warning: {} !", (void*)(thrd.get()), load);
             }
         }
     }

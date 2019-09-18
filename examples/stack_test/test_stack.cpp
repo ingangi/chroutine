@@ -3,10 +3,10 @@
 using namespace chr;
 
 void test_stack() {
-    for (int i = 0; i < 10000; i++) {
-        ENGIN.create_chroutine([](void *){
+    for (int i = 0; i < 1000; i++) {
+        ENGIN.create_chroutine([i](void *){
             while (1) {
-                SLEEP(1000);
+                SLEEP(i+10);
             }
         }, nullptr);
     }

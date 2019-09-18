@@ -363,6 +363,7 @@ int chroutine_thread_t::schedule()
         int processed = 0;
         processed += select_all();
         processed += pick_run_chroutine();
+        m_load.update(processed);
         if (processed == 0)
             thread_ms_sleep(10);
     }

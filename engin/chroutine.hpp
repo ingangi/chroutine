@@ -129,6 +129,31 @@ typedef enum {
 // and a list of chroutines run in the thread.
 class chroutine_thread_t
 {
+    typedef struct load_t {
+        const int32_t COUNT_CIRCAL = 1000;
+        int32_t last = -1;
+        int32_t working = 0;
+        int32_t counting_left = COUNT_CIRCAL;
+
+        void update(int32_t worked) {
+            working += worked;
+            if (worked == 0) {
+                counting_left -= 100;
+            } else {
+                counting_left--;
+            }
+            if (counting_left < 1) {
+                last = working;
+                counting_left = COUNT_CIRCAL;
+                working = 0;
+                // printf("load updated: %d\n", last);
+            }
+        }
+        float load() {
+            if (last < 0) return 0;
+            return last*1.0/COUNT_CIRCAL;
+        }
+    } load_t;
 public:
     ~chroutine_thread_t();
 
@@ -200,6 +225,11 @@ public:
 
     chroutine_id_t resettle(chroutine_t &chroutine);
 
+    // get the load of this thread, >=1 means the thread is full.
+    float load() {
+        return m_load.load();
+    }
+
 private:
     chroutine_thread_t();
     
@@ -253,6 +283,7 @@ private:
     std::atomic<thread_state_t> m_state;
 
     static std::atomic<chroutine_id_t>       ms_chroutine_id;
+    load_t                                   m_load;
 };
 
 }
