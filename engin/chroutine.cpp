@@ -215,7 +215,7 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
         m_schedule.chroutines_sched.push_back(c);
     }
 
-    SPDLOG(TRACE, "create_chroutine {} over, is in main: {}", id, m_is_main_thread);
+    SPDLOG(TRACE, "create_chroutine {} over, thread type: {}", id, m_type);
     return id;
 }
 
@@ -355,9 +355,14 @@ int chroutine_thread_t::schedule()
 {
     set_state(thread_state_t_running);
     m_is_running = true;
-    SPDLOG(INFO, "chroutine_thread_t {:p} schedule is_running {}, is main:{}", (void*)(this), m_is_running, m_is_main_thread);
-    if (!m_is_main_thread) {
-        engine_t::instance().on_thread_ready(m_creating_index, std::this_thread::get_id());
+    m_std_thread_id = std::this_thread::get_id();
+    SPDLOG(INFO, "chroutine_thread_t {:p} schedule is_running {}, m_type:{} ({})", (void*)(this)
+        , m_is_running
+        , m_type
+        , readable_thread_id(m_std_thread_id));
+
+    if (m_type == thread_type_t::worker) {
+        engine_t::instance().on_thread_ready(m_creating_index, m_std_thread_id);
     }
     while (!m_need_stop) {        
         int processed = 0;
@@ -370,7 +375,12 @@ int chroutine_thread_t::schedule()
     m_is_running = false;
     set_state(thread_state_t_finished);
     clear_all_chroutine();
-    SPDLOG(INFO, "chroutine_thread_t {:p} schedule is_running {}, is main:{}", (void*)(this), m_is_running, m_is_main_thread);
+
+    SPDLOG(INFO, "chroutine_thread_t {:p} schedule is_running {}, m_type:{} ({})"
+        , (void*)(this)
+        , m_is_running
+        , m_type
+        , readable_thread_id(m_std_thread_id));
     return 0;
 }
 

@@ -34,21 +34,26 @@ void engine_t::init(size_t init_pool_size)
     if (!m_creating.empty())
         return;
     
-    m_main_thread_id = std::this_thread::get_id();
     for (size_t i = 0; i < init_pool_size; i++) {
         std::shared_ptr<chroutine_thread_t> thrd = chroutine_thread_t::new_thread();
         m_creating.push_back(thrd);
         thrd.get()->start(i);
     }
 
-    SPDLOG(INFO, "{}: init_pool_size = {}, m_main_thread_id = {}", __FUNCTION__, init_pool_size, readable_thread_id(m_main_thread_id));
+    SPDLOG(INFO, "{}: init_pool_size = {}", __FUNCTION__, init_pool_size);
 
     while (!m_init_over) {
         thread_ms_sleep(10);
     }
     
     // main thread do not need start()
-    m_main_thread = chroutine_thread_t::new_thread();
+    m_main_thread = chroutine_thread_t::new_thread();  
+    m_main_thread->set_type(thread_type_t::main);  
+#ifdef ENABLE_EPOLL
+    m_epoll_thread = chroutine_thread_t::new_thread();
+    m_epoll_thread->start(0);
+    m_epoll_thread->set_type(thread_type_t::epoll);
+#endif
     SPDLOG(INFO, "{}: OVER", __FUNCTION__);
 }
 
@@ -158,8 +163,11 @@ chroutine_thread_t *engine_t::get_current_thread()
     }
 
     std::thread::id cur_id = std::this_thread::get_id();
-    if (cur_id == m_main_thread_id) {
+    if (m_main_thread && cur_id == m_main_thread->thread_id()) {
         return m_main_thread.get();
+    }
+    if (m_epoll_thread && cur_id == m_epoll_thread->thread_id()) {
+        return m_epoll_thread.get();
     }
 
     const auto& iter = m_pool.find(cur_id);
@@ -359,6 +367,9 @@ void engine_t::stop_main()
         if (m_main_thread) {
             m_main_thread->stop();
         }
+        if (m_epoll_thread) {
+            m_epoll_thread->stop();
+        }
     }, nullptr);
 }
 
@@ -392,8 +403,7 @@ void engine_t::run()
     signal(SIGINT, signal_handle);
     signal(SIGQUIT, signal_handle);
     signal(SIGTERM, signal_handle);
-    m_main_thread->set_main_thread_flag(true);
-    SPDLOG(DEBUG, "main thread is about to run, check the id:{}=={}", readable_thread_id(m_main_thread_id), readable_thread_id(std::this_thread::get_id()));
+    SPDLOG(DEBUG, "main thread is about to run, check the id:{}", readable_thread_id(std::this_thread::get_id()));
 
     create_chroutine_in_mainthread([this](void *){
         while (true) {

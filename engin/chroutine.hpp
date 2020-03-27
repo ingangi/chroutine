@@ -125,6 +125,12 @@ typedef enum {
     thread_state_t_finished,
 } thread_state_t;
 
+enum class thread_type_t {
+    worker = 0,
+    main,
+    epoll,
+};
+
 // chroutine_thread_t hold a os thread 
 // and a list of chroutines run in the thread.
 class chroutine_thread_t
@@ -203,8 +209,8 @@ public:
     // awake waiting chroutine
     int awake_chroutine(chroutine_id_t id);
 
-    void set_main_thread_flag(bool flag) {
-        m_is_main_thread = flag;
+    void set_type(thread_type_t type) {
+        m_type = type;
     }
     
     // the while loop of the thread
@@ -228,6 +234,10 @@ public:
     // get the load of this thread, >=1 means the thread is full.
     float load() {
         return m_load.load();
+    }
+
+    const std::thread::id & thread_id() {
+        return m_std_thread_id;
     }
 
 private:
@@ -272,18 +282,18 @@ private:
     void clear_all_chroutine();
 
 private:
-    schedule_t                  m_schedule;
-    bool                        m_is_running = false;
-    bool                        m_need_stop = false;
-    size_t                      m_creating_index = 0;
-    selectable_object_list_t    m_selector_list;
-    chutex_t                    m_chroutine_lock;
-    bool                        m_is_main_thread = false;
-    std::atomic<std::time_t>    m_entry_time;  // for thread alive check
-    std::atomic<thread_state_t> m_state;
-
+    schedule_t                               m_schedule;
+    bool                                     m_is_running = false;
+    bool                                     m_need_stop = false;
+    size_t                                   m_creating_index = 0;
+    selectable_object_list_t                 m_selector_list;
+    chutex_t                                 m_chroutine_lock;
+    std::atomic<std::time_t>                 m_entry_time;  // for thread alive check
+    std::atomic<thread_state_t>              m_state;
     static std::atomic<chroutine_id_t>       ms_chroutine_id;
     load_t                                   m_load;
+    thread_type_t                            m_type = thread_type_t::worker;
+    std::thread::id                          m_std_thread_id;
 };
 
 }

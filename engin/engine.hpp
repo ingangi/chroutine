@@ -124,13 +124,13 @@ private:
     std::mutex          m_pool_lock;            // only used during m_init_over is false
     thread_pool_t       m_pool;                 // is readonly after m_init_over become true
     thread_vector_t     m_creating;             // is readonly after m_init_over become true
-    bool                m_init_over = false;    // if all threads ready    
-    std::thread::id     m_main_thread_id = NULL_THREAD_ID;
+    bool                m_init_over = false;    // if all threads ready
     int                 m_dispatch_seed = 0;
 #ifdef ENABLE_HTTP_PLUGIN
     http_stub_pool_t    m_http_stubs;
 #endif
     std::shared_ptr<chroutine_thread_t>     m_main_thread = nullptr;
+    std::shared_ptr<chroutine_thread_t>     m_epoll_thread = nullptr;
     chr_timer_t*        m_flush_timer;
 };
 
