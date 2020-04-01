@@ -36,8 +36,9 @@ void engine_t::init(size_t init_pool_size)
     
     for (size_t i = 0; i < init_pool_size; i++) {
         std::shared_ptr<chroutine_thread_t> thrd = chroutine_thread_t::new_thread();
+        thrd->set_type(thread_type_t::worker);
         m_creating.push_back(thrd);
-        thrd.get()->start(i);
+        thrd->start(i);
     }
 
     SPDLOG(INFO, "{}: init_pool_size = {}", __FUNCTION__, init_pool_size);
@@ -51,8 +52,8 @@ void engine_t::init(size_t init_pool_size)
     m_main_thread->set_type(thread_type_t::main);  
 #ifdef ENABLE_EPOLL
     m_epoll_thread = chroutine_thread_t::new_thread();
-    m_epoll_thread->start(0);
     m_epoll_thread->set_type(thread_type_t::epoll);
+    m_epoll_thread->start(0);
 #endif
     SPDLOG(INFO, "{}: OVER", __FUNCTION__);
 }
@@ -182,6 +183,13 @@ chroutine_thread_t *engine_t::get_thread_by_id(std::thread::id thread_id)
     if (!m_init_over) {
         SPDLOG(ERROR, "{} failed: m_init_over FALSE", __FUNCTION__);
         return nullptr;
+    }
+
+    if (m_main_thread && thread_id == m_main_thread->thread_id()) {
+        return m_main_thread.get();
+    }
+    if (m_epoll_thread && thread_id == m_epoll_thread->thread_id()) {
+        return m_epoll_thread.get();
     }
     
     const auto& iter = m_pool.find(thread_id);

@@ -215,7 +215,7 @@ chroutine_id_t chroutine_thread_t::create_chroutine(func_t & func, void *arg)
         m_schedule.chroutines_sched.push_back(c);
     }
 
-    SPDLOG(TRACE, "create_chroutine {} over, thread type: {}", id, m_type);
+    SPDLOG(TRACE, "create_chroutine {} over, thread type: {}", id, static_cast<int>(m_type));
     return id;
 }
 
@@ -358,7 +358,7 @@ int chroutine_thread_t::schedule()
     m_std_thread_id = std::this_thread::get_id();
     SPDLOG(INFO, "chroutine_thread_t {:p} schedule is_running {}, m_type:{} ({})", (void*)(this)
         , m_is_running
-        , m_type
+        , static_cast<int>(m_type)
         , readable_thread_id(m_std_thread_id));
 
     if (m_type == thread_type_t::worker) {
@@ -379,7 +379,7 @@ int chroutine_thread_t::schedule()
     SPDLOG(INFO, "chroutine_thread_t {:p} schedule is_running {}, m_type:{} ({})"
         , (void*)(this)
         , m_is_running
-        , m_type
+        , static_cast<int>(m_type)
         , readable_thread_id(m_std_thread_id));
     return 0;
 }
