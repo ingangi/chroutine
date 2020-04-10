@@ -54,6 +54,7 @@ void engine_t::init(size_t init_pool_size)
     m_epoll_thread = chroutine_thread_t::new_thread();
     m_epoll_thread->set_type(thread_type_t::epoll);
     m_epoll_thread->start(0);
+    m_epoll = std::shared_ptr<epoll_t>(new epoll_t());
 #endif
     SPDLOG(INFO, "{}: OVER", __FUNCTION__);
 }

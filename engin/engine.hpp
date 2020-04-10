@@ -92,6 +92,10 @@ public:
     void stop_all();
     void stop_main();
 
+    std::shared_ptr<epoll_t> get_epoll() {
+        return m_epoll;
+    }
+
 #ifdef ENABLE_HTTP_PLUGIN
     // excute http req. thread safe after `m_init_over` become true
     std::shared_ptr<curl_rsp_t> exec_curl(const std::string & url
@@ -131,6 +135,7 @@ private:
 #endif
     std::shared_ptr<chroutine_thread_t>     m_main_thread = nullptr;
     std::shared_ptr<chroutine_thread_t>     m_epoll_thread = nullptr;
+    std::shared_ptr<epoll_t>                m_epoll = nullptr;
     chr_timer_t*        m_flush_timer;
 };
 

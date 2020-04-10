@@ -15,6 +15,7 @@
 #include "spdlog/async.h"
 #include "spdlog/sinks/daily_file_sink.h"
 #ifdef DEBUG_BUILD
+#include "tools.hpp"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #endif
 
@@ -70,12 +71,12 @@ public:
 #if 0
     template <typename T> logger_t& operator<<(const T& value) {
         m_stream << value;
-		return (*this);
-	}
+        return (*this);
+    }
 
     logger_t& operator << (std::ostream& (*op) (std::ostream&)) {
         (*op) (m_stream);
-		return (*this);
+        return (*this);
     }
 
     logger_t& operator () (const char* format, ...) {
@@ -96,10 +97,18 @@ private:
 }
 
 #define LOG chr::logger_t::instance()
+#ifdef DEBUG_BUILD
+#define SPDLOG(level, format, ...) {\
+    if (chr::logger_t::instance()._async_file->should_log(level)) {\
+        chr::logger_t::instance()._async_file->log(level, "[{}]"format, readable_thread_id(std::this_thread::get_id()), ##__VA_ARGS__);\
+    }\
+}
+#else
 #define SPDLOG(level, format, ...) {\
     if (chr::logger_t::instance()._async_file->should_log(level)) {\
         chr::logger_t::instance()._async_file->log(level, format,  ##__VA_ARGS__);\
     }\
 }
+#endif
 
 #endif
