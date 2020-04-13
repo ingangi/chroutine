@@ -100,7 +100,7 @@ private:
 #ifdef DEBUG_BUILD
 #define SPDLOG(level, format, ...) {\
     if (chr::logger_t::instance()._async_file->should_log(level)) {\
-        chr::logger_t::instance()._async_file->log(level, "[{}]"format, readable_thread_id(std::this_thread::get_id()), ##__VA_ARGS__);\
+        chr::logger_t::instance()._async_file->log(level, "[{}]" format, readable_thread_id(std::this_thread::get_id()), ##__VA_ARGS__);\
     }\
 }
 #else

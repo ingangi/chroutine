@@ -1,9 +1,23 @@
 #include <sys/epoll.h>
 #include <errno.h>
 #include "epoll.hpp"
-#include "handler.hpp"
+#include "epoll_fd_handler.hpp"
+#include "engine.hpp"
 
 namespace chr {
+
+poll_sptr_t epoll_t::create()
+{
+    const std::thread::id & epoll_thread = ENGIN.epoll_thread_id();
+    assert(epoll_thread != NULL_THREAD_ID);
+    epoll_t *p_this = new epoll_t();
+    poll_sptr_t s_this = std::dynamic_pointer_cast<poll_it>(p_this->register_to_engin(epoll_thread));		
+    if (s_this.get() == nullptr) {
+        delete p_this;
+    } 
+    return s_this;
+}
+
 epoll_t::epoll_t()
 {    
     m_epoll_fd = epoll_create1(0);

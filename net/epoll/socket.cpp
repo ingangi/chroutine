@@ -6,28 +6,31 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <fcntl.h>
+#include <sys/epoll.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 namespace chr {
 
 int socket_t::make_socket_non_blocking(int fd)
 {
-	int flags, s;
-	flags = fcntl(fd, F_GETFL, 0);
-	if (flags == -1) {
+    int flags, s;
+    flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) {
         SPDLOG(ERROR, "fcntl:", strerror(errno));
-		return -1;
-	}
-	flags |= O_NONBLOCK;
-	s = fcntl (fd, F_SETFL, flags);
-	if (s == -1) {
+        return -1;
+    }
+    flags |= O_NONBLOCK;
+    s = fcntl (fd, F_SETFL, flags);
+    if (s == -1) {
         SPDLOG(ERROR, "fcntl:", strerror(errno));
-		return -1;
-	}
-	return 0;
+        return -1;
+    }
+    return 0;
 }
 
 
-socket_t::socket_t(protocol_t protocol, int sock_flags, poll_it* poller, epoll_handler_sink_it* sink)
+socket_t::socket_t(protocol_t protocol, int sock_flags, poll_sptr_t poller, epoll_handler_sink_it* sink)
     : m_protocol(protocol)
     , m_poller(poller)
     , m_sink(sink)
@@ -36,8 +39,9 @@ socket_t::socket_t(protocol_t protocol, int sock_flags, poll_it* poller, epoll_h
     assert(m_protocol == protocol_t::tcp);  //for now
     int sock_type = m_protocol == protocol_t::tcp ? SOCK_STREAM : SOCK_DGRAM;
     m_fd = socket(AF_UNSPEC, sock_type, sock_flags);
-    assert(m_fd > 0);
-    after_create();
+    if (m_fd > 0) {
+        after_create();
+    }
 
     SPDLOG(DEBUG, "socket_t::socket_t() created, fd: {}, protocol: {}, [sock_type={}, sock_flags={}]"
         , m_fd
@@ -46,7 +50,7 @@ socket_t::socket_t(protocol_t protocol, int sock_flags, poll_it* poller, epoll_h
         , sock_flags);
 }
 
-socket_t::socket_t(int fd, poll_it* poller, epoll_handler_sink_it* sink)
+socket_t::socket_t(int fd, poll_sptr_t poller, epoll_handler_sink_it* sink)
     : m_fd(fd)
     , m_poller(poller)
     , m_sink(sink)
@@ -76,11 +80,6 @@ int socket_t::get_fd()
     return m_fd;
 }
 
-
-ssize_t socket_t::read()
-{
-}
-
 ssize_t socket_t::on_read()
 {
     if (is_listener()) {
@@ -89,7 +88,7 @@ ssize_t socket_t::on_read()
         return -1; 
     }
 
-    byte_t buf[MAX_BUF_LEN] = { 0 };
+    byte_t buf[1024] = { 0 };
     ssize_t count = read(m_fd, buf, sizeof(buf));
     SPDLOG(DEBUG, "socket_t::on_read() read count: {}, , m_fd={}", count, m_fd);
 
@@ -100,11 +99,40 @@ ssize_t socket_t::on_read()
 }
 
 ssize_t socket_t::on_write()
-{    
-    SPDLOG(DEBUG, "socket_t::on_write(), m_fd={}", m_fd);
+{
     m_poller->mod_fd(m_fd, EPOLLIN | EPOLLET);
-
-    // todo: write all pending data
+    ssize_t total_written = 0;
+    bool abort = false;
+    while (has_write_pending() && !abort) {
+        auto &data = m_write_pending_list.front();
+        if (data && data->m_buf && data->m_len) {          
+            ssize_t bytes_left = data->m_len; 
+            const byte_t *ptr = data->m_buf;
+            while (bytes_left > 0) {
+                ssize_t written_bytes = ::write(m_fd, ptr, bytes_left); 
+                SPDLOG(DEBUG, "socket_t::on_write() write count: {}, m_fd={}", written_bytes, m_fd);
+                if(written_bytes<=0) {        
+                    if (errno == EINTR) {
+                        written_bytes = 0;
+                    } else {
+                        break;
+                    }
+                } 
+                bytes_left -= written_bytes; 
+                ptr += written_bytes;
+                total_written += written_bytes;
+            }
+            if (bytes_left > 0) {
+                SPDLOG(ERROR, "socket_t::on_write() write not finish, left length: {}, m_fd={}", bytes_left, m_fd);
+                m_poller->mod_fd(m_fd, EPOLLIN | EPOLLOUT | EPOLLET);
+                m_write_pending_list.push_front(raw_data_block_sptr_t(new raw_data_block_t(ptr, bytes_left, this)));
+                abort = true;
+            }
+        }
+        m_write_pending_list.pop_front();
+    }
+    SPDLOG(DEBUG, "socket_t::on_write(), m_fd={}, total_written {} bytes", m_fd, total_written);
+    return total_written;   
 }
 
 int socket_t::on_close()
@@ -113,17 +141,17 @@ int socket_t::on_close()
         , m_fd
         , m_peer_info.remote_addr
         , m_peer_info.remote_port);
-    ::close(m_fd);
+    return ::close(m_fd);
 }
 
-void socket_t::write(const byte_t* buf, ssize_t length)
+ssize_t socket_t::write(const byte_t* buf, ssize_t length)
 {
     if (buf == nullptr || length == 0) {
-        return;
+        return 0;
     }
     if (has_write_pending()) {
         m_write_pending_list.push_back(raw_data_block_sptr_t(new raw_data_block_t(buf, length, this)));
-        return;
+        return 0;
     }
 
     ssize_t bytes_left = length; 
@@ -143,18 +171,19 @@ void socket_t::write(const byte_t* buf, ssize_t length)
     } 
 
     if (bytes_left > 0) {
-		SPDLOG(ERROR, "write not finish, left length: {}, m_fd={}", bytes_left, m_fd);
+        SPDLOG(ERROR, "write not finish, left length: {}, m_fd={}", bytes_left, m_fd);
         if (!has_write_pending()) {
             m_poller->mod_fd(m_fd, EPOLLIN | EPOLLOUT | EPOLLET);
         }
         m_write_pending_list.push_back(raw_data_block_sptr_t(new raw_data_block_t(ptr, bytes_left, this)));  
     }
+    return length - bytes_left;
 }
 
 void socket_t::update_peer_info()
 {
     struct sockaddr_in local_addr, remote_addr;
-    int addr_len = sizeof(local_addr);
+    socklen_t addr_len = sizeof(local_addr);
     if (getsockname(m_fd, (struct sockaddr *)&local_addr, &addr_len) == 0) {
         m_peer_info.local_addr = inet_ntoa(local_addr.sin_addr);
         m_peer_info.local_port = ntohs(local_addr.sin_port);

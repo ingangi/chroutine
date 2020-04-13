@@ -11,7 +11,6 @@
 #include <map>
 #include <stdint.h>
 #include "selectable_obj.hpp"
-#include "engine.hpp"
 
 namespace chr {
 
@@ -26,12 +25,14 @@ public:
     virtual int close_fd(epoll_handler_it* handler) = 0;
 };
 
+typedef std::shared_ptr<poll_it>  poll_sptr_t;
+
 class epoll_t : public poll_it
 {
-    friend class engine_t;
     typedef std::map<int, epoll_handler_it*> fd_map_t;
     
 public:
+    static poll_sptr_t create();
     ~epoll_t();
 
     int add_fd(epoll_handler_it* handler, int32_t flag);

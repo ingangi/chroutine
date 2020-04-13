@@ -1,4 +1,7 @@
 #include "raw_tcp_server.hpp"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 namespace chr {
 
 raw_tcp_server_t::raw_tcp_server_t(const std::string& host, const std::string& port)
@@ -51,6 +54,7 @@ void raw_tcp_server_t::start()
     
     if (result_iter == nullptr) {
         SPDLOG(ERROR, "{}: bind failed");
+        assert(0);
         return;
     }
 
@@ -95,9 +99,10 @@ void raw_tcp_server_t::write(const socket_key& which, byte_t* data, ssize_t len)
 
 int raw_tcp_server_t::select(int wait_ms)
 {
-    chan_selecter_t chan_selecter;  // todo: mv selecter to global scop
     raw_data_block_sptr_t data_block = nullptr;
-    chan_selecter.add_case(m_write_chan.get(), &data_block, [&](){
+    int load = 0;
+    while (m_write_chan->read(&data_block, true)) {
+        load++;
         if (data_block) {
             auto iter = m_connections.find(data_block->m_key);
             if (iter != m_connections.end()) {
@@ -111,9 +116,8 @@ int raw_tcp_server_t::select(int wait_ms)
                 }
             }
         }
-    });
-    chan_selecter.default_case([](){});
-    chan_selecter.select();
+    }
+    return load;
 }
 
 void raw_tcp_server_t::on_new_connection()
@@ -121,7 +125,7 @@ void raw_tcp_server_t::on_new_connection()
     while (1) {
         struct sockaddr in_addr;
         socklen_t in_len;
-        int infd, error;
+        int infd;
         in_len = sizeof(in_addr);
         infd = accept(m_listener->get_fd(), &in_addr, &in_len);
         if (infd <= 0) {
@@ -131,9 +135,8 @@ void raw_tcp_server_t::on_new_connection()
             break;
         } else {
             auto new_sock = socket_uptr_t(new socket_t(infd, ENGIN.get_epoll(), this));
-            socket_key key = static_cast<socket_key>(new_sock->get());
+            socket_key key = static_cast<socket_key>(new_sock.get());
             if (key) {
-                m_connections[key] = new_sock;
                 new_sock->update_peer_info();
                 SPDLOG(INFO, "{}: new connection established: {}:{} <==> {}:{}"
                     , __FUNCTION__
@@ -141,6 +144,7 @@ void raw_tcp_server_t::on_new_connection()
                     , new_sock->peer_info().local_port
                     , new_sock->peer_info().remote_addr
                     , new_sock->peer_info().remote_port);
+                m_connections[key] = std::move(new_sock);
             }
         }
     }    

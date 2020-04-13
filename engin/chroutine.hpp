@@ -131,7 +131,7 @@ enum class thread_type_t {
     epoll,
 };
 
-// chroutine_thread_t hold a os thread 
+// chroutine_thread_t hold a kernel thread 
 // and a list of chroutines run in the thread.
 class chroutine_thread_t
 {

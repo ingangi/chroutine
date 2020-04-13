@@ -19,6 +19,10 @@
 #include "curl_stub.hpp"
 #endif
 
+#ifdef ENABLE_EPOLL
+#include "../net/epoll/epoll.hpp"
+#endif
+
 #define ENGIN chr::engine_t::instance()
 #define ENGINE_INIT(thrds) {ENGIN.init(thrds);}
 #define YIELD() {ENGIN.yield();}
@@ -92,9 +96,17 @@ public:
     void stop_all();
     void stop_main();
 
-    std::shared_ptr<epoll_t> get_epoll() {
+#ifdef ENABLE_EPOLL
+    poll_sptr_t get_epoll() {
         return m_epoll;
     }
+    const std::thread::id & epoll_thread_id() {
+        if (m_epoll_thread) {
+            return m_epoll_thread->thread_id();
+        }
+        return NULL_THREAD_ID;
+    }
+#endif
 
 #ifdef ENABLE_HTTP_PLUGIN
     // excute http req. thread safe after `m_init_over` become true
@@ -135,7 +147,9 @@ private:
 #endif
     std::shared_ptr<chroutine_thread_t>     m_main_thread = nullptr;
     std::shared_ptr<chroutine_thread_t>     m_epoll_thread = nullptr;
-    std::shared_ptr<epoll_t>                m_epoll = nullptr;
+#ifdef ENABLE_EPOLL
+    poll_sptr_t                             m_epoll = nullptr;
+#endif
     chr_timer_t*        m_flush_timer;
 };
 

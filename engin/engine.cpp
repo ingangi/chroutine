@@ -33,7 +33,13 @@ void engine_t::init(size_t init_pool_size)
 {
     if (!m_creating.empty())
         return;
-    
+     
+#ifdef ENABLE_EPOLL
+    m_epoll_thread = chroutine_thread_t::new_thread();
+    m_epoll_thread->set_type(thread_type_t::epoll);
+    m_epoll_thread->start(0);
+#endif
+
     for (size_t i = 0; i < init_pool_size; i++) {
         std::shared_ptr<chroutine_thread_t> thrd = chroutine_thread_t::new_thread();
         thrd->set_type(thread_type_t::worker);
@@ -49,13 +55,7 @@ void engine_t::init(size_t init_pool_size)
     
     // main thread do not need start()
     m_main_thread = chroutine_thread_t::new_thread();  
-    m_main_thread->set_type(thread_type_t::main);  
-#ifdef ENABLE_EPOLL
-    m_epoll_thread = chroutine_thread_t::new_thread();
-    m_epoll_thread->set_type(thread_type_t::epoll);
-    m_epoll_thread->start(0);
-    m_epoll = std::shared_ptr<epoll_t>(new epoll_t());
-#endif
+    m_main_thread->set_type(thread_type_t::main); 
     SPDLOG(INFO, "{}: OVER", __FUNCTION__);
 }
 
@@ -79,6 +79,10 @@ void engine_t::on_thread_ready(size_t creating_index, std::thread::id thread_id)
                 m_http_stubs[it->first] = s_this;
             }
         }
+#endif
+
+#ifdef ENABLE_EPOLL
+        m_epoll = epoll_t::create();
 #endif
     }
 }

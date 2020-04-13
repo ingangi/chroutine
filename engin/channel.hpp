@@ -81,7 +81,7 @@ private:
         return m_unread;
     }
 
-protected:
+public:
     bool write(const void* data_ptr, bool try_) {
         const T& data = *(static_cast<const T*>(data_ptr));
         m_lock.lock();
@@ -120,7 +120,7 @@ protected:
         return true;
     }
 
-    virtual bool read(void* data_ptr, bool try_) {
+    bool read(void* data_ptr, bool try_) {
         T& data = *(static_cast<T*>(data_ptr));
         m_lock.lock();
         if (readable() < 1) {

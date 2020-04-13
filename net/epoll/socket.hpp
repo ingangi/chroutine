@@ -2,6 +2,8 @@
 
 #include "epoll_fd_handler.hpp"
 #include "epoll.hpp"
+#include "logger.hpp"
+#include <list>
 #include <unordered_map>
 
 namespace chr {
@@ -12,16 +14,17 @@ enum class protocol_t {
     udp,
 };
 
+typedef epoll_handler_it* socket_key;
 class raw_data_block_t final
 {
 public:
-    raw_data_block_t(byte_t* data, ssize_t len, socket_key key) {
+    raw_data_block_t(const byte_t* data, ssize_t len, socket_key key) {
         if (len > 0 && data) {
             m_len = len;
             m_key = key;
             m_buf = new byte_t[m_len];
             SPDLOG(DEBUG, "raw_data_block_t: {} bytes create!!!", m_len);
-            memcpy(m_buf, data, len*sizeof(byte_t));
+            memcpy(m_buf, data, m_len*sizeof(byte_t));
         }
     }
     ~raw_data_block_t() {
@@ -35,7 +38,7 @@ public:
         if (m_len) {
             SPDLOG(DEBUG, "raw_data_block_t: {} bytes copy (construct)!!!", m_len);
             m_buf = new byte_t[m_len];
-            memcpy(m_buf, other.m_buf, len*sizeof(byte_t));
+            memcpy(m_buf, other.m_buf, m_len*sizeof(byte_t));
         }
     }
     raw_data_block_t& operator=(const raw_data_block_t& other) {
@@ -45,7 +48,7 @@ public:
         if (m_len) {
             SPDLOG(DEBUG, "raw_data_block_t: {} bytes copy (=)!!!", m_len);
             m_buf = new byte_t[m_len];
-            memcpy(m_buf, other.m_buf, len*sizeof(byte_t));
+            memcpy(m_buf, other.m_buf, m_len*sizeof(byte_t));
         }
         return *this;
     }
@@ -55,7 +58,7 @@ public:
         std::swap(m_key, other.m_key);
         SPDLOG(DEBUG, "raw_data_block_t: {} bytes wap.", m_len);
     }
-private:
+public:
     byte_t* m_buf = nullptr;
     ssize_t m_len = 0;
     socket_key m_key = nullptr;
@@ -73,8 +76,8 @@ class socket_t: public epoll_handler_it
         uint16_t    remote_port = 0;
     } peer_info_t;
 public: 
-    socket_t(protocol_t protocol, int sock_flags, poll_it* poller, epoll_handler_sink_it* sink);
-    socket_t(int fd, poll_it* poller, epoll_handler_sink_it* sink);
+    socket_t(protocol_t protocol, int sock_flags, poll_sptr_t poller, epoll_handler_sink_it* sink);
+    socket_t(int fd, poll_sptr_t poller, epoll_handler_sink_it* sink);
     virtual ~socket_t();
     int get_fd();
     ssize_t on_read();
@@ -91,10 +94,10 @@ public:
     bool is_listener() {
         return m_is_listener;
     }
+    
+    ssize_t write(const byte_t* buf, ssize_t length);
 
 private:
-    ssize_t read();
-    ssize_t write(const byte_t* buf, ssize_t length);
     void    after_create();
     bool    has_write_pending() {
         return !m_write_pending_list.empty();
@@ -103,16 +106,15 @@ private:
 private:
     protocol_t             m_protocol = protocol_t::unknown;
     int                    m_fd       = 0;
-    poll_it*               m_poller   = nullptr;
+    poll_sptr_t            m_poller   = nullptr;
     epoll_handler_sink_it* m_sink     = nullptr;
     peer_info_t            m_peer_info;
     bool                   m_is_listener = false;
     raw_data_list_t        m_write_pending_list;
 };
 
-typedef epoll_handler_it* socket_key;
-typedef std::shared_ptr<chr::socket_t> socket_sptr_t;
+//typedef std::shared_ptr<chr::socket_t> socket_sptr_t;
 typedef std::unique_ptr<chr::socket_t> socket_uptr_t;
-typedef std::unordered_map<socket_key, socket_sptr_t> socket_map_t;
+typedef std::unordered_map<socket_key, socket_uptr_t> socket_map_t;
 
 }

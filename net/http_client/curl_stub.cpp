@@ -130,7 +130,7 @@ void curl_stub_t::execute_all_async()
 		}
 		nSelectTimes++;
 		if (!numfds) {
-			nSelectTimeoutTimes++; /* count number of repeated zero numfds */
+			nSelectTimeoutTimes++;
 		} else {
 			nSelectTimeoutTimes = 0;
 			curl_multi_perform(m_multi_handle, &nCountOfEasyHandlesRun);

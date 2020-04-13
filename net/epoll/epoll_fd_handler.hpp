@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sys/types.h>
+
 namespace chr {
 
 typedef unsigned char byte_t;
@@ -16,7 +18,8 @@ public:
 
 class epoll_handler_sink_it
 {
-    virtual void on_new_connection();
+public:
+    virtual void on_new_connection() {}
     virtual void on_new_data(epoll_handler_it *which, byte_t* data, ssize_t count) = 0;
 };
 
