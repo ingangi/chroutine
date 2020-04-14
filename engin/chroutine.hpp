@@ -239,6 +239,7 @@ public:
     const std::thread::id & thread_id() {
         return m_std_thread_id;
     }
+    void update_thread_id();
 
 private:
     chroutine_thread_t();

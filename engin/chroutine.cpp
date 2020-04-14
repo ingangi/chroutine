@@ -351,11 +351,16 @@ int chroutine_thread_t::pick_run_chroutine()
     return pick_count;
 }
 
+void chroutine_thread_t::update_thread_id()
+{
+    m_std_thread_id = std::this_thread::get_id();
+}
+
 int chroutine_thread_t::schedule()
 {
+    update_thread_id();
     set_state(thread_state_t_running);
     m_is_running = true;
-    m_std_thread_id = std::this_thread::get_id();
     SPDLOG(INFO, "chroutine_thread_t {:p} schedule is_running {}, m_type:{} ({})", (void*)(this)
         , m_is_running
         , static_cast<int>(m_type)

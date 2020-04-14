@@ -416,7 +416,8 @@ void engine_t::run()
     signal(SIGINT, signal_handle);
     signal(SIGQUIT, signal_handle);
     signal(SIGTERM, signal_handle);
-    SPDLOG(DEBUG, "main thread is about to run, check the id:{}", readable_thread_id(std::this_thread::get_id()));
+    m_main_thread->update_thread_id();
+    SPDLOG(DEBUG, "main thread is about to run, check the id:{}", readable_thread_id(m_main_thread->thread_id()));
 
     create_chroutine_in_mainthread([this](void *){
         while (true) {
