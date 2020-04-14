@@ -43,21 +43,23 @@ socket_t::socket_t(protocol_t protocol, int sock_flags, poll_sptr_t poller, epol
         after_create();
     }
 
-    SPDLOG(DEBUG, "socket_t::socket_t() created, fd: {}, protocol: {}, [sock_type={}, sock_flags={}]"
+    SPDLOG(DEBUG, "socket_t::socket_t() created, fd: {}, protocol: {}, [sock_type={}, sock_flags={}], this: {:p}"
         , m_fd
         , static_cast<int>(m_protocol)
         , sock_type
-        , sock_flags);
+        , sock_flags
+        , (void*)(this));
 }
 
-socket_t::socket_t(int fd, poll_sptr_t poller, epoll_handler_sink_it* sink)
-    : m_fd(fd)
+socket_t::socket_t(int fd, poll_sptr_t poller, epoll_handler_sink_it* sink, protocol_t protocol)
+    : m_protocol(protocol)
+    , m_fd(fd)
     , m_poller(poller)
     , m_sink(sink)
 {
     assert(m_fd > 0);
     after_create();
-    SPDLOG(DEBUG, "socket_t::socket_t() created, fd: {}", m_fd);
+    SPDLOG(DEBUG, "socket_t::socket_t() created, fd: {}, this: {:p}", m_fd, (void*)(this));
 }
 
 void socket_t::after_create()
@@ -71,7 +73,7 @@ void socket_t::after_create()
 
 socket_t::~socket_t()
 {
-    SPDLOG(DEBUG, "socket_t::~socket_t() destroy, fd: {}", m_fd);
+    SPDLOG(DEBUG, "socket_t::~socket_t() destroy, fd: {}, this: {:p}", m_fd, (void*)(this));
     m_poller->close_fd(this);
 }
 
@@ -90,7 +92,7 @@ ssize_t socket_t::on_read()
 
     byte_t buf[1024] = { 0 };
     ssize_t count = read(m_fd, buf, sizeof(buf));
-    SPDLOG(DEBUG, "socket_t::on_read() read count: {}, , m_fd={}", count, m_fd);
+    SPDLOG(DEBUG, "socket_t::on_read() read count: {}, m_fd={}", count, m_fd);
 
     if (count > 0) {
         m_sink->on_new_data(this, buf, count);

@@ -23,12 +23,12 @@ public:
             m_len = len;
             m_key = key;
             m_buf = new byte_t[m_len];
-            SPDLOG(DEBUG, "raw_data_block_t: {} bytes create!!!", m_len);
+            SPDLOG(DEBUG, "raw_data_block_t: {} bytes create!!!, this: {:p}", m_len, (void*)(this));
             memcpy(m_buf, data, m_len*sizeof(byte_t));
         }
     }
     ~raw_data_block_t() {
-        SPDLOG(DEBUG, "raw_data_block_t: {} bytes destroy", m_len);
+        SPDLOG(DEBUG, "raw_data_block_t: {} bytes destroy, this: {:p}", m_len, (void*)(this));
         delete [] m_buf;
     }
     raw_data_block_t(const raw_data_block_t& other) {
@@ -36,7 +36,7 @@ public:
         m_len = other.m_len;
         m_key = other.m_key;
         if (m_len) {
-            SPDLOG(DEBUG, "raw_data_block_t: {} bytes copy (construct)!!!", m_len);
+            SPDLOG(DEBUG, "raw_data_block_t: {} bytes copy (construct)!!!, this: {:p}", m_len, (void*)(this));
             m_buf = new byte_t[m_len];
             memcpy(m_buf, other.m_buf, m_len*sizeof(byte_t));
         }
@@ -46,7 +46,7 @@ public:
         m_len = other.m_len;
         m_key = other.m_key;
         if (m_len) {
-            SPDLOG(DEBUG, "raw_data_block_t: {} bytes copy (=)!!!", m_len);
+            SPDLOG(DEBUG, "raw_data_block_t: {} bytes copy (=)!!!, this: {:p}", m_len, (void*)(this));
             m_buf = new byte_t[m_len];
             memcpy(m_buf, other.m_buf, m_len*sizeof(byte_t));
         }
@@ -56,7 +56,7 @@ public:
         std::swap(m_len, other.m_len);
         std::swap(m_buf, other.m_buf);
         std::swap(m_key, other.m_key);
-        SPDLOG(DEBUG, "raw_data_block_t: {} bytes wap.", m_len);
+        SPDLOG(DEBUG, "raw_data_block_t: {} bytes wap, this: {:p}", m_len, (void*)(this));
     }
 public:
     byte_t* m_buf = nullptr;
@@ -77,7 +77,7 @@ class socket_t: public epoll_handler_it
     } peer_info_t;
 public: 
     socket_t(protocol_t protocol, int sock_flags, poll_sptr_t poller, epoll_handler_sink_it* sink);
-    socket_t(int fd, poll_sptr_t poller, epoll_handler_sink_it* sink);
+    socket_t(int fd, poll_sptr_t poller, epoll_handler_sink_it* sink, protocol_t protocol);
     virtual ~socket_t();
     int get_fd();
     ssize_t on_read();

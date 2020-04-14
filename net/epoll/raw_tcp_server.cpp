@@ -8,14 +8,14 @@ raw_tcp_server_t::raw_tcp_server_t(const std::string& host, const std::string& p
     : m_host(host)
     , m_port(port)
 {
-    SPDLOG(DEBUG, "{} created: {}:{}", __FUNCTION__, m_host, m_port);
+    SPDLOG(DEBUG, "{} created: {}:{}, this: {:p}", __FUNCTION__, m_host, m_port, (void*)(this));
     m_read_chan = channel_t<raw_data_block_sptr_t>::create(1024);
-    m_write_chan = channel_t<raw_data_block_sptr_t>::create(1024);
+    m_write_chan = channel_t<raw_data_block_sptr_t>::create(1024);  // old data blocks may stay long in channel and will be deleted untill channel ringbuf rorate.
 }
 
 raw_tcp_server_t::~raw_tcp_server_t()
 {    
-    SPDLOG(DEBUG, "{} destroy: {}:{}", __FUNCTION__, m_host, m_port);
+    SPDLOG(DEBUG, "{} destroy: {}:{}, this: {:p}", __FUNCTION__, m_host, m_port, (void*)(this));
 }
 
 void raw_tcp_server_t::start()
@@ -134,7 +134,7 @@ void raw_tcp_server_t::on_new_connection()
             }
             break;
         } else {
-            auto new_sock = socket_uptr_t(new socket_t(infd, ENGIN.get_epoll(), this));
+            auto new_sock = socket_uptr_t(new socket_t(infd, ENGIN.get_epoll(), this, protocol_t::tcp));
             socket_key key = static_cast<socket_key>(new_sock.get());
             if (key) {
                 new_sock->update_peer_info();
