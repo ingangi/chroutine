@@ -50,8 +50,6 @@ private:
     std::string    m_port;
     raw_data_chan_t m_read_chan;
     raw_data_chan_t m_write_chan;
-    // chan_selecter_t m_write_selecter;
-    // raw_data_block_sptr_t m_data_block_for_write = nullptr;
 };
 
 }

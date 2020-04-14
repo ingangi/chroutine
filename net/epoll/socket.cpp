@@ -38,7 +38,7 @@ socket_t::socket_t(protocol_t protocol, int sock_flags, poll_sptr_t poller, epol
     assert(m_poller != nullptr && m_sink != nullptr);
     assert(m_protocol == protocol_t::tcp);  //for now
     int sock_type = m_protocol == protocol_t::tcp ? SOCK_STREAM : SOCK_DGRAM;
-    m_fd = socket(AF_UNSPEC, sock_type, sock_flags);
+    m_fd = socket(AF_INET/*AF_UNSPEC*/, sock_type, sock_flags);
     if (m_fd > 0) {
         after_create();
     }

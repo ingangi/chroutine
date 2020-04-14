@@ -33,7 +33,7 @@ public:
 		if (s_this.get() == nullptr) {
 			delete p_this;
 		} 
-		return dynamic_cast<chr_timer_t *>(s_this.get());
+		return static_cast<chr_timer_t *>(s_this.get());
 	}
 
     // if the timer is no more use, call this to detach from engin.

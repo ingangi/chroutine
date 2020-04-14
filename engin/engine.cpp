@@ -305,7 +305,7 @@ std::shared_ptr<curl_rsp_t> engine_t::exec_curl(const std::string & url
         return nullptr;
     }
 
-    curl_stub_t *stub = dynamic_cast<curl_stub_t *>(iter->second.get());
+    curl_stub_t *stub = static_cast<curl_stub_t *>(iter->second.get());
     if (stub == nullptr) {
         SPDLOG(ERROR, "{} failed: curl_stub_t * is nullptr", __FUNCTION__);
         return nullptr;

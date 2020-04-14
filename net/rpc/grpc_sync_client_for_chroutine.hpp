@@ -34,7 +34,7 @@ public:
 	{}
 
 	::grpc::StatusCode call_sync(RESULT_T &result) {
-		client_sync_call_t<RESULT_T> *call_ptr = dynamic_cast<client_sync_call_t<RESULT_T> *>(call());
+		client_sync_call_t<RESULT_T> *call_ptr = static_cast<client_sync_call_t<RESULT_T> *>(call());
 		if (call_ptr) {
 			call_ptr->wait_call();
 			result = call_ptr->m_result;
