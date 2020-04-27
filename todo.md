@@ -6,14 +6,20 @@
 
 ## tcp server/client based on epoll
 
-## share chroutine stack
+- tcp raw server [Done]
+- tcp raw client
+- tcp protobuf server
+- tcp protobuf client
+
+### redis client
+- based on hiredis async API
+
+## shared chroutine stack
 
 ## Low priority
 
 ### write to channel with select
 
 ### mysql client
-
-### redis client
 
 ### Optimize spin-lock strategy
