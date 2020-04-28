@@ -21,6 +21,7 @@ class epoll_handler_sink_it
 public:
     virtual void on_new_connection() {}
     virtual void on_new_data(epoll_handler_it *which, byte_t* data, ssize_t count) = 0;
+    virtual void on_closed(epoll_handler_it *which) = 0;
 };
 
 }

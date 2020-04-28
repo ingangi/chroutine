@@ -3,6 +3,7 @@
 #include "epoll_fd_handler.hpp"
 #include "epoll.hpp"
 #include "logger.hpp"
+#include "channel.hpp"
 #include <list>
 #include <unordered_map>
 
@@ -66,6 +67,8 @@ public:
 
 typedef std::shared_ptr<raw_data_block_t> raw_data_block_sptr_t;
 typedef std::list<raw_data_block_sptr_t>  raw_data_list_t;
+typedef std::shared_ptr<channel_t<raw_data_block_sptr_t> > raw_data_chan_t;
+typedef std::shared_ptr<channel_t<int> > socket_conn_res_chan_t;
 
 class socket_t: public epoll_handler_it
 {
@@ -96,6 +99,9 @@ public:
     }
     
     ssize_t write(const byte_t* buf, ssize_t length);
+    void set_conn_res_chan(const socket_conn_res_chan_t& chan) {
+        m_conn_res_chan = chan;
+    }
 
 private:
     void    after_create();
@@ -111,6 +117,7 @@ private:
     peer_info_t            m_peer_info;
     bool                   m_is_listener = false;
     raw_data_list_t        m_write_pending_list;
+    socket_conn_res_chan_t  m_conn_res_chan = nullptr;
 };
 
 //typedef std::shared_ptr<chr::socket_t> socket_sptr_t;

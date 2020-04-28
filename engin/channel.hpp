@@ -63,6 +63,14 @@ public:
         read(&data, false);
     }
 
+    void reset() {
+        m_lock.lock();
+        m_w_index = 0;
+        m_r_index = 0;
+        m_unread = 0;
+        m_lock.unlock();
+    }
+
 private:
     channel_t(int max_size) : m_max_size(max_size) {
         if (m_max_size <= 0)

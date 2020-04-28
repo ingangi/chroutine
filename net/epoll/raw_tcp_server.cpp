@@ -18,7 +18,7 @@ raw_tcp_server_t::~raw_tcp_server_t()
     SPDLOG(DEBUG, "{} destroy: {}:{}, this: {:p}", __FUNCTION__, m_host, m_port, (void*)(this));
 }
 
-void raw_tcp_server_t::start()
+int raw_tcp_server_t::start()
 {
     SPDLOG(DEBUG, "{} starting on: {}:{}", __FUNCTION__, m_host, m_port);
     m_state = server_state_t::starting;
@@ -34,7 +34,7 @@ void raw_tcp_server_t::start()
     error = getaddrinfo(m_host.c_str(), m_port.c_str(), &hints, &result);
     if (error != 0) {
         SPDLOG(ERROR, "{}: getaddrinfo error {}", __FUNCTION__, strerror(errno));
-        return;
+        return error;
     }
 
     int opt = SO_REUSEADDR;
@@ -55,19 +55,20 @@ void raw_tcp_server_t::start()
     if (result_iter == nullptr) {
         SPDLOG(ERROR, "{}: bind failed");
         assert(0);
-        return;
+        return -1;
     }
 
     freeaddrinfo(result);
     error = listen (m_listener->get_fd(), SOMAXCONN);
     if (error == -1) {
         SPDLOG(ERROR, "{}: listen error {}", __FUNCTION__, strerror(errno));
-        return;
+        return error;
     }
 
     m_listener->set_is_listener(true);
     m_listener->update_peer_info();
     m_state = server_state_t::serving;
+    return 0;
 }
 
 void raw_tcp_server_t::on_new_data(epoll_handler_it *which, byte_t* data, ssize_t count)
@@ -148,6 +149,21 @@ void raw_tcp_server_t::on_new_connection()
             }
         }
     }    
+}
+
+void raw_tcp_server_t::on_closed(epoll_handler_it *which)
+{
+    auto iter = m_connections.find(which);
+    if (iter != m_connections.end()) {        
+        auto &sock = iter->second;
+        if (sock) {
+            SPDLOG(INFO, "{}: {}:{} closed, remove it"
+                , __FUNCTION__
+                , sock->peer_info().remote_addr
+                , sock->peer_info().remote_port);
+        }
+        m_connections.erase(iter);
+    }
 }
 
 }

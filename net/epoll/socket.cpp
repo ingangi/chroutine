@@ -103,6 +103,12 @@ ssize_t socket_t::on_read()
 ssize_t socket_t::on_write()
 {
     m_poller->mod_fd(m_fd, EPOLLIN | EPOLLET);
+
+    if (m_conn_res_chan != nullptr) {
+        (*m_conn_res_chan) << 0;
+        m_conn_res_chan = nullptr;
+    }
+
     ssize_t total_written = 0;
     bool abort = false;
     while (has_write_pending() && !abort) {
@@ -143,6 +149,7 @@ int socket_t::on_close()
         , m_fd
         , m_peer_info.remote_addr
         , m_peer_info.remote_port);
+    m_sink->on_closed(this);
     return ::close(m_fd);
 }
 

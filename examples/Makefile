@@ -74,9 +74,12 @@ STACK:
 
 ECHOS:
 	(cd ./tcp_echo_server_example; make clean; make;)
+	
+RAWCLI:
+	(cd ./raw_tcp_client_example; make clean; make;)
 
 CLEAN:
-	(make clean;cd ./rpc_example; make clean; cd ../rpc_example/test_client; make clean; cd ../../http_client_example; make clean;cd ../channel_example; make clean;cd ../chutex_example; make clean;cd ../timer_example; make clean;cd ../sched_test; make clean;cd ../stack_test; make clean;cd ../tcp_echo_server_example; make clean;)
+	(make clean;cd ./rpc_example; make clean; cd ../rpc_example/test_client; make clean; cd ../../http_client_example; make clean;cd ../channel_example; make clean;cd ../chutex_example; make clean;cd ../timer_example; make clean;cd ../sched_test; make clean;cd ../stack_test; make clean;cd ../tcp_echo_server_example; make clean;cd ../raw_tcp_client_example;make clean;)
 
 ALLTEST:
-	(make clean;make;make RPCS;make RPCC;make HTTPC;make CHAN;make LOCK;make TIMER;make SCHED;make STACK;make ECHOS)
+	(make clean;make;make RPCS;make RPCC;make HTTPC;make CHAN;make LOCK;make TIMER;make SCHED;make STACK;make ECHOS;make RAWCLI)
