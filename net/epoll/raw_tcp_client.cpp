@@ -30,7 +30,7 @@ int raw_tcp_client_t::connect()
         SPDLOG(ERROR, "{} connect to {}:{} failed, m_socket fd={} is invalid", __FUNCTION__, m_host, m_port, m_socket->get_fd());
         return -1;
     }
-    int c_fd, ret;
+    int ret;
     struct sockaddr_in s_addr;
     memset(&s_addr, 0, sizeof (s_addr));
     s_addr.sin_family = AF_UNSPEC;

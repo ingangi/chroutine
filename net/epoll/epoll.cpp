@@ -109,8 +109,8 @@ int epoll_t::close_fd(epoll_handler_it* handler)
     if (!handler) {
         return 0;
     }
-    handler->on_close();
-    return del_fd(handler);
+    del_fd(handler);    
+    return handler->on_close();
 }
 
 epoll_handler_it* epoll_t::get_handler(int fd)
