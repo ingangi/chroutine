@@ -1,0 +1,8 @@
+aux_source_directory(. DIR_SRCS)
+aux_source_directory(../../engin DIR_SRCS)
+aux_source_directory(../../util DIR_SRCS)
+add_executable(chantest ${DIR_SRCS})
+set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb -std=c++11 -lpthread -DDEBUG_BUILD")
+set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall -std=c++11 -lpthread")
+target_link_libraries(chantest chroutine)

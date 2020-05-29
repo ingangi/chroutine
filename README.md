@@ -61,6 +61,11 @@ You can also run the examples and see the code to learn more:
 
 $ cd examples
 $ make ALLTEST
+
+# or use cmake
+$ cd examples/build
+$ cmake .
+$ make
 ```
 
 ## Install

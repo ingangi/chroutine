@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.12)
+project(example)
+
+include(chroutine.cmake)
+
+add_subdirectory(../ test)
+add_subdirectory(../channel_example/ chantest)
+add_subdirectory(../chutex_example/ locktest)
+add_subdirectory(../http_client_example/ curltest)
+add_subdirectory(../raw_tcp_client_example/ rawcli)
+add_subdirectory(../rpc_example/ rpcsrv)
+add_subdirectory(../rpc_example/test_client/ rpcclient)
+add_subdirectory(../sched_test/ schedtest)
+add_subdirectory(../stack_test/ stacktest)
+add_subdirectory(../tcp_echo_server_example/ echoserver)
+add_subdirectory(../timer_example/ timertest)

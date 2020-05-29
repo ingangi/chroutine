@@ -57,6 +57,8 @@ socket_t::socket_t(int fd, poll_sptr_t poller, epoll_handler_sink_it* sink, prot
     , m_poller(poller)
     , m_sink(sink)
 {
+    assert(m_poller != nullptr && m_sink != nullptr);
+    assert(m_protocol == protocol_t::tcp);  //for now
     assert(m_fd > 0);
     after_create();
     SPDLOG(DEBUG, "socket_t::socket_t() created, fd: {}, this: {:p}", m_fd, (void*)(this));
