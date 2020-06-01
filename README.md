@@ -30,42 +30,45 @@ ENGIN.create_chroutine([](void *){
 You can also run the examples and see the code to learn more:
 
 ```shell
-├── examples
-│   ├── channel_example
-│   │   ├── Makefile
-│   │   └── test_channel.cpp
-│   ├── chutex_example
-│   │   ├── Makefile
-│   │   └── test_chutex.cpp
-│   ├── http_client_example
-│   │   ├── Makefile
-│   │   └── test_main.cpp
-│   ├── Makefile
-│   ├── rpc_example
-│   │   ├── Makefile
-│   │   ├── test_client
-│   │   │   ├── Makefile
-│   │   │   ├── test_client.cpp
-│   │   │   ├── test_client.hpp
-│   │   │   └── test_client_main.cpp
-│   │   ├── test_server.cpp
-│   │   ├── test_server.hpp
-│   │   └── test_server_main.cpp
-│   ├── sched_test
-│   │   ├── Makefile
-│   │   └── test_sched.cpp
-│   ├── test_chroutine.cpp
-│   └── timer_example
-│       ├── Makefile
-│       └── test_timer.cpp
+├── channel_example
+│   ├── CMakeLists.txt
+│   └── test_channel.cpp
+├── chutex_example
+│   ├── CMakeLists.txt
+│   └── test_chutex.cpp
+├── CMakeLists.txt
+├── http_client_example
+│   ├── CMakeLists.txt
+│   └── test_main.cpp
+├── raw_tcp_client_example
+│   ├── CMakeLists.txt
+│   └── raw_tcp_client_example.cpp
+├── rpc_example
+│   ├── CMakeLists.txt
+│   ├── test_client
+│   │   ├── CMakeLists.txt
+│   │   ├── test_client.cpp
+│   │   ├── test_client.hpp
+│   │   └── test_client_main.cpp
+│   ├── test_server.cpp
+│   ├── test_server.hpp
+│   └── test_server_main.cpp
+├── sched_test
+│   ├── CMakeLists.txt
+│   └── test_sched.cpp
+├── stack_test
+│   ├── CMakeLists.txt
+│   └── test_stack.cpp
+├── tcp_echo_server_example
+│   ├── CMakeLists.txt
+│   └── test_echo_server.cpp
+├── test_chroutine.cpp
+└── timer_example
+    ├── CMakeLists.txt
+    └── test_timer.cpp
 
-$ cd examples
-$ make ALLTEST
-
-# or use cmake
 $ cd examples/build
-$ cmake .
-$ make
+$ ./build.sh
 ```
 
 ## Install
