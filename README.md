@@ -68,7 +68,9 @@ You can also run the examples and see the code to learn more:
     └── test_timer.cpp
 
 $ cd examples/build
-$ ./build.sh
+$ ./configure.sh
+$ cd build
+$ make
 ```
 
 ## Install
