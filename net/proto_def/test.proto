@@ -3,11 +3,16 @@ package rpcpb;
 
 service Test {
     rpc HowAreYou(TestReq) returns (TestRsp) {}
+    rpc WhatTime(TestReq) returns (WhatTimeRsp) {}
 }
 
 message TestReq {
 }
 
 message TestRsp {
+    string rsp = 1;
+}
+
+message WhatTimeRsp {
     string rsp = 1;
 }

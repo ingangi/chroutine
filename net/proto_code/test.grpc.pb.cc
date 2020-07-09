@@ -20,6 +20,7 @@ namespace rpcpb {
 
 static const char* Test_method_names[] = {
   "/rpcpb.Test/HowAreYou",
+  "/rpcpb.Test/WhatTime",
 };
 
 std::unique_ptr< Test::Stub> Test::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -30,6 +31,7 @@ std::unique_ptr< Test::Stub> Test::NewStub(const std::shared_ptr< ::grpc::Channe
 
 Test::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
   : channel_(channel), rpcmethod_HowAreYou_(Test_method_names[0], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_WhatTime_(Test_method_names[1], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status Test::Stub::HowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::rpcpb::TestRsp* response) {
@@ -48,18 +50,46 @@ void Test::Stub::experimental_async::HowAreYou(::grpc::ClientContext* context, c
   return ::grpc::internal::ClientAsyncResponseReaderFactory< ::rpcpb::TestRsp>::Create(channel_.get(), cq, rpcmethod_HowAreYou_, context, request, false);
 }
 
+::grpc::Status Test::Stub::WhatTime(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::rpcpb::WhatTimeRsp* response) {
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_WhatTime_, context, request, response);
+}
+
+void Test::Stub::experimental_async::WhatTime(::grpc::ClientContext* context, const ::rpcpb::TestReq* request, ::rpcpb::WhatTimeRsp* response, std::function<void(::grpc::Status)> f) {
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_WhatTime_, context, request, response, std::move(f));
+}
+
+::grpc::ClientAsyncResponseReader< ::rpcpb::WhatTimeRsp>* Test::Stub::AsyncWhatTimeRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::rpcpb::WhatTimeRsp>::Create(channel_.get(), cq, rpcmethod_WhatTime_, context, request, true);
+}
+
+::grpc::ClientAsyncResponseReader< ::rpcpb::WhatTimeRsp>* Test::Stub::PrepareAsyncWhatTimeRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::rpcpb::WhatTimeRsp>::Create(channel_.get(), cq, rpcmethod_WhatTime_, context, request, false);
+}
+
 Test::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Test_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Test::Service, ::rpcpb::TestReq, ::rpcpb::TestRsp>(
           std::mem_fn(&Test::Service::HowAreYou), this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      Test_method_names[1],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< Test::Service, ::rpcpb::TestReq, ::rpcpb::WhatTimeRsp>(
+          std::mem_fn(&Test::Service::WhatTime), this)));
 }
 
 Test::Service::~Service() {
 }
 
 ::grpc::Status Test::Service::HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status Test::Service::WhatTime(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::WhatTimeRsp* response) {
   (void) context;
   (void) request;
   (void) response;

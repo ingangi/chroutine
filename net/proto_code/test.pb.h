@@ -38,7 +38,7 @@ namespace protobuf_test_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[2];
+  static const ::google::protobuf::internal::ParseTable schema[3];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -52,11 +52,15 @@ extern TestReqDefaultTypeInternal _TestReq_default_instance_;
 class TestRsp;
 class TestRspDefaultTypeInternal;
 extern TestRspDefaultTypeInternal _TestRsp_default_instance_;
+class WhatTimeRsp;
+class WhatTimeRspDefaultTypeInternal;
+extern WhatTimeRspDefaultTypeInternal _WhatTimeRsp_default_instance_;
 }  // namespace rpcpb
 namespace google {
 namespace protobuf {
 template<> ::rpcpb::TestReq* Arena::CreateMaybeMessage<::rpcpb::TestReq>(Arena*);
 template<> ::rpcpb::TestRsp* Arena::CreateMaybeMessage<::rpcpb::TestRsp>(Arena*);
+template<> ::rpcpb::WhatTimeRsp* Arena::CreateMaybeMessage<::rpcpb::WhatTimeRsp>(Arena*);
 }  // namespace protobuf
 }  // namespace google
 namespace rpcpb {
@@ -268,6 +272,117 @@ class TestRsp : public ::google::protobuf::Message /* @@protoc_insertion_point(c
   mutable ::google::protobuf::internal::CachedSize _cached_size_;
   friend struct ::protobuf_test_2eproto::TableStruct;
 };
+// -------------------------------------------------------------------
+
+class WhatTimeRsp : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:rpcpb.WhatTimeRsp) */ {
+ public:
+  WhatTimeRsp();
+  virtual ~WhatTimeRsp();
+
+  WhatTimeRsp(const WhatTimeRsp& from);
+
+  inline WhatTimeRsp& operator=(const WhatTimeRsp& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  WhatTimeRsp(WhatTimeRsp&& from) noexcept
+    : WhatTimeRsp() {
+    *this = ::std::move(from);
+  }
+
+  inline WhatTimeRsp& operator=(WhatTimeRsp&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const WhatTimeRsp& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const WhatTimeRsp* internal_default_instance() {
+    return reinterpret_cast<const WhatTimeRsp*>(
+               &_WhatTimeRsp_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  void Swap(WhatTimeRsp* other);
+  friend void swap(WhatTimeRsp& a, WhatTimeRsp& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline WhatTimeRsp* New() const final {
+    return CreateMaybeMessage<WhatTimeRsp>(NULL);
+  }
+
+  WhatTimeRsp* New(::google::protobuf::Arena* arena) const final {
+    return CreateMaybeMessage<WhatTimeRsp>(arena);
+  }
+  void CopyFrom(const ::google::protobuf::Message& from) final;
+  void MergeFrom(const ::google::protobuf::Message& from) final;
+  void CopyFrom(const WhatTimeRsp& from);
+  void MergeFrom(const WhatTimeRsp& from);
+  void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) final;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const final;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(WhatTimeRsp* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // string rsp = 1;
+  void clear_rsp();
+  static const int kRspFieldNumber = 1;
+  const ::std::string& rsp() const;
+  void set_rsp(const ::std::string& value);
+  #if LANG_CXX11
+  void set_rsp(::std::string&& value);
+  #endif
+  void set_rsp(const char* value);
+  void set_rsp(const char* value, size_t size);
+  ::std::string* mutable_rsp();
+  ::std::string* release_rsp();
+  void set_allocated_rsp(::std::string* rsp);
+
+  // @@protoc_insertion_point(class_scope:rpcpb.WhatTimeRsp)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr rsp_;
+  mutable ::google::protobuf::internal::CachedSize _cached_size_;
+  friend struct ::protobuf_test_2eproto::TableStruct;
+};
 // ===================================================================
 
 
@@ -336,9 +451,68 @@ inline void TestRsp::set_allocated_rsp(::std::string* rsp) {
   // @@protoc_insertion_point(field_set_allocated:rpcpb.TestRsp.rsp)
 }
 
+// -------------------------------------------------------------------
+
+// WhatTimeRsp
+
+// string rsp = 1;
+inline void WhatTimeRsp::clear_rsp() {
+  rsp_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& WhatTimeRsp::rsp() const {
+  // @@protoc_insertion_point(field_get:rpcpb.WhatTimeRsp.rsp)
+  return rsp_.GetNoArena();
+}
+inline void WhatTimeRsp::set_rsp(const ::std::string& value) {
+  
+  rsp_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:rpcpb.WhatTimeRsp.rsp)
+}
+#if LANG_CXX11
+inline void WhatTimeRsp::set_rsp(::std::string&& value) {
+  
+  rsp_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:rpcpb.WhatTimeRsp.rsp)
+}
+#endif
+inline void WhatTimeRsp::set_rsp(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  rsp_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:rpcpb.WhatTimeRsp.rsp)
+}
+inline void WhatTimeRsp::set_rsp(const char* value, size_t size) {
+  
+  rsp_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:rpcpb.WhatTimeRsp.rsp)
+}
+inline ::std::string* WhatTimeRsp::mutable_rsp() {
+  
+  // @@protoc_insertion_point(field_mutable:rpcpb.WhatTimeRsp.rsp)
+  return rsp_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* WhatTimeRsp::release_rsp() {
+  // @@protoc_insertion_point(field_release:rpcpb.WhatTimeRsp.rsp)
+  
+  return rsp_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void WhatTimeRsp::set_allocated_rsp(::std::string* rsp) {
+  if (rsp != NULL) {
+    
+  } else {
+    
+  }
+  rsp_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), rsp);
+  // @@protoc_insertion_point(field_set_allocated:rpcpb.WhatTimeRsp.rsp)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 

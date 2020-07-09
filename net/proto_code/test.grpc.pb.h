@@ -44,15 +44,25 @@ class Test final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::TestRsp>> PrepareAsyncHowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::TestRsp>>(PrepareAsyncHowAreYouRaw(context, request, cq));
     }
+    virtual ::grpc::Status WhatTime(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::rpcpb::WhatTimeRsp* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::WhatTimeRsp>> AsyncWhatTime(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::WhatTimeRsp>>(AsyncWhatTimeRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::WhatTimeRsp>> PrepareAsyncWhatTime(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::WhatTimeRsp>>(PrepareAsyncWhatTimeRaw(context, request, cq));
+    }
     class experimental_async_interface {
      public:
       virtual ~experimental_async_interface() {}
       virtual void HowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void WhatTime(::grpc::ClientContext* context, const ::rpcpb::TestReq* request, ::rpcpb::WhatTimeRsp* response, std::function<void(::grpc::Status)>) = 0;
     };
     virtual class experimental_async_interface* experimental_async() { return nullptr; }
   private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::TestRsp>* AsyncHowAreYouRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::TestRsp>* PrepareAsyncHowAreYouRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::WhatTimeRsp>* AsyncWhatTimeRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::rpcpb::WhatTimeRsp>* PrepareAsyncWhatTimeRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -64,10 +74,18 @@ class Test final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::TestRsp>> PrepareAsyncHowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::TestRsp>>(PrepareAsyncHowAreYouRaw(context, request, cq));
     }
+    ::grpc::Status WhatTime(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::rpcpb::WhatTimeRsp* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::WhatTimeRsp>> AsyncWhatTime(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::WhatTimeRsp>>(AsyncWhatTimeRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::WhatTimeRsp>> PrepareAsyncWhatTime(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rpcpb::WhatTimeRsp>>(PrepareAsyncWhatTimeRaw(context, request, cq));
+    }
     class experimental_async final :
       public StubInterface::experimental_async_interface {
      public:
       void HowAreYou(::grpc::ClientContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response, std::function<void(::grpc::Status)>) override;
+      void WhatTime(::grpc::ClientContext* context, const ::rpcpb::TestReq* request, ::rpcpb::WhatTimeRsp* response, std::function<void(::grpc::Status)>) override;
      private:
       friend class Stub;
       explicit experimental_async(Stub* stub): stub_(stub) { }
@@ -81,7 +99,10 @@ class Test final {
     class experimental_async async_stub_{this};
     ::grpc::ClientAsyncResponseReader< ::rpcpb::TestRsp>* AsyncHowAreYouRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::rpcpb::TestRsp>* PrepareAsyncHowAreYouRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::rpcpb::WhatTimeRsp>* AsyncWhatTimeRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::rpcpb::WhatTimeRsp>* PrepareAsyncWhatTimeRaw(::grpc::ClientContext* context, const ::rpcpb::TestReq& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_HowAreYou_;
+    const ::grpc::internal::RpcMethod rpcmethod_WhatTime_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -90,6 +111,7 @@ class Test final {
     Service();
     virtual ~Service();
     virtual ::grpc::Status HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response);
+    virtual ::grpc::Status WhatTime(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::WhatTimeRsp* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_HowAreYou : public BaseClass {
@@ -111,7 +133,27 @@ class Test final {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_HowAreYou<Service > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_WhatTime : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service *service) {}
+   public:
+    WithAsyncMethod_WhatTime() {
+      ::grpc::Service::MarkMethodAsync(1);
+    }
+    ~WithAsyncMethod_WhatTime() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status WhatTime(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::WhatTimeRsp* response) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestWhatTime(::grpc::ServerContext* context, ::rpcpb::TestReq* request, ::grpc::ServerAsyncResponseWriter< ::rpcpb::WhatTimeRsp>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_HowAreYou<WithAsyncMethod_WhatTime<Service > > AsyncService;
   template <class BaseClass>
   class ExperimentalWithCallbackMethod_HowAreYou : public BaseClass {
    private:
@@ -137,7 +179,32 @@ class Test final {
     }
     virtual void HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
   };
-  typedef ExperimentalWithCallbackMethod_HowAreYou<Service > ExperimentalCallbackService;
+  template <class BaseClass>
+  class ExperimentalWithCallbackMethod_WhatTime : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service *service) {}
+   public:
+    ExperimentalWithCallbackMethod_WhatTime() {
+      ::grpc::Service::experimental().MarkMethodCallback(1,
+        new ::grpc::internal::CallbackUnaryHandler< ::rpcpb::TestReq, ::rpcpb::WhatTimeRsp>(
+          [this](::grpc::ServerContext* context,
+                 const ::rpcpb::TestReq* request,
+                 ::rpcpb::WhatTimeRsp* response,
+                 ::grpc::experimental::ServerCallbackRpcController* controller) {
+                   return this->WhatTime(context, request, response, controller);
+                 }));
+    }
+    ~ExperimentalWithCallbackMethod_WhatTime() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status WhatTime(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::WhatTimeRsp* response) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual void WhatTime(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::WhatTimeRsp* response, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+  };
+  typedef ExperimentalWithCallbackMethod_HowAreYou<ExperimentalWithCallbackMethod_WhatTime<Service > > ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_HowAreYou : public BaseClass {
    private:
@@ -151,6 +218,23 @@ class Test final {
     }
     // disable synchronous version of this method
     ::grpc::Status HowAreYou(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::TestRsp* response) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_WhatTime : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service *service) {}
+   public:
+    WithGenericMethod_WhatTime() {
+      ::grpc::Service::MarkMethodGeneric(1);
+    }
+    ~WithGenericMethod_WhatTime() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status WhatTime(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::WhatTimeRsp* response) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -173,6 +257,26 @@ class Test final {
     }
     void RequestHowAreYou(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_WhatTime : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service *service) {}
+   public:
+    WithRawMethod_WhatTime() {
+      ::grpc::Service::MarkMethodRaw(1);
+    }
+    ~WithRawMethod_WhatTime() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status WhatTime(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::WhatTimeRsp* response) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestWhatTime(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -201,6 +305,31 @@ class Test final {
     virtual void HowAreYou(::grpc::ServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
   };
   template <class BaseClass>
+  class ExperimentalWithRawCallbackMethod_WhatTime : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service *service) {}
+   public:
+    ExperimentalWithRawCallbackMethod_WhatTime() {
+      ::grpc::Service::experimental().MarkMethodRawCallback(1,
+        new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+          [this](::grpc::ServerContext* context,
+                 const ::grpc::ByteBuffer* request,
+                 ::grpc::ByteBuffer* response,
+                 ::grpc::experimental::ServerCallbackRpcController* controller) {
+                   this->WhatTime(context, request, response, controller);
+                 }));
+    }
+    ~ExperimentalWithRawCallbackMethod_WhatTime() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status WhatTime(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::WhatTimeRsp* response) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual void WhatTime(::grpc::ServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+  };
+  template <class BaseClass>
   class WithStreamedUnaryMethod_HowAreYou : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
@@ -220,9 +349,29 @@ class Test final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedHowAreYou(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::rpcpb::TestReq,::rpcpb::TestRsp>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_HowAreYou<Service > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_WhatTime : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service *service) {}
+   public:
+    WithStreamedUnaryMethod_WhatTime() {
+      ::grpc::Service::MarkMethodStreamed(1,
+        new ::grpc::internal::StreamedUnaryHandler< ::rpcpb::TestReq, ::rpcpb::WhatTimeRsp>(std::bind(&WithStreamedUnaryMethod_WhatTime<BaseClass>::StreamedWhatTime, this, std::placeholders::_1, std::placeholders::_2)));
+    }
+    ~WithStreamedUnaryMethod_WhatTime() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status WhatTime(::grpc::ServerContext* context, const ::rpcpb::TestReq* request, ::rpcpb::WhatTimeRsp* response) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedWhatTime(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::rpcpb::TestReq,::rpcpb::WhatTimeRsp>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_HowAreYou<WithStreamedUnaryMethod_WhatTime<Service > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_HowAreYou<Service > StreamedService;
+  typedef WithStreamedUnaryMethod_HowAreYou<WithStreamedUnaryMethod_WhatTime<Service > > StreamedService;
 };
 
 }  // namespace rpcpb

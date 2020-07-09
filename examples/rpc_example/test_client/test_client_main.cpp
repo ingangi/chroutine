@@ -18,7 +18,7 @@ int main(int argc, char **argv)
         SPDLOG(INFO, "grpc_async_client_t {:p} created, is it ready? {}", (void*)client, client->ready());
 
         int i = 0;
-        call_Test_HowAreYou caller(client);
+        call_Service_API<rpcpb::Test, rpcpb::TestReq, rpcpb::TestRsp> howareyou_caller(client);
         rpcpb::TestRsp rsp;
 
         while (client) {            
@@ -31,7 +31,7 @@ int main(int argc, char **argv)
             // }
 
             SPDLOG(INFO, "try to call call_Test_HowAreYou the {}th time, is it ready? {}", i, client->ready());
-            ::grpc::StatusCode code = caller.call_sync(rsp);
+            ::grpc::StatusCode code = howareyou_caller.call_sync(rsp);
             SPDLOG(INFO, "call_Test_HowAreYou code={} , rsp:{}. clinet ready? {} ", code, rsp.rsp(), client->ready());
 
             // how we destroy a client
