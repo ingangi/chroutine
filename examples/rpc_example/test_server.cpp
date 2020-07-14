@@ -2,7 +2,14 @@
 #include "logger.hpp"
 #include "engine.hpp"
 
-int Test_HowAreYou::do_work() 
+
+template <> int service_api_t<rpcpb::Test, rpcpb::TestReq, rpcpb::TestRsp>::request_service()
+{
+	m_service_ptr->RequestHowAreYou(&m_ctx, &m_req_msg, &m_responser, m_que_ptr, m_que_ptr, this);
+	return 0;
+}
+
+template <> int service_api_t<rpcpb::Test, rpcpb::TestReq, rpcpb::TestRsp>::do_work()
 {
 	assert(ENGIN.get_current_chroutine_id() != chr::INVALID_ID);
     SPDLOG(INFO, "{} HowAreYou get req, in chroutine: {}", __FUNCTION__, ENGIN.get_current_chroutine_id());
@@ -25,6 +32,6 @@ int test_rpc_server::register_service(::grpc::ServerBuilder &builder)
 
 int test_rpc_server::listen_requests()
 {
-	Test_HowAreYou(&m_service_Test, m_grpc_que_ptr.get()).re_serve();
+	service_api_t<rpcpb::Test, rpcpb::TestReq, rpcpb::TestRsp>(&m_service_Test, m_grpc_que_ptr.get()).re_serve();
 	return 0;
 }

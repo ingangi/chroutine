@@ -18,7 +18,7 @@ int main(int argc, char **argv)
         SPDLOG(INFO, "grpc_async_client_t {:p} created, is it ready? {}", (void*)client, client->ready());
 
         int i = 0;
-        call_Service_API<rpcpb::Test, rpcpb::TestReq, rpcpb::TestRsp> howareyou_caller(client);
+        call_service_api_t<rpcpb::Test, rpcpb::TestReq, rpcpb::TestRsp> howareyou_caller(client);
         rpcpb::TestRsp rsp;
 
         while (client) {            

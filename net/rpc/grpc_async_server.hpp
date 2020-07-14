@@ -74,4 +74,37 @@ protected:
 };
 
 }
+
+template<typename service_type_t, typename req_type_t, typename rsp_type_t>
+class service_api_t final : public chr::call_round_it
+{
+  public:
+    service_api_t(typename service_type_t::AsyncService *service, ::grpc::ServerCompletionQueue *cq)
+        : m_service_ptr(service)
+        , m_que_ptr(cq)
+        , m_responser(&m_ctx)
+    {}
+
+    chr::call_round_it *create_me() {
+        return new service_api_t<service_type_t,req_type_t,rsp_type_t>(m_service_ptr, m_que_ptr);
+    }
+
+    // add to listen
+    int request_service() {
+        return 0;
+    }
+
+    // called when client requests come
+    int do_work() {
+		return 0;
+	}
+
+  public:
+    typename service_type_t::AsyncService *m_service_ptr;
+    ::grpc::ServerCompletionQueue *m_que_ptr;
+    ::grpc::ServerContext m_ctx;
+    req_type_t m_req_msg;
+    rsp_type_t m_rsp_msg;
+    ::grpc::ServerAsyncResponseWriter<rsp_type_t> m_responser;
+};
 #endif

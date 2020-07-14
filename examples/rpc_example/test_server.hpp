@@ -6,43 +6,13 @@
 #include "test.grpc.pb.h"
 #include "grpc_async_server.hpp"
 
-// you have to implement every rpc-interfaces you defined in proto file by write
-// a class for each of them.  Fuck!
-// recommended class name format: "[SERVICE]_[INTERFACE]"
-// for example (see in proto_def/test.proto):
 // service Test {
 //     rpc HowAreYou(TestReq) returns (TestRsp) {}
 // }
-class Test_HowAreYou final : public chr::call_round_it
-{
-  public:
-    Test_HowAreYou(::rpcpb::Test::AsyncService *service, ::grpc::ServerCompletionQueue *cq)
-        : m_service_ptr(service)
-        , m_que_ptr(cq)
-        , m_responser(&m_ctx)
-    {}
 
-    chr::call_round_it *create_me() {
-        return new Test_HowAreYou(m_service_ptr, m_que_ptr);
-    }
-
-    // add to listen
-    int request_service() {
-        m_service_ptr->RequestHowAreYou(&m_ctx, &m_req_msg, &m_responser, m_que_ptr, m_que_ptr, this);
-        return 0;
-    }
-
-    // called when client requests come
-    int do_work();
-
-  public:
-    ::rpcpb::Test::AsyncService *m_service_ptr;
-    ::grpc::ServerCompletionQueue *m_que_ptr;
-    ::grpc::ServerContext m_ctx;
-    rpcpb::TestReq m_req_msg;
-    rpcpb::TestRsp m_rsp_msg;
-    ::grpc::ServerAsyncResponseWriter<rpcpb::TestRsp> m_responser;
-};
+// for API: Test::HowAreYou
+template <> int service_api_t<rpcpb::Test, rpcpb::TestReq, rpcpb::TestRsp>::request_service();
+template <> int service_api_t<rpcpb::Test, rpcpb::TestReq, rpcpb::TestRsp>::do_work();
 
 // it is your server, it carries the `Test` service and some other services if needed.
 // you have to pick a ip&port for your server to run on by calling the `start` function.

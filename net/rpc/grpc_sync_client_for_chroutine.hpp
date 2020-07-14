@@ -92,28 +92,28 @@ private:
 }
 
 
-// The ReqType and RspType of different API should be different, 
-// so we can use ReqType+RspType to identify an API
-template<typename ServiceType, typename ReqType, typename RspType>
-class call_Service_API : public chr::client_sync_call_t<RspType>
+// The req_type_t and rsp_type_t of different API should be different, 
+// so we can use req_type_t+rsp_type_t to identify an API
+template<typename service_type_t, typename req_type_t, typename rsp_type_t>
+class call_service_api_t : public chr::client_sync_call_t<rsp_type_t>
 {
 public:
-    call_Service_API(chr::grpc_async_client_t *client) : chr::client_sync_call_t<RspType>(client) {}
-    call_Service_API(call_Service_API &other) : chr::client_sync_call_t<RspType>(other) {
+    call_service_api_t(chr::grpc_async_client_t *client) : chr::client_sync_call_t<rsp_type_t>(client) {}
+    call_service_api_t(call_service_api_t &other) : chr::client_sync_call_t<rsp_type_t>(other) {
         m_req = other.m_req;
     }
 
 private:
     chr::client_call_it * clone_me() {
-        return new call_Service_API<ServiceType, ReqType, RspType>(*this);
+        return new call_service_api_t<service_type_t, req_type_t, rsp_type_t>(*this);
     }
     int call_impl() {
         return 0;
     }
 
 public:
-    std::unique_ptr<typename ServiceType::Stub> m_stub;
-    ReqType m_req;
-    std::unique_ptr<::grpc::ClientAsyncResponseReader<RspType> > m_rsp_reader;
+    std::unique_ptr<typename service_type_t::Stub> m_stub;
+    req_type_t m_req;
+    std::unique_ptr<::grpc::ClientAsyncResponseReader<rsp_type_t> > m_rsp_reader;
 };
 #endif
